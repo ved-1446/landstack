@@ -1,0 +1,15 @@
+.env
+node_modules/
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+# model files
+*.joblib
+*.pkl
+*.onnx
+*.pt
+# database data
+pgdata/
+*.sqlite3

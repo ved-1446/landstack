@@ -1,0 +1,234 @@
+{
+  "seed": 42,
+  "plots": 100,
+  "problem_rate": 0.4,
+  "reference_date": "2026-01-01",
+  "conflicts": {
+    "MH000100000001": [
+      "missing_record"
+    ],
+    "MH000100000004": [
+      "restricted_zone_clash"
+    ],
+    "MH000100000005": [
+      "owner_mismatch"
+    ],
+    "MH000100000006": [
+      "tax_overdue"
+    ],
+    "MH000100000007": [
+      "invalid_boundary"
+    ],
+    "MH000100000012": [
+      "boundary_overlap"
+    ],
+    "MH000100000014": [
+      "tax_overdue"
+    ],
+    "MH000100000015": [
+      "boundary_overlap"
+    ],
+    "MH000100000018": [
+      "invalid_boundary"
+    ],
+    "MH000100000020": [
+      "owner_mismatch"
+    ],
+    "MH000200000021": [
+      "boundary_overlap"
+    ],
+    "MH000200000025": [
+      "missing_record"
+    ],
+    "MH000200000026": [
+      "area_mismatch"
+    ],
+    "MH000200000028": [
+      "invalid_boundary"
+    ],
+    "MH000200000029": [
+      "duplicate_survey_no"
+    ],
+    "MH000200000030": [
+      "tax_overdue"
+    ],
+    "MH000200000032": [
+      "duplicate_survey_no"
+    ],
+    "MH000200000036": [
+      "owner_mismatch"
+    ],
+    "MH000300000044": [
+      "restricted_zone_clash"
+    ],
+    "MH000300000054": [
+      "duplicate_survey_no"
+    ],
+    "MH000300000055": [
+      "area_mismatch"
+    ],
+    "MH000300000058": [
+      "invalid_boundary"
+    ],
+    "MH000400000065": [
+      "missing_record"
+    ],
+    "MH000400000068": [
+      "duplicate_survey_no"
+    ],
+    "MH000400000070": [
+      "boundary_overlap"
+    ],
+    "MH000400000072": [
+      "restricted_zone_clash"
+    ],
+    "MH000400000076": [
+      "restricted_zone_clash"
+    ],
+    "MH000400000078": [
+      "boundary_overlap"
+    ],
+    "MH000400000080": [
+      "area_mismatch"
+    ],
+    "MH000500000082": [
+      "boundary_overlap"
+    ],
+    "MH000500000083": [
+      "duplicate_survey_no"
+    ],
+    "MH000500000085": [
+      "boundary_overlap"
+    ],
+    "MH000500000087": [
+      "missing_record"
+    ],
+    "MH000500000089": [
+      "duplicate_survey_no"
+    ],
+    "MH000500000090": [
+      "owner_mismatch"
+    ],
+    "MH000500000091": [
+      "boundary_overlap"
+    ],
+    "MH000500000094": [
+      "duplicate_survey_no"
+    ],
+    "MH000500000095": [
+      "area_mismatch"
+    ],
+    "MH000500000096": [
+      "tax_overdue"
+    ],
+    "MH000500000098": [
+      "duplicate_survey_no"
+    ]
+  },
+  "details": {
+    "MH000100000001": {
+      "missing_table": "ror_records"
+    },
+    "MH000100000004": {
+      "zone_fraction": 0.473
+    },
+    "MH000100000012": {
+      "partner": "MH000400000070"
+    },
+    "MH000100000015": {
+      "partner": "MH000500000082"
+    },
+    "MH000200000021": {
+      "partner": "MH000500000091"
+    },
+    "MH000200000025": {
+      "missing_table": "registrations"
+    },
+    "MH000200000029": {
+      "partner": "MH000200000032"
+    },
+    "MH000200000032": {
+      "partner": "MH000200000029"
+    },
+    "MH000300000044": {
+      "zone_fraction": 0.651
+    },
+    "MH000300000054": {
+      "partner": "MH000500000094"
+    },
+    "MH000400000065": {
+      "missing_table": "tax_records"
+    },
+    "MH000400000068": {
+      "partner": "MH000500000083"
+    },
+    "MH000400000070": {
+      "partner": "MH000100000012"
+    },
+    "MH000400000072": {
+      "zone_fraction": 0.625
+    },
+    "MH000400000076": {
+      "zone_fraction": 0.47
+    },
+    "MH000400000078": {
+      "partner": "MH000500000085"
+    },
+    "MH000500000082": {
+      "partner": "MH000100000015"
+    },
+    "MH000500000083": {
+      "partner": "MH000400000068"
+    },
+    "MH000500000085": {
+      "partner": "MH000400000078"
+    },
+    "MH000500000087": {
+      "missing_table": "ror_records"
+    },
+    "MH000500000089": {
+      "partner": "MH000500000098"
+    },
+    "MH000500000091": {
+      "partner": "MH000200000021"
+    },
+    "MH000500000094": {
+      "partner": "MH000300000054"
+    },
+    "MH000500000098": {
+      "partner": "MH000500000089"
+    }
+  },
+  "decoys": [
+    {
+      "ulpin": "MH000100000010",
+      "ror_owner": "Ramesh Kulkarni",
+      "registration_owner": "Kulkarni Ramesh S."
+    },
+    {
+      "ulpin": "MH000200000040",
+      "ror_owner": "Sunita Deshpande",
+      "registration_owner": "Sunita R. Deshpande"
+    },
+    {
+      "ulpin": "MH000300000042",
+      "ror_owner": "Prakash Joshi",
+      "registration_owner": "Joshi Prakash"
+    },
+    {
+      "ulpin": "MH000300000052",
+      "ror_owner": "Anita Patil",
+      "registration_owner": "Anita D Patil"
+    },
+    {
+      "ulpin": "MH000400000064",
+      "ror_owner": "Vijay Shinde",
+      "registration_owner": "Vijay K. Shinde"
+    },
+    {
+      "ulpin": "MH000400000066",
+      "ror_owner": "Meena Jadhav",
+      "registration_owner": "Jadhav Meena D."
+    }
+  ]
+}
