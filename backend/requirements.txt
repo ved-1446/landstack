@@ -2,3 +2,4 @@ psycopg[binary]>=3.2
 shapely>=2.0
 pandas>=2.2
 pytest>=8.0
+scikit-learn>=1.5

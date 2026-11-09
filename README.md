@@ -41,3 +41,11 @@ python db/seed.py --plots 100 --problem-rate 0.4 --seed 42
 ```
 python -m pytest backend/tests -q
 ```
+
+## Run the checks (Phase 2)
+
+Run from the repo root with the virtual environment active and the database seeded:
+```
+python -m backend.app.checks
+```
+This prints flagged vs planted counts per conflict type, the band counts and the top 3 plots.

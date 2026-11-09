@@ -61,3 +61,11 @@ A map app on fake land data. It shows plots, gathers each plot's records into on
 
 ## Tools and sharing
 Claude Code and Antigravity are both used, one at a time, in this same folder. This brief and `docs/HANDOFF.md` are how they share what has been done.
+
+## Status and conventions (updated after Phase 2)
+- Phases 0, 1 and 2 are built. See `docs/HANDOFF.md` for the exact state.
+- All shared constants (points, bands, thresholds, REFERENCE_DATE) live in `backend/app/config.py`.
+- Checks live in `backend/app/checks.py` (raw PostGIS SQL); the score is added up in `backend/app/scoring.py`.
+- Owner names are compared by `backend/app/names.py` (normalise, TF-IDF character n-grams, cosine similarity, threshold 0.60). This is not an ML model and never changes the score.
+- Invalid shapes are skipped by the overlap, zone and area checks and reported by the invalid-boundary check.
+- Run Python from the repo root: `python -m backend.app.checks`, `python -m pytest backend/tests -q`.

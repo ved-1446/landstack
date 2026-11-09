@@ -10,6 +10,7 @@ import json
 import math
 import os
 import random
+import sys
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -17,8 +18,9 @@ from shapely import to_wkt
 from shapely.affinity import translate
 from shapely.geometry import Polygon, box
 
-REFERENCE_DATE = date(2026, 1, 1)  # fixed "today" for the tax rule
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+from backend.app.config import REFERENCE_DATE  # noqa: E402  (single copy lives in config.py)
 TRUTH_PATH = Path(__file__).resolve().parent / "planted_truth.json"
 
 ORIGIN_LON, ORIGIN_LAT = 73.80, 18.55  # near Pune
