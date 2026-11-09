@@ -99,3 +99,43 @@ States: `maharashtra`, `karnataka`, `uttar_pradesh`. Only ulpins that already ex
 ```
 python -m pytest backend/tests -q
 ```
+
+## Login, roles and rate limits (Phase 7)
+
+**1. Add the secrets to `.env`.** The API will not start without a real `JWT_SECRET` (it refuses the placeholder). Generate a value and add these lines to your `.env` (and, as a template without the real value, to `.env.example`):
+```
+python -c "import secrets; print(secrets.token_urlsafe(48))"
+```
+```
+JWT_SECRET=paste-the-generated-value-here
+JWT_EXPIRE_MINUTES=60
+```
+In `.env.example` use `JWT_SECRET=change-me-generate-a-long-random-string`. Never commit the real value (`.env` is git-ignored).
+
+**2. Recreate the tables and seed.** Phase 7 changed `db/schema.sql` (`users`, new `user_plots`, new `audit_log` columns). Re-running the schema drops and recreates every table, so seed again afterwards:
+```
+docker exec -i landstack-db psql -U landstack -d landstack -v ON_ERROR_STOP=1 < db/schema.sql
+python db/seed.py
+python db/seed_users.py
+```
+(PowerShell: `Get-Content db/schema.sql | docker exec -i landstack-db psql -U landstack -d landstack -v ON_ERROR_STOP=1`.) `db/seed_users.py` is safe to run again. Only argon2 hashes go into the database.
+
+**3. Start the API and the frontend** as before, then open http://localhost:5173 and log in.
+
+**Demo logins. DEMO ONLY: these passwords are public, never use them anywhere real.**
+
+| Username | Password | Role | What it sees |
+|---|---|---|---|
+| `admin` | `AdminDemo#2026` | admin | everything an officer sees, plus the audit log (`GET /audit`) |
+| `officer` | `OfficerDemo#2026` | officer | all plots, all passports, the summary |
+| `citizen1` | `Citizen1Demo#2026` | citizen | only its 3 plots (an overlap plot, a missing-record plot, a clean plot) |
+| `citizen2` | `Citizen2Demo#2026` | citizen | only its 3 plots (a restricted-zone plot and 2 clean plots) |
+
+A citizen who asks for someone else's plot gets "not found" (404), the same answer as for a plot that does not exist. The full role table is in `docs/api-contract.md`.
+
+**Limits.** Logins: 5 per minute per IP address. Everything else: 60 per minute per user. Both are in `backend/app/config.py`. Too many requests gives a `429` with a `Retry-After` header.
+
+**Tests** create their own `test_*` users with random passwords and delete them (and their audit rows) at the end. They use a throw-away JWT secret, so they work even before you set up `.env`:
+```
+python -m pytest backend/tests -q
+```

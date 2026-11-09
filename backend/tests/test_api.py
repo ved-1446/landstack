@@ -7,8 +7,11 @@ from backend.app.main import app
 
 
 @pytest.fixture(scope="module")
-def client(conn):  # `conn` loads the live database with the seeded data first
-    return TestClient(app)
+def client(conn, auth):  # `conn` loads the live database with the seeded data first
+    """Logged in as an officer (who may see everything), so the Phase 3 tests still test the same things."""
+    c = TestClient(app)
+    c.headers.update(auth("officer"))
+    return c
 
 
 @pytest.fixture(scope="module")
@@ -165,7 +168,8 @@ def test_cors_allows_only_the_vite_dev_server(client):
 
 def test_openapi_lists_every_endpoint(client):
     paths = client.get("/openapi.json").json()["paths"]
-    assert set(paths) == {"/health", "/plots", "/plots/{ulpin}", "/summary", "/conflict-types"}
+    assert set(paths) == {"/health", "/plots", "/plots/{ulpin}", "/summary", "/conflict-types",
+                          "/auth/login", "/auth/me", "/audit"}
 
 
 def test_database_down_returns_clean_json(monkeypatch):

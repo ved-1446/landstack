@@ -30,3 +30,12 @@ def connect():
         password=env["POSTGRES_PASSWORD"],
         dbname=env.get("POSTGRES_DB", "landstack"),
     )
+
+
+def get_conn():
+    """FastAPI dependency: one database connection per request, always closed afterwards."""
+    conn = connect()
+    try:
+        yield conn
+    finally:
+        conn.close()

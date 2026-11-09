@@ -46,3 +46,16 @@ CONFLICT_DESCRIPTIONS = {
         f"{REFERENCE_DATE:%d %b %Y}."),
     "missing_record": "The plot has no land record, registration or tax record (10 points each).",
 }
+
+# ---- Phase 7: login, roles, rate limits ----
+ROLES = ("admin", "officer", "citizen")
+STAFF_ROLES = ("officer", "admin")        # may see every plot and /summary
+
+JWT_ALGORITHM = "HS256"
+JWT_DEFAULT_EXPIRE_MINUTES = 60           # overridden by JWT_EXPIRE_MINUTES in .env
+JWT_SECRET_PLACEHOLDER = "change-me-generate-a-long-random-string"   # the .env.example value; never accepted
+JWT_SECRET_MIN_LENGTH = 32
+
+# Rate limits (read on every request, so tests can lower them).
+RATE_LOGIN = "5/minute"                   # per IP address
+RATE_DEFAULT = "60/minute"                # per logged-in user (per IP when nobody is logged in)

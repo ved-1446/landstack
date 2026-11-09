@@ -3,7 +3,7 @@
 
 CREATE EXTENSION IF NOT EXISTS postgis;
 
-DROP TABLE IF EXISTS audit_log, users, building_snapshots, zones,
+DROP TABLE IF EXISTS audit_log, user_plots, users, building_snapshots, zones,
     tax_records, registrations, ror_records, plots CASCADE;
 
 CREATE TABLE plots (
@@ -55,16 +55,30 @@ CREATE INDEX building_snapshots_footprint_gix ON building_snapshots USING GIST (
 
 CREATE TABLE users (
     username       text PRIMARY KEY,
-    password_hash  text NOT NULL,
-    role           text NOT NULL
+    password_hash  text NOT NULL,          -- an argon2 hash, never the password itself
+    role           text NOT NULL CHECK (role IN ('admin', 'officer', 'citizen'))
 );
 
--- The brief calls the first column "user"; that is a reserved word in SQL,
--- so the column is named username.
+-- Which plots a citizen owns. ulpin deliberately has NO foreign key to plots: db/seed.py clears
+-- `plots` with TRUNCATE ... CASCADE on every re-seed, and that must not wipe who owns what.
+CREATE TABLE user_plots (
+    username  text NOT NULL REFERENCES users (username) ON DELETE CASCADE,
+    ulpin     text NOT NULL,
+    PRIMARY KEY (username, ulpin)
+);
+CREATE INDEX user_plots_ulpin_idx ON user_plots (ulpin);
+
+-- One row per passport view, including denied ones. No foreign keys on purpose: the log must keep
+-- its history if a user is deleted or plots are re-seeded, and denied views may name unknown plots.
+-- action: view_passport | view_passport_denied | view_passport_not_found
 CREATE TABLE audit_log (
     id          bigserial PRIMARY KEY,
-    username    text NOT NULL REFERENCES users (username),
-    ulpin       text NOT NULL REFERENCES plots (ulpin) ON DELETE CASCADE,
+    username    text NOT NULL,
+    role        text NOT NULL,             -- the role the user had at that moment
+    ulpin       text,
+    action      text NOT NULL,
     looked_at   timestamptz NOT NULL DEFAULT now()
 );
+CREATE INDEX audit_log_looked_at_idx ON audit_log (looked_at DESC);
+CREATE INDEX audit_log_username_idx ON audit_log (username);
 CREATE INDEX audit_log_ulpin_idx ON audit_log (ulpin);

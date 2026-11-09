@@ -90,3 +90,21 @@ export interface PlotFilters {
   village?: string;
   conflict_type?: ConflictType;
 }
+
+// ---- login (Phase 7) ----
+
+export type Role = "admin" | "officer" | "citizen";
+
+export interface LoginResponse {
+  access_token: string;
+  token_type: "bearer";
+  expires_in: number; // seconds
+  user: { username: string; role: Role };
+}
+
+// What the page remembers about the logged-in user.
+export interface Session {
+  token: string;
+  username: string;
+  role: Role;
+}

@@ -1,9 +1,11 @@
 // The ONLY file that talks to the backend. Everything else calls these functions.
 import type {
   ConflictTypeInfo,
+  LoginResponse,
   Passport,
   PlotCollection,
   PlotFilters,
+  Session,
   Summary,
 } from "./types";
 
@@ -11,7 +13,46 @@ const BASE_URL = (import.meta.env.VITE_API_URL ?? "http://localhost:8000").repla
 
 export class ApiError extends Error {}
 
-/** Turn the contract's error bodies (404 / 422 / 503 / 500) into one readable sentence. */
+// ---- the login session ----
+//
+// The token is kept in sessionStorage. Trade-off: JavaScript on the page can read it, so a
+// cross-site-scripting bug could steal it (an httpOnly cookie cannot be read by scripts, but then
+// the server must also defend against cross-site request forgery). sessionStorage at least goes
+// away when the tab closes and is not shared between tabs. Tokens last 60 minutes.
+const SESSION_KEY = "landstack.session";
+
+export function getSession(): Session | null {
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    return raw ? (JSON.parse(raw) as Session) : null;
+  } catch {
+    return null; // storage blocked or the value is damaged: act as logged out
+  }
+}
+
+function saveSession(session: Session) {
+  try {
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  } catch {
+    // storage blocked: the session then lasts only until the page is reloaded
+  }
+}
+
+export function logout(): void {
+  try {
+    sessionStorage.removeItem(SESSION_KEY);
+  } catch {
+    // nothing to clear
+  }
+}
+
+// App registers one function here; it is called when the server says "401: log in again".
+let onUnauthorized: (() => void) | null = null;
+export function setUnauthorizedHandler(handler: (() => void) | null) {
+  onUnauthorized = handler;
+}
+
+/** Turn the contract's error bodies (401 / 403 / 404 / 422 / 429 / 503 / 500) into one readable sentence. */
 function messageFromBody(status: number, body: unknown): string {
   const detail = (body as { detail?: unknown } | null)?.detail;
   if (typeof detail === "string") return detail;
@@ -24,47 +65,83 @@ function messageFromBody(status: number, body: unknown): string {
   return `The server answered with an error (HTTP ${status}).`;
 }
 
-async function request<T>(
-  path: string,
-  params: Record<string, string | undefined> = {},
-  signal?: AbortSignal,
-): Promise<T> {
+interface Options {
+  params?: Record<string, string | undefined>;
+  signal?: AbortSignal;
+  body?: unknown; // sent as JSON with POST
+  authenticated?: boolean; // default true: send the token, and treat 401 as "session over"
+}
+
+async function request<T>(path: string, options: Options = {}): Promise<T> {
+  const { params = {}, signal, body, authenticated = true } = options;
   const url = new URL(BASE_URL + path);
   for (const [key, value] of Object.entries(params)) {
     if (value) url.searchParams.set(key, value);
   }
 
+  const headers: Record<string, string> = {};
+  if (body !== undefined) headers["Content-Type"] = "application/json";
+  const token = authenticated ? getSession()?.token : undefined;
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
   let response: Response;
   try {
-    response = await fetch(url, { signal });
+    response = await fetch(url, {
+      method: body !== undefined ? "POST" : "GET",
+      headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal,
+    });
   } catch (err) {
     if (signal?.aborted) throw err; // the caller cancelled on purpose; not an error to show
     throw new ApiError(`Cannot reach the API at ${BASE_URL}. Is the backend running?`);
   }
 
-  let body: unknown = null;
+  let json: unknown = null;
   try {
-    body = await response.json();
+    json = await response.json();
   } catch {
     // not JSON; handled below
   }
-  if (!response.ok) throw new ApiError(messageFromBody(response.status, body));
-  if (body === null) throw new ApiError("The server sent a reply that is not valid JSON.");
-  return body as T;
+
+  if (response.status === 401 && authenticated) {
+    logout();
+    onUnauthorized?.();
+    throw new ApiError("Your session has ended. Please log in again.");
+  }
+  if (response.status === 429) {
+    const wait = response.headers.get("Retry-After");
+    throw new ApiError(
+      wait ? `Too many requests. Please wait ${wait} seconds and try again.` : "Too many requests. Please wait a moment and try again.",
+    );
+  }
+  if (!response.ok) throw new ApiError(messageFromBody(response.status, json));
+  if (json === null) throw new ApiError("The server sent a reply that is not valid JSON.");
+  return json as T;
+}
+
+export async function login(username: string, password: string): Promise<Session> {
+  const result = await request<LoginResponse>("/auth/login", {
+    body: { username, password },
+    authenticated: false, // a wrong password is a 401 too, but it is not "session over"
+  });
+  const session: Session = { token: result.access_token, username: result.user.username, role: result.user.role };
+  saveSession(session);
+  return session;
 }
 
 export function getPlots(filters: PlotFilters = {}, signal?: AbortSignal) {
-  return request<PlotCollection>("/plots", { ...filters }, signal);
+  return request<PlotCollection>("/plots", { params: { ...filters }, signal });
 }
 
 export function getPassport(ulpin: string, signal?: AbortSignal) {
-  return request<Passport>(`/plots/${encodeURIComponent(ulpin)}`, {}, signal);
+  return request<Passport>(`/plots/${encodeURIComponent(ulpin)}`, { signal });
 }
 
 export function getSummary(signal?: AbortSignal) {
-  return request<Summary>("/summary", {}, signal);
+  return request<Summary>("/summary", { signal });
 }
 
 export function getConflictTypes(signal?: AbortSignal) {
-  return request<ConflictTypeInfo[]>("/conflict-types", {}, signal);
+  return request<ConflictTypeInfo[]>("/conflict-types", { signal });
 }
