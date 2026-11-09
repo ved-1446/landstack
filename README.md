@@ -57,3 +57,21 @@ Run from the repo root with the virtual environment active and the database seed
 uvicorn backend.app.main:app --reload
 ```
 Then open http://localhost:8000/docs for the interactive docs. The full contract is in `docs/api-contract.md`.
+
+## Run the frontend (Phase 4)
+
+Needs Node 20+. The API must be running first (see "Start the API" above).
+```
+cd frontend
+npm install
+npm run dev
+```
+Open http://localhost:5173 (the port is fixed, because the API only allows requests from it).
+The API address defaults to `http://localhost:8000`. To change it, create `frontend/.env` containing `VITE_API_URL=http://localhost:8000`.
+
+Other commands (run inside `frontend/`):
+```
+npm run typecheck    # TypeScript check
+npm run build        # typecheck + production build into frontend/dist
+npm run preview      # serve the production build on port 5173
+```

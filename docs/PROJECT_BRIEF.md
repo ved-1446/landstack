@@ -74,3 +74,10 @@ Claude Code and Antigravity are both used, one at a time, in this same folder. T
 - Phase 3 is built: a read-only FastAPI app in `backend/app/main.py` (`/health`, `/plots`, `/plots/{ulpin}`, `/summary`, `/conflict-types`). Contract: `docs/api-contract.md`. Live docs at `http://localhost:8000/docs`.
 - Scores are recomputed by the Phase 2 engine on every request (a cache would go in `scored()` if data grew). CORS allows only `http://localhost:5173`. No login or rate limits yet (Phase 7).
 - Conflict-type descriptions live in `backend/app/config.py` and are served by `/conflict-types`.
+
+## Status update after Phase 4
+- Phase 4 is built: `frontend/` (React + TypeScript + Vite + Tailwind + MapLibre) shows the plots on a map coloured by risk band, a summary strip, filters (band, village, conflict type) and a land-passport side panel. It runs on `http://localhost:5173` and talks to the API on `http://localhost:8000` (`VITE_API_URL`).
+- `frontend/src/api.ts` is the only file that talks to the backend; shared types live in `frontend/src/types.ts` and mirror `docs/api-contract.md`.
+- Band colours are colour-blind friendly: green band #009E73, amber #F0E442, red #D55E00.
+- Under Vite, MapLibre 6 needs `setWorkerUrl(...)` (see `frontend/src/components/Map.tsx`).
+- Open API gaps (not changed, by instruction): no villages list endpoint, single `band` filter only. Details in `docs/HANDOFF.md`.

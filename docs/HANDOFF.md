@@ -1,7 +1,7 @@
 # Handoff
 
 ## Current phase
-Phase 3 (API) is finished and waiting for the user's commit. Phase 4 (frontend) has NOT been started.
+Phase 4 (frontend v1) is finished and waiting for the user's commit. Phase 5 (design pass) has NOT been started. Nothing in `backend/` or `db/` was changed in Phase 4.
 
 ## Done so far
 - Phase 0: CLAUDE.md, docs, docker-compose.yml (PostGIS 16-3.4, volume `pgdata`), .env.example, .gitignore, README, empty folders, `git init`.
@@ -14,6 +14,7 @@ Phase 3 (API) is finished and waiting for the user's commit. Phase 4 (frontend) 
   - `scoring.py`: `band_for`, `score_plot(findings)` returning `{score, band, findings}`, `run_all(conn)` returning `{ulpin: result}` for every plot.
 - Tests: 43 pass (`python -m pytest backend/tests -q`). Every check flags exactly the planted set. No decoy is flagged. Clean plots score 0. Scoring edges 24/25 and 59/60 and the cap at 100 are tested.
 - Phase 3: `backend/app/main.py` (FastAPI, Pydantic response models, raw SQL, one connection per request via a dependency, CORS for http://localhost:5173 only, clean JSON errors 404/422/503/500). Endpoints: /health, /plots (filters band, village, conflict_type), /plots/{ulpin} (land passport), /summary, /conflict-types. `docs/api-contract.md` is the contract; `config.CONFLICT_DESCRIPTIONS` holds the one-line descriptions. 64 tests pass in total (43 old + 21 in `backend/tests/test_api.py`).
+- Phase 4: `frontend/` (React 19 + TypeScript + Vite 8 + Tailwind 4 + MapLibre GL JS 6). Files: `src/api.ts` (the ONLY file that calls the backend), `src/types.ts` (types from `docs/api-contract.md`), `src/hooks.ts` (`useFetch`: loading/error/retry, cancels stale requests), `src/constants.ts` (band colours, `prettyType`), `src/App.tsx`, and `src/components/` Map, SummaryStrip, Filters, PassportPanel, Feedback (Spinner, ErrorMessage). Map: CARTO Positron basemap with attribution shown, `plots` GeoJSON source with `promoteId: "ulpin"`, fill layer coloured by band (Okabe-Ito colours: #009E73 / #F0E442 / #D55E00), outline layer, hover and selected via feature-state. Filters (band toggles, village, conflict type) re-request `/plots`. Side panel = land passport (missing record shown as "Missing"); Close button, Escape and clicking empty map all deselect. API down gives a clear message and Retry. Checked in real Chrome (headless, scripted): clean plot, overlap plot and missing-record plot all showed the right passport; 0 console errors or warnings; dev and production builds both load the map.
 - Summary: `python -m backend.app.checks` prints flagged vs planted counts per type (all equal), band counts (green 80, amber 20, red 0), and the top 3 plots.
 
 ## In progress
@@ -25,20 +26,29 @@ Nothing.
 - Invalid shapes are skipped (not repaired) by the overlap, zone and area checks.
 - Each planted plot has only one problem, so no plot reaches red (60+) yet; the highest score is 40. Red appears only if a plot has several problems.
 - `db/seed.py` still has its own copy of the .env reader and `connect()`; `backend/app/db.py` is the app's copy. Left alone on purpose.
+- `frontend/.env.example` was NOT created: a permission rule in the user's settings blocks writing `.env*` files. It should contain two lines: a comment and `VITE_API_URL=http://localhost:8000`. The app works without it (it defaults to that address).
+- API gaps found while building the frontend (backend untouched, by instruction): (1) no endpoint lists villages, so the village dropdown is filled from the villages seen in `/plots` responses; suggest `GET /villages`. (2) `/plots?band=` takes one band, so with two bands switched on the frontend asks for all and hides the third itself. (3) `/summary` always covers all plots, so the strip does not change with filters. (4) GeoJSON features have no top-level `id`, so the map uses `promoteId: "ulpin"`.
+- MapLibre 6 needs its worker URL set by hand under Vite: `Map.tsx` imports `maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url` and calls `setWorkerUrl`. Without it the map never starts ("Worker failed to load"). Keep this if the map code is moved.
+- Dev-only hook: in `npm run dev`, `window.__map` exposes the map (used by the browser test script). It is stripped from production builds.
+- The production bundle is large (MapLibre, about 1.3 MB before gzip); Vite warns about chunk size. Harmless for now.
+- No frontend unit tests yet (not requested). The browser check was a throw-away script outside the repo.
 - `users`, `audit_log`, `building_snapshots` are still empty (Phases 7 and 10).
 - Not built, by instruction: unrecorded-construction alert (Phase 10) and any ML (Phase 9).
 
 ## Next steps
-1. User commits Phase 3.
-2. Phase 4: frontend v1 in `frontend/` (React + TypeScript + Vite + Tailwind + MapLibre), built against `docs/api-contract.md`, dev server on port 5173.
-3. Show plots on the map coloured by band, a click opens the land passport; get the conflict list from `/conflict-types`.
+1. User commits Phase 4 (and creates `frontend/.env.example`, see below).
+2. Phase 5: design pass (styling, layout, typography, responsive behaviour, empty states). Keep the structure; do not touch `api.ts` contracts.
+3. Phase 6: state adapters (`db/adapters/`).
 
 ## How to run
+Frontend: start the API, then `cd frontend && npm install && npm run dev`, open http://localhost:5173.
 API: `uvicorn backend.app.main:app --reload` then http://localhost:8000/docs.
 See README.md. Short version: `docker compose up -d`, create the schema (psql with `db/schema.sql`), `python db/seed.py`, `python -m pytest backend/tests -q`, `python -m backend.app.checks`.
 Run Python from the repo root with the venv active (`.venv\Scripts\activate`).
 
 ## Files touched
+Phase 4 (all new, inside `frontend/`): `package.json`, `package-lock.json`, `vite.config.ts`, `tsconfig.json`, `index.html`, `.gitignore`, `src/{main.tsx,App.tsx,api.ts,types.ts,hooks.ts,constants.ts,index.css,vite-env.d.ts}`, `src/components/{Map,SummaryStrip,Filters,PassportPanel,Feedback}.tsx`. Also `README.md`, `docs/HANDOFF.md`, `docs/PROJECT_BRIEF.md`. Removed `frontend/.gitkeep`. `node_modules/` and `dist/` are git-ignored.
+
 Phase 3: `backend/app/main.py` (new), `backend/app/config.py` (added CONFLICT_DESCRIPTIONS only), `backend/requirements.txt` (fastapi, uvicorn, httpx), `backend/tests/test_api.py` (new), `docs/api-contract.md` (new), `README.md`, `docs/HANDOFF.md`, `docs/PROJECT_BRIEF.md`.
 API notes: every request recomputes all scores (fine for 100 plots; cache spot is `scored()` in main.py). `findings_per_type` counts findings, not plots. FastAPI's TestClient warns that `httpx` is deprecated in favour of `httpx2`; harmless, left as you asked for httpx. No `id` on GeoJSON features (use MapLibre `promoteId: "ulpin"`).
 
