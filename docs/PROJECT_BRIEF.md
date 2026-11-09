@@ -50,7 +50,7 @@ A map app on fake land data. It shows plots, gathers each plot's records into on
 2. Checks engine
 3. API
 4. Frontend v1
-5. Design pass
+5. Design pass (ORDER CHANGE: done after Phase 8, not now)
 6. State adapters
 7. Roles, audit log and rate limits
 8. Printable passport
@@ -58,6 +58,8 @@ A map app on fake land data. It shows plots, gathers each plot's records into on
 10. Simulated change detection
 11. LLM explainer and Land Guide chatbot in English, Hindi and Marathi
 12. Hardening and demo
+
+**Order of work (changed by the user after Phase 4):** 0, 1, 2, 3, 4, 6, 7, 8, then 5 (design pass), then 9, 10, 11, 12. Phase numbers stay the same; only the order moved. Do not start the design pass before Phase 8 is done.
 
 ## Tools and sharing
 Claude Code and Antigravity are both used, one at a time, in this same folder. This brief and `docs/HANDOFF.md` are how they share what has been done.
@@ -81,3 +83,10 @@ Claude Code and Antigravity are both used, one at a time, in this same folder. T
 - Band colours are colour-blind friendly: green band #009E73, amber #F0E442, red #D55E00.
 - Under Vite, MapLibre 6 needs `setWorkerUrl(...)` (see `frontend/src/components/Map.tsx`).
 - Open API gaps (not changed, by instruction): no villages list endpoint, single `band` filter only. Details in `docs/HANDOFF.md`.
+
+## Status update after Phase 6
+- Phase 6 is built: state adapters in `db/adapters/`. `base.py` is the abstract adapter contract (read a raw file, return standard records plus rejected rows with a row number and plain reason; bad rows never crash the run). `maharashtra.py` (CSV: surname-first names, hectares + ares, DD/MM/YYYY), `karnataka.py` (JSON: "SURNAME, GIVEN" capitals, acres + guntas, YYYY-MM-DD), `uttar_pradesh.py` (nested JSON: owners list, hectares with comma decimal, DD-Mon-YYYY). Registry: `get_adapter(state)`.
+- Standard records mirror the three record tables (land record, registration, tax record); areas are always square metres. All unit constants are in `db/adapters/units.py`.
+- `python -m db.adapters.make_samples` writes a format demo (the first 20 plots in three state styles) into `db/adapters/samples/`. `python -m db.adapters.ingest --state <s> --file <path> [--dry-run]` loads standard records for ulpins that exist in `plots`; it matches by ulpin (insert new, update changed, leave identical), so it is safe to run twice; it never deletes.
+- The sample formats are made-up, inspired by the real documents. They are not copies of any state's real format.
+- The design pass (Phase 5) now comes after Phase 8.

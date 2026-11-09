@@ -75,3 +75,27 @@ npm run typecheck    # TypeScript check
 npm run build        # typecheck + production build into frontend/dist
 npm run preview      # serve the production build on port 5173
 ```
+
+## State adapters (Phase 6)
+
+Every state keeps land records in its own format. An **adapter** turns one state's raw file into our one standard format (square metres, `YYYY-MM-DD` dates, "Given Family" names), so the checks never need to know where a record came from. Adapters live in `db/adapters/`: `maharashtra` (CSV), `karnataka` (JSON), `uttar_pradesh` (nested JSON).
+
+Run from the repo root with the virtual environment active and the database running:
+
+**Make the demo files** (the first 20 plots in the database, shown in the three state styles).
+This is a *format demo*: the same 20 plots in three made-up styles, so you can compare them. It is deterministic: the same database always gives identical files. The files are in `db/adapters/samples/`.
+```
+python -m db.adapters.make_samples
+```
+
+**Load a raw file.** Always look first with `--dry-run`, which changes nothing:
+```
+python -m db.adapters.ingest --state maharashtra --file db/adapters/samples/maharashtra_sample.csv --dry-run
+python -m db.adapters.ingest --state maharashtra --file db/adapters/samples/maharashtra_sample.csv
+```
+States: `maharashtra`, `karnataka`, `uttar_pradesh`. Only ulpins that already exist in `plots` are loaded. Rejected rows and unknown ulpins are listed, and the good rows still load. Running it twice changes nothing. A record the file does not mention is never deleted.
+
+**Tests** (adapter tests change the database only inside a transaction that is rolled back):
+```
+python -m pytest backend/tests -q
+```
