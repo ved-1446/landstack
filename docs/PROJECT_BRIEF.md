@@ -69,3 +69,8 @@ Claude Code and Antigravity are both used, one at a time, in this same folder. T
 - Owner names are compared by `backend/app/names.py` (normalise, TF-IDF character n-grams, cosine similarity, threshold 0.60). This is not an ML model and never changes the score.
 - Invalid shapes are skipped by the overlap, zone and area checks and reported by the invalid-boundary check.
 - Run Python from the repo root: `python -m backend.app.checks`, `python -m pytest backend/tests -q`.
+
+## Status update after Phase 3
+- Phase 3 is built: a read-only FastAPI app in `backend/app/main.py` (`/health`, `/plots`, `/plots/{ulpin}`, `/summary`, `/conflict-types`). Contract: `docs/api-contract.md`. Live docs at `http://localhost:8000/docs`.
+- Scores are recomputed by the Phase 2 engine on every request (a cache would go in `scored()` if data grew). CORS allows only `http://localhost:5173`. No login or rate limits yet (Phase 7).
+- Conflict-type descriptions live in `backend/app/config.py` and are served by `/conflict-types`.

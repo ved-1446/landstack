@@ -29,3 +29,20 @@ TAX_OVERDUE_YEARS = 2          # paid-until more than 2 years before REFERENCE_D
 # Owner-name match: cosine similarity at or above this means "same person".
 # Chosen from the data (see names.py and the Phase 2 report).
 NAME_MATCH_THRESHOLD = 0.60
+
+# One-line plain descriptions, served by the API so the frontend never hard-codes them.
+CONFLICT_DESCRIPTIONS = {
+    "boundary_overlap": "This plot's boundary overlaps another plot's boundary.",
+    "restricted_zone_clash": (
+        f"More than {ZONE_SHARE_LIMIT:.0%} of the plot lies inside a restricted zone."),
+    "area_mismatch": (
+        f"The recorded area differs from the mapped area by more than {AREA_MISMATCH_LIMIT:.0%}."),
+    "owner_mismatch": (
+        "The owner in the land record and the owner in the registration are different people."),
+    "duplicate_survey_no": "Another plot in the same village has the same survey number.",
+    "invalid_boundary": "The boundary shape is invalid, for example it crosses itself.",
+    "tax_overdue": (
+        f"Property tax was last paid more than {TAX_OVERDUE_YEARS} years before "
+        f"{REFERENCE_DATE:%d %b %Y}."),
+    "missing_record": "The plot has no land record, registration or tax record (10 points each).",
+}

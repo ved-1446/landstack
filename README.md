@@ -49,3 +49,11 @@ Run from the repo root with the virtual environment active and the database seed
 python -m backend.app.checks
 ```
 This prints flagged vs planted counts per conflict type, the band counts and the top 3 plots.
+
+## Start the API (Phase 3)
+
+Run from the repo root with the virtual environment active and the database seeded:
+```
+uvicorn backend.app.main:app --reload
+```
+Then open http://localhost:8000/docs for the interactive docs. The full contract is in `docs/api-contract.md`.
