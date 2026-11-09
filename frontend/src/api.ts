@@ -72,7 +72,8 @@ interface Options {
   authenticated?: boolean; // default true: send the token, and treat 401 as "session over"
 }
 
-async function request<T>(path: string, options: Options = {}): Promise<T> {
+/** Sends the request and returns the response if it worked. Everything that went wrong becomes an ApiError. */
+async function send(path: string, options: Options = {}): Promise<Response> {
   const { params = {}, signal, body, authenticated = true } = options;
   const url = new URL(BASE_URL + path);
   for (const [key, value] of Object.entries(params)) {
@@ -97,13 +98,6 @@ async function request<T>(path: string, options: Options = {}): Promise<T> {
     throw new ApiError(`Cannot reach the API at ${BASE_URL}. Is the backend running?`);
   }
 
-  let json: unknown = null;
-  try {
-    json = await response.json();
-  } catch {
-    // not JSON; handled below
-  }
-
   if (response.status === 401 && authenticated) {
     logout();
     onUnauthorized?.();
@@ -115,9 +109,25 @@ async function request<T>(path: string, options: Options = {}): Promise<T> {
       wait ? `Too many requests. Please wait ${wait} seconds and try again.` : "Too many requests. Please wait a moment and try again.",
     );
   }
-  if (!response.ok) throw new ApiError(messageFromBody(response.status, json));
-  if (json === null) throw new ApiError("The server sent a reply that is not valid JSON.");
-  return json as T;
+  if (!response.ok) {
+    let json: unknown = null;
+    try {
+      json = await response.json();
+    } catch {
+      // not JSON; the generic message below is used
+    }
+    throw new ApiError(messageFromBody(response.status, json));
+  }
+  return response;
+}
+
+async function request<T>(path: string, options: Options = {}): Promise<T> {
+  const response = await send(path, options);
+  try {
+    return (await response.json()) as T;
+  } catch {
+    throw new ApiError("The server sent a reply that is not valid JSON.");
+  }
 }
 
 export async function login(username: string, password: string): Promise<Session> {
@@ -144,4 +154,10 @@ export function getSummary(signal?: AbortSignal) {
 
 export function getConflictTypes(signal?: AbortSignal) {
   return request<ConflictTypeInfo[]>("/conflict-types", { signal });
+}
+
+/** The printable passport as a PDF file (the login token is sent, so the same role rules apply). */
+export async function downloadPassportPdf(ulpin: string, signal?: AbortSignal): Promise<Blob> {
+  const response = await send(`/plots/${encodeURIComponent(ulpin)}/passport.pdf`, { signal });
+  return response.blob();
 }

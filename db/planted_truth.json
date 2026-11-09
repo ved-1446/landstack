@@ -1,234 +1,328 @@
 {
   "seed": 42,
   "plots": 100,
-  "problem_rate": 0.4,
+  "problem_rate": 0.48,
   "reference_date": "2026-01-01",
   "conflicts": {
     "MH000100000001": [
-      "missing_record"
+      "boundary_overlap",
+      "duplicate_survey_no",
+      "tax_overdue"
+    ],
+    "MH000100000003": [
+      "owner_mismatch"
     ],
     "MH000100000004": [
       "restricted_zone_clash"
     ],
     "MH000100000005": [
+      "boundary_overlap",
+      "restricted_zone_clash",
       "owner_mismatch"
     ],
     "MH000100000006": [
-      "tax_overdue"
+      "boundary_overlap",
+      "area_mismatch",
+      "owner_mismatch",
+      "duplicate_survey_no"
     ],
     "MH000100000007": [
-      "invalid_boundary"
+      "boundary_overlap",
+      "area_mismatch"
     ],
     "MH000100000012": [
-      "boundary_overlap"
+      "restricted_zone_clash"
     ],
     "MH000100000014": [
-      "tax_overdue"
+      "missing_record"
     ],
     "MH000100000015": [
       "boundary_overlap"
+    ],
+    "MH000100000017": [
+      "restricted_zone_clash"
     ],
     "MH000100000018": [
       "invalid_boundary"
     ],
     "MH000100000020": [
-      "owner_mismatch"
-    ],
-    "MH000200000021": [
-      "boundary_overlap"
-    ],
-    "MH000200000025": [
-      "missing_record"
-    ],
-    "MH000200000026": [
       "area_mismatch"
     ],
-    "MH000200000028": [
-      "invalid_boundary"
+    "MH000200000021": [
+      "boundary_overlap",
+      "missing_record"
     ],
-    "MH000200000029": [
+    "MH000200000023": [
+      "restricted_zone_clash"
+    ],
+    "MH000200000025": [
+      "boundary_overlap"
+    ],
+    "MH000200000026": [
       "duplicate_survey_no"
     ],
-    "MH000200000030": [
+    "MH000200000028": [
+      "boundary_overlap",
+      "owner_mismatch",
       "tax_overdue"
     ],
+    "MH000200000029": [
+      "duplicate_survey_no",
+      "missing_record"
+    ],
+    "MH000200000030": [
+      "boundary_overlap",
+      "area_mismatch"
+    ],
     "MH000200000032": [
+      "area_mismatch",
+      "owner_mismatch",
       "duplicate_survey_no"
     ],
     "MH000200000036": [
       "owner_mismatch"
     ],
-    "MH000300000044": [
-      "restricted_zone_clash"
-    ],
-    "MH000300000054": [
-      "duplicate_survey_no"
-    ],
-    "MH000300000055": [
-      "area_mismatch"
-    ],
-    "MH000300000058": [
+    "MH000200000039": [
       "invalid_boundary"
     ],
+    "MH000300000044": [
+      "invalid_boundary"
+    ],
+    "MH000300000052": [
+      "area_mismatch"
+    ],
+    "MH000300000054": [
+      "restricted_zone_clash",
+      "owner_mismatch",
+      "tax_overdue"
+    ],
+    "MH000300000055": [
+      "owner_mismatch"
+    ],
+    "MH000300000058": [
+      "area_mismatch"
+    ],
+    "MH000300000059": [
+      "owner_mismatch"
+    ],
+    "MH000400000063": [
+      "duplicate_survey_no"
+    ],
     "MH000400000065": [
-      "missing_record"
+      "restricted_zone_clash"
     ],
     "MH000400000068": [
-      "duplicate_survey_no"
+      "boundary_overlap",
+      "restricted_zone_clash",
+      "owner_mismatch",
+      "tax_overdue"
+    ],
+    "MH000400000069": [
+      "area_mismatch"
     ],
     "MH000400000070": [
       "boundary_overlap"
     ],
     "MH000400000072": [
-      "restricted_zone_clash"
+      "restricted_zone_clash",
+      "duplicate_survey_no",
+      "tax_overdue"
     ],
     "MH000400000076": [
-      "restricted_zone_clash"
-    ],
-    "MH000400000078": [
-      "boundary_overlap"
-    ],
-    "MH000400000080": [
       "area_mismatch"
     ],
+    "MH000400000078": [
+      "area_mismatch"
+    ],
+    "MH000400000080": [
+      "restricted_zone_clash"
+    ],
     "MH000500000082": [
-      "boundary_overlap"
+      "boundary_overlap",
+      "restricted_zone_clash"
     ],
     "MH000500000083": [
-      "duplicate_survey_no"
-    ],
-    "MH000500000085": [
-      "boundary_overlap"
-    ],
-    "MH000500000087": [
-      "missing_record"
-    ],
-    "MH000500000089": [
-      "duplicate_survey_no"
-    ],
-    "MH000500000090": [
       "owner_mismatch"
     ],
-    "MH000500000091": [
+    "MH000500000085": [
+      "owner_mismatch"
+    ],
+    "MH000500000087": [
       "boundary_overlap"
     ],
-    "MH000500000094": [
+    "MH000500000089": [
+      "area_mismatch",
+      "owner_mismatch",
+      "tax_overdue"
+    ],
+    "MH000500000090": [
+      "invalid_boundary"
+    ],
+    "MH000500000091": [
       "duplicate_survey_no"
+    ],
+    "MH000500000094": [
+      "restricted_zone_clash"
     ],
     "MH000500000095": [
       "area_mismatch"
     ],
     "MH000500000096": [
-      "tax_overdue"
+      "owner_mismatch"
     ],
     "MH000500000098": [
-      "duplicate_survey_no"
+      "boundary_overlap",
+      "missing_record"
     ]
   },
   "details": {
     "MH000100000001": {
-      "missing_table": "ror_records"
+      "overlap_partner": "MH000200000021",
+      "overlap_relation": "overlaps",
+      "dup_partner": "MH000500000091"
     },
     "MH000100000004": {
-      "zone_fraction": 0.473
+      "zone_fraction": 0.464
+    },
+    "MH000100000005": {
+      "overlap_partner": "MH000500000098",
+      "overlap_relation": "overlaps",
+      "zone_fraction": 0.373
+    },
+    "MH000100000006": {
+      "overlap_partner": "MH000200000025",
+      "overlap_relation": "overlaps",
+      "dup_partner": "MH000400000063"
+    },
+    "MH000100000007": {
+      "overlap_partner": "MH000400000068",
+      "overlap_relation": "overlaps"
     },
     "MH000100000012": {
-      "partner": "MH000400000070"
+      "zone_fraction": 0.566
     },
-    "MH000100000015": {
-      "partner": "MH000500000082"
-    },
-    "MH000200000021": {
-      "partner": "MH000500000091"
-    },
-    "MH000200000025": {
-      "missing_table": "registrations"
-    },
-    "MH000200000029": {
-      "partner": "MH000200000032"
-    },
-    "MH000200000032": {
-      "partner": "MH000200000029"
-    },
-    "MH000300000044": {
-      "zone_fraction": 0.651
-    },
-    "MH000300000054": {
-      "partner": "MH000500000094"
-    },
-    "MH000400000065": {
-      "missing_table": "tax_records"
-    },
-    "MH000400000068": {
-      "partner": "MH000500000083"
-    },
-    "MH000400000070": {
-      "partner": "MH000100000012"
-    },
-    "MH000400000072": {
-      "zone_fraction": 0.625
-    },
-    "MH000400000076": {
-      "zone_fraction": 0.47
-    },
-    "MH000400000078": {
-      "partner": "MH000500000085"
-    },
-    "MH000500000082": {
-      "partner": "MH000100000015"
-    },
-    "MH000500000083": {
-      "partner": "MH000400000068"
-    },
-    "MH000500000085": {
-      "partner": "MH000400000078"
-    },
-    "MH000500000087": {
+    "MH000100000014": {
       "missing_table": "ror_records"
     },
-    "MH000500000089": {
-      "partner": "MH000500000098"
+    "MH000100000015": {
+      "overlap_partner": "MH000500000082",
+      "overlap_relation": "overlaps"
+    },
+    "MH000100000017": {
+      "zone_fraction": 0.489
+    },
+    "MH000200000021": {
+      "overlap_partner": "MH000100000001",
+      "overlap_relation": "overlaps",
+      "missing_table": "registrations"
+    },
+    "MH000200000023": {
+      "zone_fraction": 0.45
+    },
+    "MH000200000025": {
+      "overlap_partner": "MH000100000006",
+      "overlap_relation": "overlaps"
+    },
+    "MH000200000026": {
+      "dup_partner": "MH000400000072"
+    },
+    "MH000200000028": {
+      "overlap_partner": "MH000200000030",
+      "overlap_relation": "overlaps"
+    },
+    "MH000200000029": {
+      "dup_partner": "MH000200000032",
+      "missing_table": "tax_records"
+    },
+    "MH000200000030": {
+      "overlap_partner": "MH000200000028",
+      "overlap_relation": "overlaps"
+    },
+    "MH000200000032": {
+      "dup_partner": "MH000200000029"
+    },
+    "MH000300000054": {
+      "zone_fraction": 0.684
+    },
+    "MH000400000063": {
+      "dup_partner": "MH000100000006"
+    },
+    "MH000400000065": {
+      "zone_fraction": 0.625
+    },
+    "MH000400000068": {
+      "overlap_partner": "MH000100000007",
+      "overlap_relation": "overlaps",
+      "zone_fraction": 0.346
+    },
+    "MH000400000070": {
+      "overlap_partner": "MH000500000087",
+      "overlap_relation": "inside"
+    },
+    "MH000400000072": {
+      "dup_partner": "MH000200000026",
+      "zone_fraction": 0.483
+    },
+    "MH000400000080": {
+      "zone_fraction": 0.689
+    },
+    "MH000500000082": {
+      "overlap_partner": "MH000100000015",
+      "overlap_relation": "overlaps",
+      "zone_fraction": 0.31
+    },
+    "MH000500000087": {
+      "overlap_partner": "MH000400000070",
+      "overlap_relation": "contains"
     },
     "MH000500000091": {
-      "partner": "MH000200000021"
+      "dup_partner": "MH000100000001"
     },
     "MH000500000094": {
-      "partner": "MH000300000054"
+      "zone_fraction": 0.692
     },
     "MH000500000098": {
-      "partner": "MH000500000089"
+      "overlap_partner": "MH000100000005",
+      "overlap_relation": "overlaps",
+      "missing_table": "ror_records"
     }
   },
   "decoys": [
     {
-      "ulpin": "MH000100000010",
+      "ulpin": "MH000100000002",
       "ror_owner": "Ramesh Kulkarni",
       "registration_owner": "Kulkarni Ramesh S."
     },
     {
-      "ulpin": "MH000200000040",
+      "ulpin": "MH000100000011",
       "ror_owner": "Sunita Deshpande",
       "registration_owner": "Sunita R. Deshpande"
     },
     {
-      "ulpin": "MH000300000042",
+      "ulpin": "MH000300000045",
       "ror_owner": "Prakash Joshi",
       "registration_owner": "Joshi Prakash"
     },
     {
-      "ulpin": "MH000300000052",
+      "ulpin": "MH000300000050",
       "ror_owner": "Anita Patil",
       "registration_owner": "Anita D Patil"
     },
     {
-      "ulpin": "MH000400000064",
+      "ulpin": "MH000400000061",
       "ror_owner": "Vijay Shinde",
       "registration_owner": "Vijay K. Shinde"
     },
     {
-      "ulpin": "MH000400000066",
+      "ulpin": "MH000400000079",
       "ror_owner": "Meena Jadhav",
       "registration_owner": "Jadhav Meena D."
     }
+  ],
+  "touching_pairs": [
+    [
+      "MH000500000086",
+      "MH000400000075"
+    ]
   ]
 }

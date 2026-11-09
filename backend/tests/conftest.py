@@ -61,6 +61,7 @@ TEST_USERS = {                      # key -> (username, role)
 def _remove_test_users(connection):
     names = [name for name, _ in TEST_USERS.values()] + ["test_temp"]
     connection.execute("DELETE FROM audit_log WHERE username = ANY(%s::text[])", (names,))
+    connection.execute("DELETE FROM passport_issues WHERE issued_to = ANY(%s::text[])", (names,))
     connection.execute("DELETE FROM users WHERE username = ANY(%s::text[])", (names,))   # user_plots cascades
 
 
@@ -68,7 +69,7 @@ def _remove_test_users(connection):
 def relaxed_rate_limits():
     """Normal tests make far more than 60 requests a minute. Rate-limit tests lower these again."""
     from backend.app import config
-    config.RATE_LOGIN = config.RATE_DEFAULT = "100000/minute"
+    config.RATE_LOGIN = config.RATE_DEFAULT = config.RATE_VERIFY = "100000/minute"
 
 
 @pytest.fixture(autouse=True)
@@ -90,8 +91,11 @@ def users(conn, truth):
     only = lambda ctype: sorted(u for u, t in conflicts.items() if t == [ctype])  # noqa: E731
     every_plot = [u for (u,) in conn.execute("SELECT ulpin FROM plots ORDER BY ulpin")]
     clean = [u for u in every_plot if u not in conflicts and u not in decoys]
+    # a plot that only partly overlaps another one (not the "one plot inside another" pair), so its evidence reads
+    # "overlaps plot X by N sq m" whatever the seed layout
+    partial_overlap = [u for u in only("boundary_overlap") if truth["details"][u]["overlap_relation"] == "overlaps"]
     plots = {
-        "citizen_a": [only("boundary_overlap")[0], only("missing_record")[0], clean[0]],
+        "citizen_a": [partial_overlap[0], only("missing_record")[0], clean[0]],
         "citizen_b": [only("restricted_zone_clash")[0], clean[1], clean[2]],
     }
     _remove_test_users(conn)

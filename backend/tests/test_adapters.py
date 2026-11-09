@@ -292,38 +292,46 @@ def tx(conn):
 
 @pytest.fixture
 def messy_file(originals, tmp_path):
-    """A Maharashtra file with: 1 new land record, 1 changed area, 1 unknown ulpin, 1 bad row, rest unchanged."""
-    first, second, third, *rest = originals
-    assert first.area_sqm is None                    # the plot that has no land record in the database
-    new_ror = ms.OriginalPlot(first.ulpin, "Test Owner", 2000.0, first.reg_owner, first.registered_on, first.paid_until)
-    changed = ms.OriginalPlot(second.ulpin, second.ror_owner, second.area_sqm + 100, second.reg_owner,
-                              second.registered_on, second.paid_until)
+    """A Maharashtra file with: 1 land record that is NEW to the database (each test deletes it first, inside its
+    rolled-back transaction), 1 changed area, 1 unknown ulpin, 1 bad row, and everything else unchanged.
+    It does not depend on which plots the seed happens to give a record to."""
+    with_ror = [p for p in originals if p.area_sqm is not None]
+    new_one, changed_one = with_ror[0], with_ror[1]
+    new_ror = ms.OriginalPlot(new_one.ulpin, "Test Owner", 2000.0, new_one.reg_owner, new_one.registered_on, new_one.paid_until)
+    changed = ms.OriginalPlot(changed_one.ulpin, changed_one.ror_owner, changed_one.area_sqm + 100, changed_one.reg_owner,
+                              changed_one.registered_on, changed_one.paid_until)
     stranger = ms.OriginalPlot("MH999999999999", "Nobody Known", 500.0, "Nobody Known",
                                date(2020, 1, 1), date(2026, 1, 1))
-    raws = [ms.to_raw_maharashtra(p) for p in [new_ror, changed, third, *rest, stranger]]
-    bad = ms.to_raw_maharashtra(third)
+    replace = {new_one.ulpin: new_ror, changed_one.ulpin: changed}
+    raws = [ms.to_raw_maharashtra(replace.get(p.ulpin, p)) for p in originals] + [ms.to_raw_maharashtra(stranger)]
+    bad = ms.to_raw_maharashtra(originals[2])
     bad["ulpin"] = "MH000100000099"
     bad["reg_date"] = "99/99/2020"
     raws.append(bad)
-    return write_raw("maharashtra", raws, tmp_path / "messy.csv"), changed
+    path = write_raw("maharashtra", raws, tmp_path / "messy.csv")
+    return path, changed, new_one.ulpin, len(with_ror), sum(p.reg_owner is not None for p in originals)
 
 
-def test_ingest_of_an_unchanged_sample_changes_nothing(tx, conn):
+def test_ingest_of_an_unchanged_sample_changes_nothing(tx, conn, originals):
     before = snapshot(conn)
     report = ingest(tx, get_adapter("karnataka"), ms.SAMPLES_DIR / "karnataka_sample.json")
     assert report.rejected == [] and report.unknown_ulpins == []
-    assert report.counts["ror_records"] == {"new": 0, "updated": 0, "unchanged": 19}
-    assert report.counts["registrations"] == {"new": 0, "updated": 0, "unchanged": 20}
-    assert report.counts["tax_records"] == {"new": 0, "updated": 0, "unchanged": 20}
+    with_ror = sum(p.area_sqm is not None for p in originals)
+    with_reg = sum(p.reg_owner is not None for p in originals)
+    with_tax = sum(p.paid_until is not None for p in originals)
+    assert report.counts["ror_records"] == {"new": 0, "updated": 0, "unchanged": with_ror}
+    assert report.counts["registrations"] == {"new": 0, "updated": 0, "unchanged": with_reg}
+    assert report.counts["tax_records"] == {"new": 0, "updated": 0, "unchanged": with_tax}
     assert snapshot(tx) == before
 
 
 def test_ingest_reports_new_updated_unknown_and_rejected(tx, messy_file):
-    path, changed = messy_file
+    path, changed, new_ulpin, n_ror, n_reg = messy_file
+    tx.execute("DELETE FROM ror_records WHERE ulpin = %s", (new_ulpin,))        # makes one land record "new"
     report = ingest(tx, get_adapter("maharashtra"), path)
-    assert report.counts["ror_records"] == {"new": 1, "updated": 1, "unchanged": 18}
-    assert report.counts["registrations"] == {"new": 0, "updated": 0, "unchanged": 20}
-    assert report.rows_read == 22                      # 3 + 17 untouched + 1 stranger + 1 bad row
+    assert report.counts["ror_records"] == {"new": 1, "updated": 1, "unchanged": n_ror - 2}
+    assert report.counts["registrations"] == {"new": 0, "updated": 0, "unchanged": n_reg}
+    assert report.rows_read == 22                      # 20 sample plots + 1 stranger + 1 bad row
     assert report.unknown_ulpins == [(21, "MH999999999999")]
     assert [r.row_number for r in report.rejected] == [22]
     assert "not a real calendar date" in report.rejected[0].reason
@@ -333,28 +341,31 @@ def test_ingest_reports_new_updated_unknown_and_rejected(tx, messy_file):
 
 
 def test_ingest_twice_gives_no_duplicates(tx, conn, messy_file):
-    path, _ = messy_file
+    path, _, new_ulpin, _, _ = messy_file
     before = snapshot(conn)
+    tx.execute("DELETE FROM ror_records WHERE ulpin = %s", (new_ulpin,))
     ingest(tx, get_adapter("maharashtra"), path)
     after_first = snapshot(tx)
     second = ingest(tx, get_adapter("maharashtra"), path)
     assert snapshot(tx) == after_first                                   # nothing changed the second time
     assert all(c["new"] == 0 and c["updated"] == 0 for c in second.counts.values())
-    assert len(after_first["ror_records"]) == len(before["ror_records"]) + 1   # one new record, not two
+    assert len(after_first["ror_records"]) == len(before["ror_records"])       # the deleted record came back once, not twice
     assert len({r[1] for r in after_first["ror_records"]}) == len(after_first["ror_records"])  # one per ulpin
     tx.rollback()
     assert snapshot(conn) == before                                      # the database is back as it was
 
 
 def test_dry_run_changes_nothing_but_reports_what_would_happen(tx, conn, messy_file):
-    path, _ = messy_file
+    path, _, new_ulpin, n_ror, _ = messy_file
     before = snapshot(conn)
+    tx.execute("DELETE FROM ror_records WHERE ulpin = %s", (new_ulpin,))
+    prepared = snapshot(tx)
     report = ingest(tx, get_adapter("maharashtra"), path, dry_run=True)
     assert report.dry_run
-    assert report.counts["ror_records"] == {"new": 1, "updated": 1, "unchanged": 18}
-    assert snapshot(tx) == before
+    assert report.counts["ror_records"] == {"new": 1, "updated": 1, "unchanged": n_ror - 2}
+    assert snapshot(tx) == prepared                                      # the dry run wrote nothing
     text = format_report(report)
-    assert "DRY RUN" in text and "Nothing was written" in text and "1 new, 1 updated, 18 unchanged" in text
+    assert "DRY RUN" in text and "Nothing was written" in text and f"1 new, 1 updated, {n_ror - 2} unchanged" in text
     tx.rollback()
     assert snapshot(conn) == before
 

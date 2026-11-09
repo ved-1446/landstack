@@ -5,158 +5,111 @@
     {
       "ulpin": "MH000100000001",
       "land": {
-        "area_hectare": ""
+        "area_hectare": "0,096193"
       },
-      "owners": [],
+      "owners": [
+        "Deepak Gore"
+      ],
       "registry": {
-        "buyer": "Ganesh Bhosale",
-        "date": "22-Sep-2014"
+        "buyer": "Deepak Gore",
+        "date": "12-Nov-2020"
       },
       "tax": {
-        "paid_until": "06-Jan-2026"
+        "paid_until": "06-Jun-2021"
       }
     },
     {
       "ulpin": "MH000100000002",
       "land": {
-        "area_hectare": "0,148694"
-      },
-      "owners": [
-        "Nitin Chavan"
-      ],
-      "registry": {
-        "buyer": "Nitin Chavan",
-        "date": "17-Jun-2021"
-      },
-      "tax": {
-        "paid_until": "19-Jun-2026"
-      }
-    },
-    {
-      "ulpin": "MH000100000003",
-      "land": {
-        "area_hectare": "0,182198"
-      },
-      "owners": [
-        "Ganesh Gore",
-        "Smt. Kamla Devi"
-      ],
-      "registry": {
-        "buyer": "Ganesh Gore",
-        "date": "09-Oct-2014"
-      },
-      "tax": {
-        "paid_until": "30-Aug-2026"
-      }
-    },
-    {
-      "ulpin": "MH000100000004",
-      "land": {
-        "area_hectare": "0,136578"
-      },
-      "owners": [
-        "Mahesh More"
-      ],
-      "registry": {
-        "buyer": "Mahesh More",
-        "date": "04-Apr-2011"
-      },
-      "tax": {
-        "paid_until": "07-Apr-2026"
-      }
-    },
-    {
-      "ulpin": "MH000100000005",
-      "land": {
-        "area_hectare": "0,159088"
-      },
-      "owners": [
-        "Ganesh Mane"
-      ],
-      "registry": {
-        "buyer": "Suresh Ghadge",
-        "date": "04-Oct-2009"
-      },
-      "tax": {
-        "paid_until": "30-Dec-2025"
-      }
-    },
-    {
-      "ulpin": "MH000100000006",
-      "land": {
-        "area_hectare": "0,133019"
-      },
-      "owners": [
-        "Rohit Pawar",
-        "Smt. Kamla Devi"
-      ],
-      "registry": {
-        "buyer": "Rohit Pawar",
-        "date": "03-Aug-2016"
-      },
-      "tax": {
-        "paid_until": "15-Jul-2021"
-      }
-    },
-    {
-      "ulpin": "MH000100000007",
-      "land": {
-        "area_hectare": "0,202927"
-      },
-      "owners": [
-        "Nitin Ghadge"
-      ],
-      "registry": {
-        "buyer": "Nitin Ghadge",
-        "date": "15-Jun-2017"
-      },
-      "tax": {
-        "paid_until": "04-Sep-2025"
-      }
-    },
-    {
-      "ulpin": "MH000100000008",
-      "land": {
-        "area_hectare": "0,134375"
-      },
-      "owners": [
-        "Ganesh Gore"
-      ],
-      "registry": {
-        "buyer": "Ganesh Gore",
-        "date": "14-Oct-2022"
-      },
-      "tax": {
-        "paid_until": "18-Jan-2025"
-      }
-    },
-    {
-      "ulpin": "MH000100000009",
-      "land": {
-        "area_hectare": "0,148398"
-      },
-      "owners": [
-        "Savita Thorat",
-        "Smt. Kamla Devi"
-      ],
-      "registry": {
-        "buyer": "Savita Thorat",
-        "date": "14-Nov-2011"
-      },
-      "tax": {
-        "paid_until": "11-Nov-2026"
-      }
-    },
-    {
-      "ulpin": "MH000100000010",
-      "land": {
-        "area_hectare": "0,137410"
+        "area_hectare": "0,141429"
       },
       "owners": [
         "Ramesh Kulkarni"
       ],
       "registry": {
         "buyer": "Kulkarni Ramesh S.",
+        "date": "06-Jun-2015"
+      },
+      "tax": {
+        "paid_until": "23-Mar-2026"
+      }
+    },
+    {
+      "ulpin": "MH000100000003",
+      "land": {
+        "area_hectare": "0,210369"
+      },
+      "owners": [
+        "Mahesh More",
+        "Smt. Kamla Devi"
+      ],
+      "registry": {
+        "buyer": "Rohit Gore",
+        "date": "21-Jun-2010"
+      },
+      "tax": {
+        "paid_until": "21-Apr-2026"
+      }
+    },
+    {
+      "ulpin": "MH000100000004",
+      "land": {
+        "area_hectare": "0,149518"
+      },
+      "owners": [
+        "Ganesh Mane"
+      ],
+      "registry": {
+        "buyer": "Ganesh Mane",
+        "date": "29-Jan-2009"
+      },
+      "tax": {
+        "paid_until": "15-May-2026"
+      }
+    },
+    {
+      "ulpin": "MH000100000005",
+      "land": {
+        "area_hectare": "0,140501"
+      },
+      "owners": [
+        "Rohit Pawar"
+      ],
+      "registry": {
+        "buyer": "Kavita More",
+        "date": "01-Jun-2010"
+      },
+      "tax": {
+        "paid_until": "21-Feb-2026"
+      }
+    },
+    {
+      "ulpin": "MH000100000006",
+      "land": {
+        "area_hectare": "0,144710"
+      },
+      "owners": [
+        "Amit More",
+        "Smt. Kamla Devi"
+      ],
+      "registry": {
+        "buyer": "Swati Thorat",
+        "date": "26-Jan-2014"
+      },
+      "tax": {
+        "paid_until": "10-Dec-2026"
+      }
+    },
+    {
+      "ulpin": "MH000100000007",
+      "land": {
+        "area_hectare": "0,169360"
+      },
+      "owners": [
+        "Deepak Nikam"
+      ],
+      "registry": {
+        "buyer": "Deepak Nikam",
         "date": "24-Sep-2021"
       },
       "tax": {
@@ -164,9 +117,9 @@
       }
     },
     {
-      "ulpin": "MH000100000011",
+      "ulpin": "MH000100000008",
       "land": {
-        "area_hectare": "0,142770"
+        "area_hectare": "0,109794"
       },
       "owners": [
         "Archana Jagtap"
@@ -180,9 +133,9 @@
       }
     },
     {
-      "ulpin": "MH000100000012",
+      "ulpin": "MH000100000009",
       "land": {
-        "area_hectare": "0,184565"
+        "area_hectare": "0,143234"
       },
       "owners": [
         "Kavita Mane",
@@ -197,9 +150,9 @@
       }
     },
     {
-      "ulpin": "MH000100000013",
+      "ulpin": "MH000100000010",
       "land": {
-        "area_hectare": "0,112187"
+        "area_hectare": "0,173498"
       },
       "owners": [
         "Ganesh Jagtap"
@@ -213,25 +166,25 @@
       }
     },
     {
-      "ulpin": "MH000100000014",
+      "ulpin": "MH000100000011",
       "land": {
-        "area_hectare": "0,159873"
+        "area_hectare": "0,159530"
       },
       "owners": [
-        "Kavita Kamble"
+        "Sunita Deshpande"
       ],
       "registry": {
-        "buyer": "Kavita Kamble",
+        "buyer": "Sunita R. Deshpande",
         "date": "07-Feb-2010"
       },
       "tax": {
-        "paid_until": "05-Jan-2022"
+        "paid_until": "05-Jan-2026"
       }
     },
     {
-      "ulpin": "MH000100000015",
+      "ulpin": "MH000100000012",
       "land": {
-        "area_hectare": "0,170438"
+        "area_hectare": "0,225440"
       },
       "owners": [
         "Pooja Jagtap",
@@ -246,84 +199,131 @@
       }
     },
     {
-      "ulpin": "MH000100000016",
+      "ulpin": "MH000100000013",
       "land": {
-        "area_hectare": "0,140475"
+        "area_hectare": "0,180569"
       },
       "owners": [
-        "Pooja Ghadge"
+        "Amit Kamble"
       ],
       "registry": {
-        "buyer": "Pooja Ghadge",
-        "date": "21-Apr-2007"
+        "buyer": "Amit Kamble",
+        "date": "13-Jul-2015"
       },
       "tax": {
-        "paid_until": "13-Jan-2025"
+        "paid_until": "06-May-2026"
+      }
+    },
+    {
+      "ulpin": "MH000100000014",
+      "land": {
+        "area_hectare": ""
+      },
+      "owners": [],
+      "registry": {
+        "buyer": "Sanjay Jagtap",
+        "date": "30-Apr-2024"
+      },
+      "tax": {
+        "paid_until": "05-May-2026"
+      }
+    },
+    {
+      "ulpin": "MH000100000015",
+      "land": {
+        "area_hectare": "0,192883"
+      },
+      "owners": [
+        "Savita Ghadge",
+        "Smt. Kamla Devi"
+      ],
+      "registry": {
+        "buyer": "Savita Ghadge",
+        "date": "30-Aug-2006"
+      },
+      "tax": {
+        "paid_until": "14-Aug-2026"
+      }
+    },
+    {
+      "ulpin": "MH000100000016",
+      "land": {
+        "area_hectare": "0,137651"
+      },
+      "owners": [
+        "Swati More"
+      ],
+      "registry": {
+        "buyer": "Swati More",
+        "date": "27-Jul-2010"
+      },
+      "tax": {
+        "paid_until": "02-May-2025"
       }
     },
     {
       "ulpin": "MH000100000017",
       "land": {
-        "area_hectare": "0,122422"
+        "area_hectare": "0,192118"
       },
       "owners": [
-        "Archana Mane"
+        "Mahesh Lokhande"
       ],
       "registry": {
-        "buyer": "Archana Mane",
-        "date": "19-Feb-2009"
+        "buyer": "Mahesh Lokhande",
+        "date": "08-Feb-2015"
       },
       "tax": {
-        "paid_until": "22-Feb-2025"
+        "paid_until": "30-Mar-2026"
       }
     },
     {
       "ulpin": "MH000100000018",
       "land": {
-        "area_hectare": "0,127244"
+        "area_hectare": "0,189362"
       },
       "owners": [
-        "Ganesh Bhosale",
+        "Sanjay Bhosale",
         "Smt. Kamla Devi"
       ],
       "registry": {
-        "buyer": "Ganesh Bhosale",
-        "date": "10-Jun-2023"
+        "buyer": "Sanjay Bhosale",
+        "date": "09-Feb-2022"
       },
       "tax": {
-        "paid_until": "08-Mar-2025"
+        "paid_until": "01-Aug-2025"
       }
     },
     {
       "ulpin": "MH000100000019",
       "land": {
-        "area_hectare": "0,148081"
+        "area_hectare": "0,178162"
       },
       "owners": [
-        "Sanjay Kale"
+        "Rahul Chavan"
       ],
       "registry": {
-        "buyer": "Sanjay Kale",
-        "date": "07-May-2008"
+        "buyer": "Rahul Chavan",
+        "date": "19-May-2010"
       },
       "tax": {
-        "paid_until": "31-Jul-2026"
+        "paid_until": "27-Jun-2025"
       }
     },
     {
       "ulpin": "MH000100000020",
       "land": {
-        "area_hectare": "0,169252"
+        "area_hectare": "0,100182"
       },
       "owners": [
-        "Mahesh Bhosale"
+        "Ganesh Kamble"
       ],
       "registry": {
-        "buyer": "Nitin Thorat",
-        "date": "26-May-2022"
+        "buyer": "Ganesh Kamble",
+        "date": "25-Sep-2005"
       },
       "tax": {
-        "paid_until": "20-Jun-2026"
+        "paid_until": "26-Aug-2025"
       }
     }
   ]

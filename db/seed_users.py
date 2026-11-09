@@ -12,7 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-from backend.app import db, security  # noqa: E402
+from backend.app import config, db, security  # noqa: E402
 
 TRUTH_PATH = Path(__file__).resolve().parent / "planted_truth.json"
 
@@ -23,37 +23,48 @@ DEMO_USERS = [
     ("citizen1", "citizen", "Citizen1Demo#2026"),
     ("citizen2", "citizen", "Citizen2Demo#2026"),
 ]
-# What each citizen's 3 plots should contain: these problem types first, then clean plots.
-CITIZEN_WISHES = {
-    "citizen1": (["boundary_overlap", "missing_record"], 1),   # 2 problem plots + 1 clean
-    "citizen2": (["restricted_zone_clash"], 2),                # 1 problem plot + 2 clean
-}
+def score_of(problems):
+    """The risk score a plot with these planted problems gets (same points and cap as the real scoring)."""
+    return min(sum(config.POINTS[t] for t in problems), config.SCORE_CAP)
 
 
 def choose_plots(plot_ulpins, truth):
-    """Pick 3 plots per citizen, each with at least one planted problem. Deterministic."""
+    """Pick 3 plots per citizen, each with at least one planted problem. Deterministic.
+    citizen1 owns a RED plot that overlaps another plot (so the privacy demo is real: the other plot's id is hidden
+    from the citizen), a single missing-record plot, and a clean plot. citizen2 owns a restricted-zone plot and 2 clean."""
     existing = set(plot_ulpins)
     conflicts = {u: t for u, t in truth["conflicts"].items() if u in existing}
+    details = truth.get("details", {})
     decoys = {d["ulpin"] for d in truth["decoys"]}
-    clean = [u for u in sorted(existing) if u not in conflicts and u not in decoys]
-    spare_problems = sorted(conflicts)
-    if not spare_problems:
+    touching = {u for pair in truth.get("touching_pairs", []) for u in pair}
+    clean = [u for u in sorted(existing) if u not in conflicts and u not in decoys and u not in touching]
+    if not conflicts:
         raise SystemExit("There are no planted problem plots to give the citizens. Run db/seed.py first.")
 
-    used, chosen = set(), {}
-    for username, (wanted_types, n_clean) in CITIZEN_WISHES.items():
-        plots = []
-        for ctype in wanted_types:
-            pick = next((u for u in sorted(conflicts) if conflicts[u] == [ctype] and u not in used), None)
-            pick = pick or next((u for u in spare_problems if u not in used), None)
-            used.add(pick)
-            plots.append(pick)
-        for _ in range(n_clean):
-            pick = next(u for u in clean if u not in used)
-            used.add(pick)
-            plots.append(pick)
-        chosen[username] = plots
-    return chosen
+    def first(candidates, used):
+        return next((u for u in candidates if u not in used), None)
+
+    only = lambda ctype: [u for u in sorted(conflicts) if conflicts[u] == [ctype]]  # noqa: E731
+    red = [u for u in sorted(conflicts) if score_of(conflicts[u]) >= config.RED_FROM]
+    red_overlap = [u for u in red if "boundary_overlap" in conflicts[u]
+                   and details.get(u, {}).get("overlap_relation") == "overlaps"]
+    used = set()
+
+    def take(candidates):
+        """The first candidate not yet given away (or, failing that, any planted problem plot)."""
+        pick = next((u for u in candidates if u not in used), None) or next(u for u in sorted(conflicts) if u not in used)
+        used.add(pick)
+        return pick
+
+    def take_clean():
+        pick = next(u for u in clean if u not in used)
+        used.add(pick)
+        return pick
+
+    return {   # evaluated left to right, so the order below is the order plots are handed out
+        "citizen1": [take(red_overlap or red), take(only("missing_record")), take_clean()],
+        "citizen2": [take(only("restricted_zone_clash")), take_clean(), take_clean()],
+    }
 
 
 def build_demo_users(plot_ulpins, truth):

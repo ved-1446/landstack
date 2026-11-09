@@ -1,11 +1,11 @@
-# LandStack API contract (Phases 3 and 7)
+# LandStack API contract (Phases 3, 7 and 8)
 
 JSON API over the seeded fake data. Build against this file; it is checked against the code by `backend/tests/test_api.py` and `backend/tests/test_auth.py`. Every endpoint except `/health` and `POST /auth/login` needs a login (see below).
 
 - **Run:** `uvicorn backend.app.main:app --reload` (from the repo root, venv active). Base URL `http://localhost:8000`.
 - **Live docs:** `http://localhost:8000/docs` (Swagger UI), `http://localhost:8000/redoc`, raw spec at `/openapi.json`.
 - **CORS:** only `http://localhost:5173` (the Vite dev server) may call it from a browser. GET and POST are allowed, with the `Authorization` and `Content-Type` headers. The `Retry-After` header is readable by the page.
-- **Start-up:** the server refuses to start unless `JWT_SECRET` (a long random value, not the placeholder) is set in `.env` or the environment.
+- **Start-up:** the server refuses to start unless `JWT_SECRET` (a long random value, not the placeholder) is set in `.env` or the environment. `PUBLIC_BASE_URL` (default `http://localhost:8000`) is the web address put into the QR code of printed passports.
 - **Scores** are computed fresh on every request by the Phase 2 engine. Do not compute scores in the frontend.
 - **Coordinates** are GeoJSON `[longitude, latitude]` (SRID 4326), around lon 73.80, lat 18.55 (Pune).
 
@@ -23,14 +23,16 @@ JSON API over the seeded fake data. Build against this file; it is checked again
 | `GET /conflict-types` | 401 | 200 | 200 | 200 |
 | `GET /plots` | 401 | 200, **only their own plots** | 200, all plots | 200, all plots |
 | `GET /plots/{ulpin}` | 401 | 200 for their own plot; **404 for any other plot** | 200 (404 only if it does not exist) | 200 (404 only if it does not exist) |
+| `GET /plots/{ulpin}/passport.pdf` | 401 | 200 for their own plot; **404 for any other plot** | 200 (404 only if it does not exist) | 200 (404 only if it does not exist) |
+| `GET /verify/{doc_id}` | 200 (public, strict limit) | 200 | 200 | 200 |
 | `GET /summary` | 401 | **403** | 200 | 200 |
 | `GET /audit` | 401 | **403** | **403** | 200 |
 
 **Citizens never learn which other plots exist.** A plot that is not theirs returns exactly the same `404` as a plot that does not exist (not `403`). In a citizen's findings, any other plot's ULPIN in the evidence text is replaced by "another plot" (so "overlaps plot MH000400000070 by 656 sq m" becomes "overlaps another plot by 656 sq m"). Scores, points and bands are never changed.
 
-**Audit log.** Every `GET /plots/{ulpin}` writes one audit row: who, their role, which ulpin, when, and what happened: `view_passport` (shown), `view_passport_denied` (a citizen asked for a plot that is not theirs, or one that does not exist) or `view_passport_not_found` (an officer or admin asked for a plot that does not exist). Listing plots and other calls are not logged. If writing the row fails, the request still works and the failure goes to the server log.
+**Audit log.** Every `GET /plots/{ulpin}` writes one audit row: who, their role, which ulpin, when, and what happened: `view_passport` (shown), `view_passport_denied` (a citizen asked for a plot that is not theirs, or one that does not exist) or `view_passport_not_found` (an officer or admin asked for a plot that does not exist). A PDF download is logged the same way, with `download_passport_pdf`, `download_passport_pdf_denied` and `download_passport_pdf_not_found`. Listing plots and other calls are not logged. If writing the row fails, the request still works and the failure goes to the server log.
 
-**Rate limits.** `POST /auth/login`: 5 per minute per IP address. Everything else: 60 per minute per logged-in user, as one allowance shared by all endpoints (per IP address if the request has no valid token). A blocked request gets `429` with a `Retry-After` header (whole seconds) and `{"detail": "Too many requests. Please wait 31 seconds and try again."}`. The limits live in `backend/app/config.py`.
+**Rate limits.** `POST /auth/login`: 5 per minute per IP address. Everything else: 60 per minute per logged-in user, as one allowance shared by all endpoints (per IP address if the request has no valid token). A blocked request gets `429` with a `Retry-After` header (whole seconds) and `{"detail": "Too many requests. Please wait 31 seconds and try again."}`. `GET /verify/{doc_id}` (public, so strict): 10 per minute per IP address, with its own counter. Counters are per endpoint, not per URL, so trying many different document ids is limited too. The limits live in `backend/app/config.py`.
 
 **Secrets.** Passwords are stored only as argon2 hashes. No endpoint ever returns a password or a hash, and passwords are never logged.
 
@@ -78,7 +80,7 @@ Every error is JSON with a `detail` field. Stack traces are never returned (they
 | `village` | text | only plots in this village (exact, case-sensitive; unknown village gives an empty list) |
 | `conflict_type` | a conflict type | only plots with at least one finding of this type |
 
-Example `GET /plots?band=amber&conflict_type=boundary_overlap` (geometry shortened, 8 features in the real response):
+Example `GET /plots?band=amber&conflict_type=boundary_overlap` (geometry shortened, 6 features in the real response):
 
 ```json
 {
@@ -91,10 +93,10 @@ Example `GET /plots?band=amber&conflict_type=boundary_overlap` (geometry shorten
         "coordinates": [[[73.80177771, 18.55120423], "... 4 more points, first point repeated last"]]
       },
       "properties": {
-        "ulpin": "MH000100000012",
+        "ulpin": "MH000100000015",
         "village": "Hinjewadi",
-        "land_use": "agricultural",
-        "survey_no": "111/9",
+        "land_use": "residential",
+        "survey_no": "114/7",
         "score": 40,
         "band": "amber"
       }
@@ -115,33 +117,33 @@ Notes: features have no top-level `id`; with MapLibre use `promoteId: "ulpin"`. 
 
 Fields: plot facts (`ulpin`, `village`, `land_use`, `survey_no`, `geometry`, `area_sqm`), the three records (`ror`, `registration`, `tax`; each is `null` when that record is missing), `score`, `band`, and `findings`. `area_sqm` is the real area in square metres, or `null` when the boundary shape is invalid. If a plot has several rows of a record type, the latest one is shown.
 
-Example `GET /plots/MH000100000001` (a plot with no RoR record; geometry shortened):
+Example `GET /plots/MH000100000006` (a red plot with four problems; geometry shortened):
 
 ```json
 {
-  "ulpin": "MH000100000001",
+  "ulpin": "MH000100000006",
   "village": "Hinjewadi",
-  "land_use": "residential",
-  "survey_no": "100/4",
-  "area_sqm": 1376.7031198441982,
-  "geometry": {"type": "Polygon", "coordinates": [[[73.80054491, 18.55010454], "..."]]},
-  "ror": null,
-  "registration": {"owner_name": "Ganesh Bhosale", "registered_on": "2014-09-22"},
-  "tax": {"paid_until": "2026-01-06"},
-  "score": 10,
-  "band": "green",
+  "land_use": "industrial",
+  "survey_no": "105/8",
+  "area_sqm": 1848.6587559729815,
+  "geometry": {"type": "Polygon", "coordinates": [[[73.8061975, 18.55022193], "..."]]},
+  "ror": {"owner_name": "Amit More", "recorded_area_sqm": 1447.1},
+  "registration": {"owner_name": "Swati Thorat", "registered_on": "2014-01-26"},
+  "tax": {"paid_until": "2026-12-10"},
+  "score": 100,
+  "band": "red",
   "findings": [
-    {
-      "type": "missing_record",
-      "points": 10,
-      "evidence": "no RoR record found for this plot (ror_records is empty)"
-    }
+    {"type": "boundary_overlap", "points": 40, "evidence": "overlaps plot MH000200000025 by 647 sq m (35% of this plot)"},
+    {"type": "area_mismatch", "points": 25, "evidence": "record says 1,447 sq m but the mapped plot is 1,849 sq m (-22%); limit is 10%"},
+    {"type": "owner_mismatch", "points": 25, "evidence": "record owner 'Amit More' vs registration owner 'Swati Thorat'; name similarity 0.05 (needs 0.60)"},
+    {"type": "duplicate_survey_no", "points": 20, "evidence": "survey number 105/8 in Hinjewadi is also used by plot MH000400000063"}
   ]
 }
 ```
 
-A present `ror` looks like `{"owner_name": "Kavita Mane", "recorded_area_sqm": 1845.65}`. A clean plot has `"score": 0, "band": "green", "findings": []`.
-An overlap plot's finding looks like `{"type": "boundary_overlap", "points": 40, "evidence": "overlaps plot MH000400000070 by 656 sq m (35% of this plot)"}`.
+A plot can have findings of several different types (up to four in the demo data). The points of all findings are added and the score stops at 100: here 40 + 25 + 25 + 20 = 110, shown as 100. A plot has at most one finding per type. A missing record shows as `"ror": null` (or `registration`, or `tax`) plus a `missing_record` finding. A clean plot has `"score": 0, "band": "green", "findings": []`.
+
+The `boundary_overlap` evidence is worded by what kind of overlap it is: `overlaps plot X by 647 sq m (35% of this plot)` (a partial overlap), `lies completely inside plot X (470 sq m, all of this plot)`, `plot X lies completely inside this plot (470 sq m, 25% of this plot)`, or `has exactly the same boundary as plot X (1,850 sq m)`. Two plots count as overlapping only if they share at least 5 square metres of ground; plots that only touch along an edge or at a corner are not flagged.
 
 For a citizen, the evidence text never contains another plot's ULPIN (it says "another plot"), for example `{"type": "boundary_overlap", "points": 40, "evidence": "overlaps another plot by 656 sq m (35% of this plot)"}`.
 
@@ -157,21 +159,21 @@ Errors: 401, 404 (unknown ulpin, or a citizen asking for a plot that is not thei
 ```json
 {
   "total_plots": 100,
-  "plots_per_band": {"green": 80, "amber": 20, "red": 0},
+  "plots_per_band": {"green": 60, "amber": 28, "red": 12},
   "findings_per_type": {
-    "boundary_overlap": 8,
-    "restricted_zone_clash": 4,
-    "area_mismatch": 4,
-    "owner_mismatch": 4,
+    "boundary_overlap": 14,
+    "restricted_zone_clash": 12,
+    "area_mismatch": 12,
+    "owner_mismatch": 14,
     "duplicate_survey_no": 8,
     "invalid_boundary": 4,
-    "tax_overdue": 4,
+    "tax_overdue": 6,
     "missing_record": 4
   }
 }
 ```
 
-`findings_per_type` counts findings, not plots. They are the same for every type except `missing_record`, which counts one finding per missing record. All three bands and all eight types are always present, with `0` when empty. (Numbers shown are for the default seed: 100 plots, seed 42.) Errors: 401, 403, 429, 503.
+`findings_per_type` counts findings, not plots. Because a plot has at most one finding per type, each number is also the number of plots with that problem (a plot with several problems is counted once under each). All three bands and all eight types are always present, with `0` when empty. (Numbers shown are for the default seed: 100 plots, seed 42.) Errors: 401, 403, 429, 503.
 
 ## GET /conflict-types
 
@@ -182,7 +184,7 @@ Errors: 401, 404 (unknown ulpin, or a citizen asking for a plot that is not thei
 
 ```json
 [
-  {"type": "boundary_overlap", "points": 40, "description": "This plot's boundary overlaps another plot's boundary."},
+  {"type": "boundary_overlap", "points": 40, "description": "This plot overlaps another plot, or lies inside it, or has another plot inside it."},
   {"type": "restricted_zone_clash", "points": 30, "description": "More than 20% of the plot lies inside a restricted zone."},
   {"type": "area_mismatch", "points": 25, "description": "The recorded area differs from the mapped area by more than 10%."}
 ]
@@ -237,4 +239,36 @@ Request body (JSON): `{"username": "citizen1", "password": "..."}` (1 to 64 char
 ]
 ```
 
-`action` is `view_passport`, `view_passport_denied` or `view_passport_not_found`. `looked_at` is an ISO 8601 time (UTC). Errors: 401, 403, 422 (bad `limit`), 429, 503.
+`action` is one of `view_passport`, `view_passport_denied`, `view_passport_not_found`, `download_passport_pdf`, `download_passport_pdf_denied`, `download_passport_pdf_not_found`. `looked_at` is an ISO 8601 time (UTC). Errors: 401, 403, 422 (bad `limit`), 429, 503.
+
+## GET /plots/{ulpin}/passport.pdf
+
+**Who:** any logged-in user, with the same rules as `GET /plots/{ulpin}`: a citizen only for their own plots (any other plot is the same 404 as an unknown one, and other plots' ids are replaced by "another plot" in the printed evidence); officers and admins for any plot. Limited like every other endpoint (60 per minute per user).
+
+The printable land passport: one A4 page. It shows the demo-data notice, plot facts, the boundary as vector lines (drawn even for an invalid shape, labelled "INVALID BOUNDARY"), the score badge with the band written in words, the findings table (or "No conflicts found"), the three records ("Missing" when absent), a QR code, the document id, the generated time (UTC) and the user who generated it.
+
+- 200: `Content-Type: application/pdf`, `Content-Disposition: attachment; filename="landpassport_<ulpin>.pdf"`, `Cache-Control: no-store`. The body starts with `%PDF`.
+- Each successful download inserts one `passport_issues` row (document id, ulpin, username, time, SHA-256 of the passport data) and writes one audit row. The hash covers the real, un-hidden data (sorted JSON, no timestamps of ours), even when a citizen downloads, so `/verify` can recompute it. If the PDF cannot be built, no issue row is kept (the attempt is still audited).
+- The QR code holds `{PUBLIC_BASE_URL}/verify/{doc_id}`.
+- Errors: 401, 404 (unknown plot, or a citizen asking for a plot that is not theirs), 422 (malformed ulpin), 429, 500 (`{"detail": "Internal server error"}`), 503.
+- A PDF cannot show more than about 6 findings once the rows are long; extra findings are replaced by a line "+ N more finding(s) not shown. See the digital passport." (seeded data has at most one finding per plot).
+
+## GET /verify/{doc_id}
+
+**Who:** everyone, **no login**. Limited to **10 per minute per IP address**. Does a printed passport still match the records?
+
+| Path param | Type | Meaning |
+|---|---|---|
+| `doc_id` | 4 to 40 letters, digits or `-` (not case sensitive) | the document id printed on the passport, e.g. `7KQ2-M9XD-4TPA` |
+
+- 200 (the records still match):
+
+```json
+{"valid": true, "ulpin": "MH000100000012", "issued_at": "2026-11-09T22:22:23.154685Z", "status": "matches"}
+```
+
+- 200 (something changed since it was printed): `{"valid": false, "ulpin": "...", "issued_at": "...", "status": "records have changed since this was issued"}`
+
+`valid` is true only when `status` is `"matches"`. The answer deliberately contains nothing else: no owner names, no evidence, no score, no band. Anyone holding the paper (or finding the id) learns only that the document is genuine and whether it is still current.
+
+- Errors: 404 `{"detail": "No document found with that id"}` (an id that was never issued), 422 (not shaped like an id), 429 `Retry-After` header, 503.

@@ -34,7 +34,7 @@ Get-Content db/schema.sql | docker exec -i landstack-db psql -U landstack -d lan
 **4. Seed the fake data** (same flags = same data; also writes `db/planted_truth.json`)
 ```
 python db/seed.py
-python db/seed.py --plots 100 --problem-rate 0.4 --seed 42
+python db/seed.py --plots 100 --problem-rate 0.48 --seed 42
 ```
 
 **5. Run the tests** (the last test needs the database running and seeded schema)
@@ -128,7 +128,7 @@ python db/seed_users.py
 |---|---|---|---|
 | `admin` | `AdminDemo#2026` | admin | everything an officer sees, plus the audit log (`GET /audit`) |
 | `officer` | `OfficerDemo#2026` | officer | all plots, all passports, the summary |
-| `citizen1` | `Citizen1Demo#2026` | citizen | only its 3 plots (an overlap plot, a missing-record plot, a clean plot) |
+| `citizen1` | `Citizen1Demo#2026` | citizen | only its 3 plots (a RED plot that overlaps another plot, a missing-record plot, a clean plot) |
 | `citizen2` | `Citizen2Demo#2026` | citizen | only its 3 plots (a restricted-zone plot and 2 clean plots) |
 
 A citizen who asks for someone else's plot gets "not found" (404), the same answer as for a plot that does not exist. The full role table is in `docs/api-contract.md`.
@@ -138,4 +138,50 @@ A citizen who asks for someone else's plot gets "not found" (404), the same answ
 **Tests** create their own `test_*` users with random passwords and delete them (and their audit rows) at the end. They use a throw-away JWT secret, so they work even before you set up `.env`:
 ```
 python -m pytest backend/tests -q
+```
+
+## Printable land passport (Phase 8)
+
+A one-page A4 PDF of a plot's passport: header with a clear "DEMO DATA, NOT AN OFFICIAL RECORD" notice, plot facts, the boundary drawn as vector lines, the risk score as a coloured badge **with the band written in words** (so it works in black and white), the findings table, the three records ("Missing" if absent), a QR code, a short document id, who generated it and when.
+
+**Samples** (made with the demo admin account, demo data only; open them to see the layout):
+- [docs/samples/passport_clean.pdf](docs/samples/passport_clean.pdf): a clean plot, "No conflicts found".
+- [docs/samples/passport_red.pdf](docs/samples/passport_red.pdf): a red plot with four problems (overlap, area mismatch, owner mismatch, duplicate survey number: the points add up to 110 and the score is capped at 100).
+
+Their QR codes point at `http://localhost:8000/verify/<document id>` and work on a machine whose database still holds those two issue rows (a re-run of `db/schema.sql` removes them).
+
+**Download one.** In the app, open a plot and press **Download PDF**. Or with the API (replace the token; see "Login" above):
+```
+curl -H "Authorization: Bearer <token>" -o passport.pdf http://localhost:8000/plots/MH000100000012/passport.pdf
+```
+The same role rules as the JSON passport apply: a citizen can download only their own plots (anything else is a 404), and other plots' ids are hidden in their copy. Every download is written to the audit log and to the `passport_issues` table.
+
+**Verify one.** Anyone can open `http://localhost:8000/verify/<document id>` (no login). It says only whether the records still match what was printed, the ulpin and the issue time. No names, no evidence, no score. It is limited to 10 requests per minute per IP address.
+
+**Setup.** The schema changed again (new `passport_issues` table), so re-run it and re-seed (see "Login, roles and rate limits" above: `schema.sql`, then `db/seed.py`, then `db/seed_users.py`). The QR code needs to know the public web address of your API. Add this line to `.env` (the default is already `http://localhost:8000`, so it is optional locally):
+```
+PUBLIC_BASE_URL=http://localhost:8000
+```
+and the same line to `.env.example`. New packages (`reportlab`, `qrcode`, `pypdf`) are in `backend/requirements.txt`: run `pip install -r backend/requirements.txt`.
+
+The PDF uses the built-in Helvetica and Courier fonts, which cover English. Hindi or Marathi names would need a Unicode font added in `backend/app/pdf.py` first.
+
+## The demo data (Phase 8b)
+
+`python db/seed.py` (defaults: 100 plots, problem rate 0.48, seed 42) always makes the same data:
+
+| | Count |
+|---|---|
+| Plots with no planted problem | 52 (6 of them are the "same person, different spelling" decoys; 2 touch each other along an edge and must stay clean) |
+| Plots with 1 / 2 / 3 / 4 planted problems | 33 / 6 / 7 / 2 |
+| **Risk bands** | **60 green, 28 amber, 12 red** (two red plots reach the cap: their points add up to 110 and the score stops at 100) |
+| Plots per problem type | overlap 14, zone 12, area 12, owner 14, duplicate survey number 8, invalid boundary 4, tax overdue 6, missing record 4 |
+
+A single problem scores at most 40, so every red plot (60 or more) carries several problems. `db/planted_truth.json` lists every problem on every plot. The boundary-overlap check now finds a partial overlap, one plot inside another, and two identical plots, but not two plots that only touch along an edge (they must share at least `MIN_OVERLAP_SQM`, 5 square metres, set in `backend/app/config.py`).
+
+After changing the seed, load it and rebuild what depends on it:
+```
+python db/seed.py
+python db/seed_users.py
+python -m db.adapters.make_samples
 ```

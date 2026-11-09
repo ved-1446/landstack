@@ -23,22 +23,40 @@ def _finding(ulpin, ctype, evidence):
 
 
 def check_boundary_overlap(conn):
-    # ST_Overlaps: the shapes share some area but neither one is the other. Joining a to b and
-    # b to a gives BOTH plots a row, so both plots get a finding.
+    # ST_Intersects is true for ANY shared ground: a partial overlap, one plot completely inside another, two
+    # identical plots, and also two plots that merely touch along an edge. (ST_Overlaps would miss "inside" and
+    # "identical".) So we measure the shared piece in square metres and ignore anything below MIN_OVERLAP_SQM:
+    # a shared edge is a line with 0 sq m, which is how touching plots stay out.
+    # Joining a to b and b to a gives BOTH plots a row, so both plots get a finding.
     sql = """
-        SELECT a.ulpin,
-               b.ulpin AS other,
-               ST_Area(ST_Intersection(a.geom, b.geom)::geography) AS overlap_sqm,
-               ST_Area(a.geom::geography) AS area_sqm
-        FROM plots a
-        JOIN plots b ON a.ulpin <> b.ulpin AND ST_Overlaps(a.geom, b.geom)
-        WHERE ST_IsValid(a.geom) AND ST_IsValid(b.geom)
-        ORDER BY a.ulpin, b.ulpin
+        WITH pairs AS (
+            SELECT a.ulpin, b.ulpin AS other, a.geom AS a_geom, b.geom AS b_geom,
+                   ST_Area(ST_Intersection(a.geom, b.geom)::geography) AS overlap_sqm
+            FROM plots a
+            JOIN plots b ON a.ulpin <> b.ulpin AND ST_Intersects(a.geom, b.geom)
+            WHERE ST_IsValid(a.geom) AND ST_IsValid(b.geom)
+        )
+        SELECT ulpin, other, overlap_sqm,
+               ST_Area(a_geom::geography) AS area_sqm,
+               ST_Equals(a_geom, b_geom)  AS identical,
+               ST_Covers(b_geom, a_geom)  AS inside_other,      -- this plot lies completely inside the other
+               ST_Covers(a_geom, b_geom)  AS contains_other     -- the other plot lies completely inside this one
+        FROM pairs
+        WHERE overlap_sqm >= %s
+        ORDER BY ulpin, other
     """
     parts = {}
-    for ulpin, other, overlap, area in conn.execute(sql).fetchall():
-        parts.setdefault(ulpin, []).append(
-            f"overlaps plot {other} by {overlap:,.0f} sq m ({overlap / area:.0%} of this plot)")
+    for ulpin, other, overlap, area, identical, inside, contains in conn.execute(
+            sql, (config.MIN_OVERLAP_SQM,)).fetchall():
+        if identical:
+            text = f"has exactly the same boundary as plot {other} ({overlap:,.0f} sq m)"
+        elif inside:
+            text = f"lies completely inside plot {other} ({overlap:,.0f} sq m, all of this plot)"
+        elif contains:
+            text = f"plot {other} lies completely inside this plot ({overlap:,.0f} sq m, {overlap / area:.0%} of this plot)"
+        else:
+            text = f"overlaps plot {other} by {overlap:,.0f} sq m ({overlap / area:.0%} of this plot)"
+        parts.setdefault(ulpin, []).append(text)
     return [_finding(u, "boundary_overlap", "; ".join(p)) for u, p in parts.items()]
 
 

@@ -7,21 +7,22 @@ The checks and the score come from checks.py / scoring.py and are not changed he
 Needs JWT_SECRET in .env or the environment (the app will not start without it).
 Who may do what is in the role matrix in docs/api-contract.md.
 """
+import hmac
 import logging
-import re
 from datetime import date, datetime
 from typing import Annotated, Literal
 
 import psycopg
 from fastapi import Depends, FastAPI, HTTPException, Path, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from fastapi.responses import JSONResponse, Response
+from pydantic import BaseModel, Field
 from slowapi.errors import RateLimitExceeded
 
-from . import audit, auth, config, limits, scoring
+from . import audit, auth, config, limits, passport, pdf
 from .auth import ErrorBody, User, current_user, require_roles
 from .db import get_conn
+from .passport import fetch_for_user, hide_other_plots, owned_ulpins, scored  # noqa: F401  (hide_other_plots is re-exported)
 
 log = logging.getLogger("landstack.api")
 
@@ -116,15 +117,26 @@ class AuditEntry(BaseModel):
     username: str
     role: Literal["admin", "officer", "citizen"]
     ulpin: str | None
-    action: Literal["view_passport", "view_passport_denied", "view_passport_not_found"]
+    action: Literal["view_passport", "view_passport_denied", "view_passport_not_found",
+                    "download_passport_pdf", "download_passport_pdf_denied", "download_passport_pdf_not_found"]
     looked_at: datetime
+
+
+CHANGED = "records have changed since this was issued"
+
+
+class Verification(BaseModel):
+    valid: bool = Field(description="true only if the records still match what was printed")
+    ulpin: str
+    issued_at: datetime
+    status: Literal["matches", "records have changed since this was issued"]
 
 
 # ---------- App, CORS, errors ----------
 
 app = FastAPI(
     title="LandStack API",
-    version="0.7.0",
+    version="0.8.0",
     description="Land records on a map. Plots, land passports, conflicts and risk scores "
                 "(fake demo data). Log in at POST /auth/login first; what you may see depends on your role.",
 )
@@ -138,6 +150,7 @@ app.add_middleware(
     expose_headers=["Retry-After"],
 )
 app.state.limiter = limits.limiter
+PUBLIC_BASE_URL = pdf.get_public_base_url()   # checked at start-up; the QR codes point here
 app.include_router(auth.router)
 
 
@@ -162,36 +175,6 @@ Conn = Annotated[psycopg.Connection, Depends(get_conn)]
 AnyUser = Annotated[User, Depends(current_user)]
 Staff = Annotated[User, Depends(require_roles(*config.STAFF_ROLES))]
 Admin = Annotated[User, Depends(require_roles("admin"))]
-
-
-def scored(conn):
-    """Run the Phase 2 engine: {ulpin: {score, band, findings}} for every plot.
-
-    CACHE WOULD GO HERE. This recomputes every check on every request, which is fine for
-    ~100 plots. If the data grew, keep this result in memory (or a table) and refresh it only
-    when plots, records or zones change, instead of recomputing per request.
-    """
-    return scoring.run_all(conn)
-
-
-def owned_ulpins(conn, username):
-    return [u for (u,) in conn.execute(
-        "SELECT ulpin FROM user_plots WHERE username = %s ORDER BY ulpin", (username,))]
-
-
-# A ULPIN written inside evidence text (with the word "plot" in front, if there is one).
-_ULPIN_IN_TEXT = re.compile(r"(?:\bplot )?\b(?=[A-Z0-9]*\d)([A-Z0-9]{14})\b")
-
-
-def hide_other_plots(findings, owned):
-    """For citizens: evidence such as "overlaps plot MH0004... by 656 sq m" would reveal that another
-    plot exists. Replace every ULPIN that is not the citizen's own with "another plot"."""
-    def swap(match):
-        return match.group(0) if match.group(1) in owned else "another plot"
-    return [{**f, "evidence": _ULPIN_IN_TEXT.sub(swap, f["evidence"])} for f in findings]
-
-
-NOT_FOUND = "No plot found with ulpin {}"
 
 
 # ---------- Endpoints ----------
@@ -257,48 +240,51 @@ def land_passport(request: Request, ulpin: Ulpin, conn: Conn, user: AnyUser):
     """The land passport: plot facts, its three records (null if missing), score and findings.
     Every view is written to the audit log, including denied ones. A citizen who asks for a plot
     that is not theirs gets exactly the same 404 as for a plot that does not exist."""
-    owned = None
-    if user.role == "citizen":
-        owned = owned_ulpins(conn, user.username)
-        if ulpin not in owned:
-            audit.write(conn, user, ulpin, audit.DENIED)
-            raise HTTPException(status_code=404, detail=NOT_FOUND.format(ulpin))
+    shown, _full = fetch_for_user(conn, user, ulpin, audit.JSON_VIEW)
+    return shown
 
-    plot = conn.execute(
-        """
-        SELECT ulpin, village, land_use, survey_no, ST_AsGeoJSON(geom)::json,
-               CASE WHEN ST_IsValid(geom) THEN ST_Area(geom::geography) END AS area_sqm
-        FROM plots WHERE ulpin = %s
-        """,
-        (ulpin,),
-    ).fetchone()
-    if plot is None:
-        audit.write(conn, user, ulpin, audit.NOT_FOUND)
-        raise HTTPException(status_code=404, detail=NOT_FOUND.format(ulpin))
-    audit.write(conn, user, ulpin, audit.VIEWED)
 
-    # Latest row of each record type (a plot normally has one).
-    ror = conn.execute(
-        "SELECT owner_name, recorded_area_sqm FROM ror_records WHERE ulpin = %s "
-        "ORDER BY id DESC LIMIT 1", (ulpin,)).fetchone()
-    registration = conn.execute(
-        "SELECT owner_name, registered_on FROM registrations WHERE ulpin = %s "
-        "ORDER BY registered_on DESC, id DESC LIMIT 1", (ulpin,)).fetchone()
-    tax = conn.execute(
-        "SELECT paid_until FROM tax_records WHERE ulpin = %s "
-        "ORDER BY paid_until DESC, id DESC LIMIT 1", (ulpin,)).fetchone()
+@app.get("/plots/{ulpin}/passport.pdf", tags=["plots"],
+         responses={200: {"content": {"application/pdf": {}}, "description": "The printable passport (one A4 page)"},
+                    401: {"model": ErrorBody}, 404: {"model": ErrorBody}, 429: {"model": ErrorBody},
+                    503: {"model": ErrorBody}})
+@limits.per_user
+def passport_pdf(request: Request, ulpin: Ulpin, conn: Conn, user: AnyUser):
+    """The land passport as a one-page A4 PDF. Same role rules as the JSON passport (a citizen gets only their
+    own plots, anything else is a 404, and other plots' ids are hidden). Each download writes an audit row
+    and a passport_issues row; the QR code on the page points at GET /verify/{doc_id}."""
+    shown, full = fetch_for_user(conn, user, ulpin, audit.PDF_DOWNLOAD)
+    doc_id, issued_at = passport.record_issue(conn, ulpin, user.username, passport.content_hash(full))
+    content = pdf.build_passport_pdf(
+        shown, doc_id=doc_id, issued_at=issued_at, issued_to=user.username, issued_role=user.role,
+        url=pdf.verify_url(PUBLIC_BASE_URL, doc_id))
+    conn.commit()    # only now is the issue row kept: no PDF, no row
+    return Response(content=content, media_type="application/pdf", headers={
+        "Content-Disposition": f'attachment; filename="landpassport_{ulpin}.pdf"',
+        "Cache-Control": "no-store"})
 
-    result = scored(conn)[ulpin]
-    findings = result["findings"] if owned is None else hide_other_plots(result["findings"], set(owned))
-    return {
-        "ulpin": plot[0], "village": plot[1], "land_use": plot[2], "survey_no": plot[3],
-        "geometry": plot[4], "area_sqm": plot[5],
-        "ror": ror and {"owner_name": ror[0], "recorded_area_sqm": ror[1]},
-        "registration": registration and {"owner_name": registration[0],
-                                          "registered_on": registration[1]},
-        "tax": tax and {"paid_until": tax[0]},
-        "score": result["score"], "band": result["band"], "findings": findings,
-    }
+
+@app.get("/verify/{doc_id}", response_model=Verification, tags=["verify"],
+         responses={404: {"model": ErrorBody}, 429: {"model": ErrorBody}, 503: {"model": ErrorBody}})
+@limits.per_ip_verify
+def verify_document(
+    request: Request,
+    doc_id: Annotated[str, Path(pattern=r"^[A-Za-z0-9-]{4,40}$", examples=["7KQ2-M9XD-4TPA"],
+                                description="the document id printed on the passport (also in its QR code)")],
+    conn: Conn,
+):
+    """Public (no login), strictly rate limited. Does this printed passport still match the records?
+    Says only: valid or not, the ulpin, when it was issued, and whether the records still match.
+    No names, no evidence, no score."""
+    row = conn.execute("SELECT ulpin, issued_at, content_hash FROM passport_issues WHERE doc_id = %s",
+                       (doc_id.upper(),)).fetchone()
+    if row is None:
+        raise HTTPException(status_code=404, detail="No document found with that id")
+    ulpin, issued_at, printed_hash = row
+    now = passport.load_passport(conn, ulpin)
+    matches = now is not None and hmac.compare_digest(passport.content_hash(now), printed_hash)
+    return {"valid": matches, "ulpin": ulpin, "issued_at": issued_at,
+            "status": "matches" if matches else CHANGED}
 
 
 @app.get("/summary", response_model=Summary, tags=["summary"],

@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
-import { getPassport } from "../api";
+import { useState, type ReactNode } from "react";
+import { downloadPassportPdf, getPassport } from "../api";
 import { BAND_COLOR, BAND_LABEL, BAND_TEXT, prettyType } from "../constants";
 import { useFetch } from "../hooks";
 import type { ConflictTypeInfo } from "../types";
@@ -37,6 +37,26 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 
 export default function PassportPanel({ ulpin, conflictTypes, onClose }: Props) {
   const { data: p, loading, error, retry } = useFetch((signal) => getPassport(ulpin, signal), [ulpin]);
+  const [pdf, setPdf] = useState<{ busy: boolean; error: string | null }>({ busy: false, error: null });
+
+  // Fetch the PDF with the login token (api.ts), then save it as a file.
+  async function downloadPdf() {
+    setPdf({ busy: true, error: null });
+    try {
+      const blob = await downloadPassportPdf(ulpin);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `landpassport_${ulpin}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setPdf({ busy: false, error: null });
+    } catch (err) {
+      setPdf({ busy: false, error: err instanceof Error ? err.message : "Could not download the PDF." });
+    }
+  }
 
   return (
     <aside aria-label="Land passport"
@@ -66,6 +86,16 @@ export default function PassportPanel({ ulpin, conflictTypes, onClose }: Props) 
               <div className="text-sm font-semibold">{BAND_LABEL[p.band]} risk band</div>
               <div className="text-xs text-gray-500">Risk score out of 100</div>
             </div>
+          </div>
+
+          <div className="px-4 pb-3">
+            <button type="button" onClick={downloadPdf} disabled={pdf.busy}
+                    className="rounded border border-gray-300 px-3 py-1 text-sm hover:bg-gray-100 disabled:opacity-60">
+              {pdf.busy ? "Preparing PDF…" : "Download PDF"}
+            </button>
+            {pdf.error && (
+              <p role="alert" className="mt-2 rounded border border-red-300 bg-red-50 p-2 text-sm text-red-900">{pdf.error}</p>
+            )}
           </div>
 
           <Section title="Plot">

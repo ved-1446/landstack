@@ -16,14 +16,15 @@ def test_decoy_pairs_match(truth):
         assert same, (d, score)
 
 
+
 def test_genuinely_different_owners_do_not_match():
     from backend.tests import conftest  # noqa: F401  (ensures paths)
     import seed
     data = seed.generate()
     ror = {r["ulpin"]: r["owner_name"] for r in data["rows"]["ror_records"]}
     reg = {r["ulpin"]: r["owner_name"] for r in data["rows"]["registrations"]}
-    planted = [u for u, t in data["truth"]["conflicts"].items() if t == ["owner_mismatch"]]
-    assert len(planted) == 4
+    planted = [u for u, t in data["truth"]["conflicts"].items() if "owner_mismatch" in t]   # alone or with other problems
+    assert len(planted) == 14
     for u in planted:
         same, score = names.same_person(ror[u], reg[u])
         assert not same, (ror[u], reg[u], score)

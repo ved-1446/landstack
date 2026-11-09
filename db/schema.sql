@@ -3,7 +3,7 @@
 
 CREATE EXTENSION IF NOT EXISTS postgis;
 
-DROP TABLE IF EXISTS audit_log, user_plots, users, building_snapshots, zones,
+DROP TABLE IF EXISTS passport_issues, audit_log, user_plots, users, building_snapshots, zones,
     tax_records, registrations, ror_records, plots CASCADE;
 
 CREATE TABLE plots (
@@ -70,7 +70,8 @@ CREATE INDEX user_plots_ulpin_idx ON user_plots (ulpin);
 
 -- One row per passport view, including denied ones. No foreign keys on purpose: the log must keep
 -- its history if a user is deleted or plots are re-seeded, and denied views may name unknown plots.
--- action: view_passport | view_passport_denied | view_passport_not_found
+-- action: view_passport | view_passport_denied | view_passport_not_found |
+--         download_passport_pdf | download_passport_pdf_denied | download_passport_pdf_not_found
 CREATE TABLE audit_log (
     id          bigserial PRIMARY KEY,
     username    text NOT NULL,
@@ -82,3 +83,15 @@ CREATE TABLE audit_log (
 CREATE INDEX audit_log_looked_at_idx ON audit_log (looked_at DESC);
 CREATE INDEX audit_log_username_idx ON audit_log (username);
 CREATE INDEX audit_log_ulpin_idx ON audit_log (ulpin);
+
+-- Every printed passport. The QR code on the paper holds doc_id; GET /verify/{doc_id} looks it up and
+-- compares content_hash (SHA-256 of the passport data as it was) with the data as it is now.
+-- No foreign key to plots, for the same reason as audit_log (re-seeding must not wipe it).
+CREATE TABLE passport_issues (
+    doc_id        text PRIMARY KEY,         -- short random id printed on the paper, e.g. 7KQ2-M9XD-4TPA
+    ulpin         text NOT NULL,
+    issued_to     text NOT NULL,            -- username who generated it
+    issued_at     timestamptz NOT NULL DEFAULT now(),
+    content_hash  text NOT NULL             -- 64 hex characters
+);
+CREATE INDEX passport_issues_ulpin_idx ON passport_issues (ulpin);

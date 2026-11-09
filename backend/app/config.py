@@ -22,6 +22,11 @@ AMBER_FROM = 25
 RED_FROM = 60
 
 # Check thresholds.
+# Two plots only count as overlapping if the shared ground is at least this many square metres. Plots that just
+# touch along an edge share a line (0 sq m), and survey noise of a few centimetres along a 40 m edge adds up to a few
+# sq m; 5 sq m keeps both out while still catching any real overlap. Too low: edge noise gets flagged. Too high: a small
+# real overlap is missed.
+MIN_OVERLAP_SQM = 5.0
 ZONE_SHARE_LIMIT = 0.20        # more than 20% of the plot inside a zone
 AREA_MISMATCH_LIMIT = 0.10     # recorded area more than 10% away from the real area
 TAX_OVERDUE_YEARS = 2          # paid-until more than 2 years before REFERENCE_DATE
@@ -32,7 +37,7 @@ NAME_MATCH_THRESHOLD = 0.60
 
 # One-line plain descriptions, served by the API so the frontend never hard-codes them.
 CONFLICT_DESCRIPTIONS = {
-    "boundary_overlap": "This plot's boundary overlaps another plot's boundary.",
+    "boundary_overlap": "This plot overlaps another plot, or lies inside it, or has another plot inside it.",
     "restricted_zone_clash": (
         f"More than {ZONE_SHARE_LIMIT:.0%} of the plot lies inside a restricted zone."),
     "area_mismatch": (
@@ -59,3 +64,7 @@ JWT_SECRET_MIN_LENGTH = 32
 # Rate limits (read on every request, so tests can lower them).
 RATE_LOGIN = "5/minute"                   # per IP address
 RATE_DEFAULT = "60/minute"                # per logged-in user (per IP when nobody is logged in)
+
+# ---- Phase 8: printable passport ----
+RATE_VERIFY = "10/minute"                 # GET /verify/{doc_id}: public, so strictly limited, per IP address
+DEFAULT_PUBLIC_BASE_URL = "http://localhost:8000"   # PUBLIC_BASE_URL in .env overrides; used inside the QR code

@@ -93,9 +93,10 @@ def test_passport_clean_plot(client, truth):
     assert body["geometry"]["type"] == "Polygon"
 
 
+
 def test_passport_overlap_plot_names_the_partner(client, truth):
-    ulpin = first(truth, "boundary_overlap")
-    partner = truth["details"][ulpin]["partner"]
+    ulpin = first(truth, "boundary_overlap")                    # a plot whose only problem is an overlap
+    partner = truth["details"][ulpin]["overlap_partner"]
     body = client.get(f"/plots/{ulpin}").json()
     assert body["score"] == 40 and body["band"] == "amber"
     assert [f["type"] for f in body["findings"]] == ["boundary_overlap"]
@@ -103,18 +104,20 @@ def test_passport_overlap_plot_names_the_partner(client, truth):
     assert partner in body["findings"][0]["evidence"]
 
 
+
 def test_passport_missing_record_is_null(client, truth):
     key = {"ror_records": "ror", "registrations": "registration", "tax_records": "tax"}
     seen = set()
-    for ulpin, ctypes in truth["conflicts"].items():
-        if ctypes != ["missing_record"]:
-            continue
+    planted = [u for u, types in truth["conflicts"].items() if "missing_record" in types]   # alone or with other problems
+    assert len(planted) == 4
+    for ulpin in planted:
         body = client.get(f"/plots/{ulpin}").json()
         missing = key[truth["details"][ulpin]["missing_table"]]
         seen.add(missing)
         assert body[missing] is None
         assert all(body[k] is not None for k in key.values() if k != missing)
-        assert body["score"] == 10 and body["findings"][0]["type"] == "missing_record"
+        assert "missing_record" in [f["type"] for f in body["findings"]]
+        assert body["score"] == min(sum(config.POINTS[t] for t in truth["conflicts"][ulpin]), config.SCORE_CAP)
     assert seen == {"ror", "registration", "tax"}
 
 
@@ -137,6 +140,7 @@ def test_malformed_ulpin_is_422(client, bad):
     assert "detail" in r.json()
 
 
+
 def test_summary_matches_engine_and_truth(client, truth, results):
     body = client.get("/summary").json()
     assert body["total_plots"] == truth["plots"]
@@ -144,11 +148,17 @@ def test_summary_matches_engine_and_truth(client, truth, results):
     for band in ("green", "amber", "red"):
         assert body["plots_per_band"][band] == sum(r["band"] == band for r in results.values())
     assert sum(body["plots_per_band"].values()) == truth["plots"]
-    # and the planted truth (every planted plot has exactly one finding per type here)
+    # and the planted truth (every plot has at most one finding per type, so findings = plots per type)
     for ctype in config.POINTS:
         planted = sum(ctype in t for t in truth["conflicts"].values())
         assert body["findings_per_type"][ctype] == planted
-    assert body["plots_per_band"] == {"green": 80, "amber": 20, "red": 0}
+    # the demo mix, worked out from the truth file alone (points added and capped, then banded)
+    def band(score):
+        return "red" if score >= config.RED_FROM else "amber" if score >= config.AMBER_FROM else "green"
+    ulpins = [f["properties"]["ulpin"] for f in client.get("/plots").json()["features"]]
+    scores = [min(sum(config.POINTS[t] for t in truth["conflicts"].get(u, [])), config.SCORE_CAP) for u in ulpins]
+    assert body["plots_per_band"] == {b: sum(band(s) == b for s in scores) for b in ("green", "amber", "red")}
+    assert body["plots_per_band"] == {"green": 60, "amber": 28, "red": 12}
 
 
 def test_conflict_types(client):
@@ -169,7 +179,8 @@ def test_cors_allows_only_the_vite_dev_server(client):
 def test_openapi_lists_every_endpoint(client):
     paths = client.get("/openapi.json").json()["paths"]
     assert set(paths) == {"/health", "/plots", "/plots/{ulpin}", "/summary", "/conflict-types",
-                          "/auth/login", "/auth/me", "/audit"}
+                          "/auth/login", "/auth/me", "/audit",
+                          "/plots/{ulpin}/passport.pdf", "/verify/{doc_id}"}
 
 
 def test_database_down_returns_clean_json(monkeypatch):

@@ -463,6 +463,11 @@ def test_demo_users_shape(demo):
     for c in citizens:
         assert any(p in truth["conflicts"] for p in c["plots"])       # at least one problem plot each
     assert [u["plots"] for u in built if u["role"] != "citizen"] == [[], []]
+    # at least one citizen owns a RED plot that overlaps another plot, so the privacy demo (hidden partner id) is real
+    scores = {p: min(sum(config.POINTS[t] for t in truth["conflicts"][p]), config.SCORE_CAP)
+              for c in citizens for p in c["plots"] if p in truth["conflicts"]}
+    red_overlap = [p for p, sc in scores.items() if sc >= config.RED_FROM and "boundary_overlap" in truth["conflicts"][p]]
+    assert red_overlap
 
 
 def test_demo_users_are_stored_as_hashes_only(demo):

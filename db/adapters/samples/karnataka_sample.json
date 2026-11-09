@@ -4,183 +4,183 @@
   "records": [
     {
       "ulpin": "MH000100000001",
-      "owner": null,
-      "acres": null,
-      "guntas": null,
-      "reg_owner": "BHOSALE, GANESH",
-      "reg_date": "2014-09-22",
-      "tax_paid_until": "2026-01-06"
+      "owner": "GORE, DEEPAK",
+      "acres": 0,
+      "guntas": 9.5081,
+      "reg_owner": "GORE, DEEPAK",
+      "reg_date": "2020-11-12",
+      "tax_paid_until": "2021-06-06"
     },
     {
       "ulpin": "MH000100000002",
-      "owner": "CHAVAN, NITIN",
+      "owner": "KULKARNI, RAMESH",
       "acres": 0,
-      "guntas": 14.6974,
-      "reg_owner": "CHAVAN, NITIN",
-      "reg_date": "2021-06-17",
-      "tax_paid_until": "2026-06-19"
+      "guntas": 13.9793,
+      "reg_owner": "S., KULKARNI RAMESH",
+      "reg_date": "2015-06-06",
+      "tax_paid_until": "2026-03-23"
     },
     {
       "ulpin": "MH000100000003",
-      "owner": "GORE, GANESH",
+      "owner": "MORE, MAHESH",
       "acres": 0,
-      "guntas": 18.0091,
-      "reg_owner": "GORE, GANESH",
-      "reg_date": "2014-10-09",
-      "tax_paid_until": "2026-08-30"
+      "guntas": 20.7936,
+      "reg_owner": "GORE, ROHIT",
+      "reg_date": "2010-06-21",
+      "tax_paid_until": "2026-04-21"
     },
     {
       "ulpin": "MH000100000004",
-      "owner": "MORE, MAHESH",
+      "owner": "MANE, GANESH",
       "acres": 0,
-      "guntas": 13.4999,
-      "reg_owner": "MORE, MAHESH",
-      "reg_date": "2011-04-04",
-      "tax_paid_until": "2026-04-07"
+      "guntas": 14.7789,
+      "reg_owner": "MANE, GANESH",
+      "reg_date": "2009-01-29",
+      "tax_paid_until": "2026-05-15"
     },
     {
       "ulpin": "MH000100000005",
-      "owner": "MANE, GANESH",
+      "owner": "PAWAR, ROHIT",
       "acres": 0,
-      "guntas": 15.7248,
-      "reg_owner": "GHADGE, SURESH",
-      "reg_date": "2009-10-04",
-      "tax_paid_until": "2025-12-30"
+      "guntas": 13.8876,
+      "reg_owner": "MORE, KAVITA",
+      "reg_date": "2010-06-01",
+      "tax_paid_until": "2026-02-21"
     },
     {
       "ulpin": "MH000100000006",
-      "owner": "PAWAR, ROHIT",
+      "owner": "MORE, AMIT",
       "acres": 0,
-      "guntas": 13.1481,
-      "reg_owner": "PAWAR, ROHIT",
-      "reg_date": "2016-08-03",
-      "tax_paid_until": "2021-07-15"
+      "guntas": 14.3036,
+      "reg_owner": "THORAT, SWATI",
+      "reg_date": "2014-01-26",
+      "tax_paid_until": "2026-12-10"
     },
     {
       "ulpin": "MH000100000007",
-      "owner": "GHADGE, NITIN",
+      "owner": "NIKAM, DEEPAK",
       "acres": 0,
-      "guntas": 20.058,
-      "reg_owner": "GHADGE, NITIN",
-      "reg_date": "2017-06-15",
-      "tax_paid_until": "2025-09-04"
-    },
-    {
-      "ulpin": "MH000100000008",
-      "owner": "GORE, GANESH",
-      "acres": 0,
-      "guntas": 13.2821,
-      "reg_owner": "GORE, GANESH",
-      "reg_date": "2022-10-14",
-      "tax_paid_until": "2025-01-18"
-    },
-    {
-      "ulpin": "MH000100000009",
-      "owner": "THORAT, SAVITA",
-      "acres": 0,
-      "guntas": 14.6682,
-      "reg_owner": "THORAT, SAVITA",
-      "reg_date": "2011-11-14",
-      "tax_paid_until": "2026-11-11"
-    },
-    {
-      "ulpin": "MH000100000010",
-      "owner": "KULKARNI, RAMESH",
-      "acres": 0,
-      "guntas": 13.5821,
-      "reg_owner": "S., KULKARNI RAMESH",
+      "guntas": 16.7401,
+      "reg_owner": "NIKAM, DEEPAK",
       "reg_date": "2021-09-24",
       "tax_paid_until": "2026-07-18"
     },
     {
-      "ulpin": "MH000100000011",
+      "ulpin": "MH000100000008",
       "owner": "JAGTAP, ARCHANA",
       "acres": 0,
-      "guntas": 14.1119,
+      "guntas": 10.8524,
       "reg_owner": "JAGTAP, ARCHANA",
       "reg_date": "2011-11-17",
       "tax_paid_until": "2025-09-15"
     },
     {
-      "ulpin": "MH000100000012",
+      "ulpin": "MH000100000009",
       "owner": "MANE, KAVITA",
       "acres": 0,
-      "guntas": 18.2431,
+      "guntas": 14.1578,
       "reg_owner": "MANE, KAVITA",
       "reg_date": "2007-09-07",
       "tax_paid_until": "2026-07-03"
     },
     {
-      "ulpin": "MH000100000013",
+      "ulpin": "MH000100000010",
       "owner": "JAGTAP, GANESH",
       "acres": 0,
-      "guntas": 11.089,
+      "guntas": 17.1492,
       "reg_owner": "JAGTAP, GANESH",
       "reg_date": "2021-04-02",
       "tax_paid_until": "2026-08-27"
     },
     {
-      "ulpin": "MH000100000014",
-      "owner": "KAMBLE, KAVITA",
+      "ulpin": "MH000100000011",
+      "owner": "DESHPANDE, SUNITA",
       "acres": 0,
-      "guntas": 15.8024,
-      "reg_owner": "KAMBLE, KAVITA",
+      "guntas": 15.7685,
+      "reg_owner": "DESHPANDE, SUNITA R.",
       "reg_date": "2010-02-07",
-      "tax_paid_until": "2022-01-05"
+      "tax_paid_until": "2026-01-05"
     },
     {
-      "ulpin": "MH000100000015",
+      "ulpin": "MH000100000012",
       "owner": "JAGTAP, POOJA",
       "acres": 0,
-      "guntas": 16.8467,
+      "guntas": 22.2833,
       "reg_owner": "JAGTAP, POOJA",
       "reg_date": "2006-01-08",
       "tax_paid_until": "2025-02-25"
     },
     {
-      "ulpin": "MH000100000016",
-      "owner": "GHADGE, POOJA",
+      "ulpin": "MH000100000013",
+      "owner": "KAMBLE, AMIT",
       "acres": 0,
-      "guntas": 13.885,
-      "reg_owner": "GHADGE, POOJA",
-      "reg_date": "2007-04-21",
-      "tax_paid_until": "2025-01-13"
+      "guntas": 17.8481,
+      "reg_owner": "KAMBLE, AMIT",
+      "reg_date": "2015-07-13",
+      "tax_paid_until": "2026-05-06"
+    },
+    {
+      "ulpin": "MH000100000014",
+      "owner": null,
+      "acres": null,
+      "guntas": null,
+      "reg_owner": "JAGTAP, SANJAY",
+      "reg_date": "2024-04-30",
+      "tax_paid_until": "2026-05-05"
+    },
+    {
+      "ulpin": "MH000100000015",
+      "owner": "GHADGE, SAVITA",
+      "acres": 0,
+      "guntas": 19.0652,
+      "reg_owner": "GHADGE, SAVITA",
+      "reg_date": "2006-08-30",
+      "tax_paid_until": "2026-08-14"
+    },
+    {
+      "ulpin": "MH000100000016",
+      "owner": "MORE, SWATI",
+      "acres": 0,
+      "guntas": 13.6059,
+      "reg_owner": "MORE, SWATI",
+      "reg_date": "2010-07-27",
+      "tax_paid_until": "2025-05-02"
     },
     {
       "ulpin": "MH000100000017",
-      "owner": "MANE, ARCHANA",
+      "owner": "LOKHANDE, MAHESH",
       "acres": 0,
-      "guntas": 12.1006,
-      "reg_owner": "MANE, ARCHANA",
-      "reg_date": "2009-02-19",
-      "tax_paid_until": "2025-02-22"
+      "guntas": 18.9896,
+      "reg_owner": "LOKHANDE, MAHESH",
+      "reg_date": "2015-02-08",
+      "tax_paid_until": "2026-03-30"
     },
     {
       "ulpin": "MH000100000018",
-      "owner": "BHOSALE, GANESH",
+      "owner": "BHOSALE, SANJAY",
       "acres": 0,
-      "guntas": 12.5772,
-      "reg_owner": "BHOSALE, GANESH",
-      "reg_date": "2023-06-10",
-      "tax_paid_until": "2025-03-08"
+      "guntas": 18.7172,
+      "reg_owner": "BHOSALE, SANJAY",
+      "reg_date": "2022-02-09",
+      "tax_paid_until": "2025-08-01"
     },
     {
       "ulpin": "MH000100000019",
-      "owner": "KALE, SANJAY",
+      "owner": "CHAVAN, RAHUL",
       "acres": 0,
-      "guntas": 14.6368,
-      "reg_owner": "KALE, SANJAY",
-      "reg_date": "2008-05-07",
-      "tax_paid_until": "2026-07-31"
+      "guntas": 17.6102,
+      "reg_owner": "CHAVAN, RAHUL",
+      "reg_date": "2010-05-19",
+      "tax_paid_until": "2025-06-27"
     },
     {
       "ulpin": "MH000100000020",
-      "owner": "BHOSALE, MAHESH",
+      "owner": "KAMBLE, GANESH",
       "acres": 0,
-      "guntas": 16.7295,
-      "reg_owner": "THORAT, NITIN",
-      "reg_date": "2022-05-26",
-      "tax_paid_until": "2026-06-20"
+      "guntas": 9.9023,
+      "reg_owner": "KAMBLE, GANESH",
+      "reg_date": "2005-09-25",
+      "tax_paid_until": "2025-08-26"
     }
   ]
 }

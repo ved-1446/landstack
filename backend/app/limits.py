@@ -27,11 +27,14 @@ def user_or_ip(request: Request) -> str:
     return "ip:" + get_remote_address(request)
 
 
-limiter = Limiter(key_func=user_or_ip)
+# key_style="endpoint": one counter per endpoint, NOT per URL. slowapi's default counts each distinct URL
+# separately, so /verify/AAAA and /verify/BBBB would each get a fresh allowance and guessing ids would never be limited.
+limiter = Limiter(key_func=user_or_ip, key_style="endpoint")
 
 # ONE allowance per user shared by every endpoint (scope="api"), not a separate one per endpoint.
 per_user = limiter.shared_limit(lambda: config.RATE_DEFAULT, scope="api")
 per_ip_login = limiter.limit(lambda: config.RATE_LOGIN, key_func=get_remote_address)
+per_ip_verify = limiter.limit(lambda: config.RATE_VERIFY, key_func=get_remote_address)   # public endpoint
 
 
 def too_many_requests(request: Request, exc: RateLimitExceeded) -> JSONResponse:
