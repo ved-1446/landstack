@@ -12,3 +12,4 @@ slowapi>=0.1.9
 reportlab>=4.0
 qrcode>=7.4
 pypdf>=4.0
+shap>=0.46      # Phase 9: plain-English reasons for the unusual-plot note (optional at run time)

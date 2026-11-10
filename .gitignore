@@ -13,3 +13,9 @@ __pycache__/
 # database data
 pgdata/
 *.sqlite3
+
+# Phase 9: ML. Built datasets and trained models are not committed; the name-pair test set is.
+ml/data/*
+!ml/data/name_pairs.csv
+ml/models/
+.ipynb_checkpoints/

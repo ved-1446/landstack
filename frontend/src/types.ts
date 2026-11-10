@@ -57,6 +57,13 @@ export interface TaxRecord {
   paid_until: string; // YYYY-MM-DD
 }
 
+/** Phase 9: a statistical hint. NOT a conflict, adds no points. null when the server has no model installed. */
+export interface Unusual {
+  flag: boolean;
+  percentile: number; // 0 to 100: share of the model's training plots that are less unusual than this one
+  reasons: string[]; // up to 3 plain-English reasons, only when flag is true
+}
+
 export interface Passport {
   ulpin: string;
   village: string;
@@ -70,6 +77,7 @@ export interface Passport {
   score: number;
   band: Band;
   findings: Finding[];
+  unusual: Unusual | null;
 }
 
 export interface Summary {

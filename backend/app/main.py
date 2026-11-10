@@ -19,7 +19,7 @@ from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, Field
 from slowapi.errors import RateLimitExceeded
 
-from . import audit, auth, config, limits, passport, pdf
+from . import audit, auth, config, limits, passport, pdf, unusual
 from .auth import ErrorBody, User, current_user, require_roles
 from .db import get_conn
 from .passport import fetch_for_user, hide_other_plots, owned_ulpins, scored  # noqa: F401  (hide_other_plots is re-exported)
@@ -80,6 +80,12 @@ class TaxRecord(BaseModel):
     paid_until: date
 
 
+class Unusual(BaseModel):
+    flag: bool = Field(description="true when the plot is statistically unusual compared with other plots. NOT a conflict, adds no points")
+    percentile: float = Field(description="0 to 100: the share of the model's training plots that are LESS unusual than this one")
+    reasons: list[str] = Field(description="up to 3 plain-English reasons, only when flag is true; never another plot's id")
+
+
 class Passport(BaseModel):
     ulpin: str
     village: str
@@ -93,6 +99,7 @@ class Passport(BaseModel):
     score: int
     band: Band
     findings: list[Finding]
+    unusual: Unusual | None = Field(default=None, description="null when no model file is installed")
 
 
 class Summary(BaseModel):
@@ -136,7 +143,7 @@ class Verification(BaseModel):
 
 app = FastAPI(
     title="LandStack API",
-    version="0.8.0",
+    version="0.9.0",
     description="Land records on a map. Plots, land passports, conflicts and risk scores "
                 "(fake demo data). Log in at POST /auth/login first; what you may see depends on your role.",
 )
@@ -152,6 +159,7 @@ app.add_middleware(
 app.state.limiter = limits.limiter
 PUBLIC_BASE_URL = pdf.get_public_base_url()   # checked at start-up; the QR codes point here
 app.include_router(auth.router)
+unusual.load_model()   # the Phase 9 model, loaded once; no model file just means "unusual": null
 
 
 @app.exception_handler(RateLimitExceeded)

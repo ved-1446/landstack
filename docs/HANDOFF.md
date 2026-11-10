@@ -1,9 +1,11 @@
 # Handoff
 
 ## Current phase
-Phase 5 (the design pass, frontend only, product name LandStack) is finished and waiting for the user's commit, together with Phases 8 and 8b if those are not committed yet. Phase 9 has NOT been started.
+Phase 9 (ML: the unusual-plot model and the name-matcher tuning) is finished and waiting for the user's commit, together with Phase 5 (design pass) and Phases 8/8b if those are not committed yet. Phase 10 has NOT been started.
 
-**ORDER (from the user):** 5 (done), then 9, 10, 11, 12. The backend, the database, the checks and the score were not touched in Phase 5.
+**ORDER (from the user):** 5 (done), 9 (done), then 10, 11, 12. In Phase 9 the checks, points, bands, scoring and `NAME_MATCH_THRESHOLD` (still 0.60) were NOT changed.
+
+**Phase 9 for the user:** `pip install -r backend/requirements.txt` (adds `shap`), then to see the badge in the app: `python -m ml.make_dataset` and `python -m ml.train_unusual` (the model files are git-ignored, so every fresh checkout starts with `"unusual": null` until you train), then restart the API. Optional env var `UNUSUAL_MODEL_DIR` points the API at another model folder (the tests use it to load nothing). No `.env` change is needed. For the notebook: `pip install -r ml/requirements.txt`.
 
 **ACTION NEEDED FROM THE USER:** the API now refuses to start without `JWT_SECRET`. My tool is blocked from editing `.env` and `.env.example`, so please add these lines yourself. In `.env` (real value: run `python -c "import secrets; print(secrets.token_urlsafe(48))"`):
 ```
@@ -21,6 +23,15 @@ Also: the schema changed, so re-run `db/schema.sql`, then `python db/seed.py` an
 **Phase 8 additions for the user:** the schema changed again (new `passport_issues` table), so re-run `db/schema.sql`, `python db/seed.py` and `python db/seed_users.py`, and run `pip install -r backend/requirements.txt` (reportlab, qrcode, pypdf). Optional, because the default is the same: add `PUBLIC_BASE_URL=http://localhost:8000` to `.env` and to `.env.example` (my tool cannot edit those files). Set it to the real public address when the API is deployed, or the QR codes will point at localhost.
 
 **Phase 8b data change for the user:** run `python db/seed.py`, `python db/seed_users.py` and `python -m db.adapters.make_samples` to get the new demo data (the schema did not change, so there is no need to re-run it). Any old `passport_issues` rows now say "records have changed", which is the intended behaviour; delete them or print new passports.
+
+## Phase 9 summary (ML)
+- **Part A, unusual-plot note.** New package `ml/`: `features.py` (ONE function `plot_features`, 12 numbers; `Context` holds neighbours, zones, village medians; `features_for_all` is what training and the API both call), `make_dataset.py` (calls `db.seed.generate(5000, 0.08, seed 2026)` in memory, writes `ml/data/features.csv` + `labels.csv` + `dataset.json`, git-ignored; never touches the DB), `train_unusual.py` (Isolation Forest, 200 trees, seed 2026, no labels; `fit/save/load/score/percentile_of`; threshold = 95th percentile of training scores, `config.UNUSUAL_PERCENTILE`; saves `ml/models/unusual.joblib` + `unusual.json`; `load` refuses a model with a different feature list or scikit-learn version), `explain.py` (SHAP TreeExplainer reasons, z-score fallback), `evaluate.py`, `explore.ipynb`.
+- **Serving.** `backend/app/unusual.py` loads the model once at import of `main.py` (about 3 s with SHAP; nothing if no model) and `assess(conn, ulpin)` returns `{flag, percentile, reasons}` or `None`. It never raises. It is added to the SHOWN passport only in `passport.fetch_for_user`; `load_passport` and the content hash never contain it, so `/verify` and old QR codes are unaffected. PDF: one footer line (y = 49) only when flagged. Frontend: `features/passport/UnusualChip.tsx` (tooltip opens on hover and on focus/tap) and `Unusual` type in `types.ts`.
+- **Part B, names.** `ml/make_name_pairs.py` (600 rule-made pairs, seed 9, `ml/data/name_pairs.csv` is COMMITTED, 27 KB), `ml/tune_names.py`. Result: keep 0.60 (tuned 0.57 gains only +0.008 test F1; the rule needs +0.02). Tables are in README.md.
+- **Numbers (2,000 new generated plots, 8% problem rate):** p95 flags 104 plots, catching 51 of 160 problem plots (31.9%) and 53 of 1,840 clean plots (2.9%), precision 49% against 8% by luck. Blind to owner mismatch, duplicate survey number and missing record (0 caught when they are the only problem). The overlap catch (100%) is an artefact of the generated map (no plot touches another unless planted).
+- **Tests:** 348 pass in total (305 + 43 new: `test_ml_features.py` 10, `test_ml_model.py` 8, `test_unusual_api.py` 13, `test_ml_names.py` 12). `conftest.py` sets `UNUSUAL_MODEL_DIR` to an empty folder so tests never load a real model; model tests switch a small throw-away model on with `unusual.use_bundle(...)`. An invariant test proves scores, bands, findings, `/plots`, `/summary` and the content hash are identical with and without a model.
+- **Limits and notes.** (1) A model trained on generated data mostly relearns the generator; say so whenever the numbers are quoted. (2) Features are computed for ALL plots on every passport request (same cost class as `scored()`); cache it if the data grows. (3) Feature areas use a flat lon/lat-to-metres stretch near 18.55 N, not the geography cast the checks use (differences are tiny, but it is not the same code path). (4) `joblib` files run code on load: only ever load models you trained (README note). (5) Model files are git-ignored, so a fresh clone has no model until `ml.make_dataset` + `ml.train_unusual` are run. (6) The login rate limit (5 per minute per IP) and the 60 per minute per user limit bite scripted checks; wait a minute between runs. (7) Browser or script runs against the real API leave audit rows and `passport_issues` rows: delete everything with `audit_log.id > 494` and any `passport_issues` except `FQB6-EPWS-XME8` and `L49Q-N9NR-3NDN` before running pytest, because `test_audit_endpoint_newest_first_with_filters` is sensitive to out-of-order audit timestamps. (8) The `landstack-db` container had exited (Docker restart); `docker start landstack-db` brings it back with its data.
+- **Chip screenshots:** `docs/design/screens/phase9-1440-unusual-chip.jpg`, `phase9-390-unusual-chip.jpg`.
 
 ## Phase 5 summary (design pass)
 - `frontend/` was rebuilt as LandStack. Design system: `docs/DESIGN_SYSTEM.md` (tokens in `src/styles/tokens.css`, mapped into Tailwind in `src/styles/index.css`). `npm run check:design` (script `frontend/scripts/check-design.mjs`) fails on hex codes, arbitrary px values, off-scale text sizes, default Tailwind palette, emoji and the old name in components.
@@ -43,7 +54,7 @@ Also: the schema changed, so re-run `db/schema.sql`, then `python db/seed.py` an
 3. A `source` field on each evidence item (which table or record the finding came from).
 4. A `capped` flag on the passport (the UI currently infers "Score is capped at 100." from the sum of points).
 5. `GET /villages` (from Phase 4), plus taluka and district on plots.
-6. Phase 9: a field for the ML "unusual plot" chip. Phase 10: construction-alert data and the layer behind the disabled switch.
+6. (Phase 9 DONE: the `unusual` field exists.) Phase 10: construction-alert data and the layer behind the disabled switch.
 
 ## Done so far
 - Phase 0: CLAUDE.md, docs, docker-compose.yml (PostGIS 16-3.4, volume `pgdata`), .env.example, .gitignore, README, empty folders, `git init`.
@@ -88,9 +99,9 @@ Nothing.
 - Not built, by instruction: unrecorded-construction alert (Phase 10) and any ML (Phase 9).
 
 ## Next steps
-1. User adds the `.env` lines above, re-seeds (see above), and commits Phase 5 (and 8 and 8b if not yet committed).
-2. Phase 9: ML (unusual-plot model, tuned name matcher); needs the "unusual plot" field in the API (see backlog).
-3. Phase 10, 11, 12 as planned. Phase 12 also: re-check the Flow Field licence, set `VITE_DEMO_ACCOUNTS=false`, add basemap keys.
+1. User commits Phase 5 and Phase 9 (and 8 and 8b if not yet committed). To see the badge: train the model (see "Phase 9 for the user").
+2. Phase 10: construction alert (simulated); the UI already has a disabled switch for it.
+3. Phase 11, 12 as planned. Phase 12 also: re-check the Flow Field licence, set `VITE_DEMO_ACCOUNTS=false`, add basemap keys, decide how a real deployment trains and ships the model.
 
 ## How to run
 After adding `JWT_SECRET` to `.env`: `docker exec -i landstack-db psql ... < db/schema.sql` (README has the PowerShell form), `python db/seed.py`, `python db/seed_users.py`, start the API and the frontend, log in at http://localhost:5173 (demo logins are in the README, demo only).
@@ -101,6 +112,8 @@ See README.md. Short version: `docker compose up -d`, create the schema (psql wi
 Run Python from the repo root with the venv active (`.venv\Scripts\activate`).
 
 ## Files touched
+Phase 9: `ml/{__init__,features,make_dataset,train_unusual,explain,evaluate,make_name_pairs,tune_names}.py`, `ml/explore.ipynb`, `ml/requirements.txt`, `ml/data/name_pairs.csv` (new); `backend/app/unusual.py` (new); `backend/app/{main,passport,pdf,config}.py`, `backend/requirements.txt` (shap), `backend/tests/conftest.py` (plus new `test_ml_features.py`, `test_ml_model.py`, `test_unusual_api.py`, `test_ml_names.py`); `frontend/src/{types.ts,features/passport/PassportDrawer.tsx,features/passport/UnusualChip.tsx}`; `.gitignore`, `README.md`, `docs/api-contract.md`, `docs/HANDOFF.md`, `docs/PROJECT_BRIEF.md`; `docs/design/screens/phase9-*.jpg`. NOT touched: `db/`, `.env*`, `backend/app/{checks,scoring,names}.py`, the points, the bands, `NAME_MATCH_THRESHOLD`.
+
 Phase 5 (all in `frontend/` plus docs): `frontend/` rebuilt (`index.html`, `package.json` (added framer-motion, gsap, lucide-react, clsx, tailwind-merge, class-variance-authority, @fontsource packages, check:design script), `scripts/check-design.mjs`, `public/{favicon.svg,manifest.webmanifest}`, `src/{api,types,constants,main,App,vite-env}`, `src/styles/*`, `src/lib/*`, `src/components/ui/*`, `src/components/ErrorState.tsx`, `src/features/{login,map,myplots,passport}/*`, `src/screens/{LoginScreen,MapScreen}.tsx`); `docs/DESIGN_SYSTEM.md` (new); `docs/design/screens/*.jpg` (new); `docs/HANDOFF.md`, `docs/PROJECT_BRIEF.md`, `README.md`. NOT touched: `backend/`, `db/`, `.env*`, the checks, the score.
 
 Phase 8b: `db/seed.py` (rewritten plan + `generate()`), `db/seed_users.py`, `backend/app/checks.py` (overlap check), `backend/app/config.py` (`MIN_OVERLAP_SQM`, new boundary-overlap description), `db/planted_truth.json` and `db/adapters/samples/*` (regenerated), `docs/samples/passport_clean.pdf` + `passport_red.pdf` (regenerated; `passport_overlap.pdf` removed); tests changed: `test_seed.py` (rewritten), `test_checks.py` (+11 tests), `test_adapters.py` (ingest group made seed-independent), `test_api.py` (3), `test_names.py` (1), `test_auth.py` (+red-plot assertion), `conftest.py` (users fixture); `README.md`, `docs/api-contract.md`, `docs/HANDOFF.md`, `docs/PROJECT_BRIEF.md`. NOT touched: `frontend/`, scoring, points, bands, `db/schema.sql`.

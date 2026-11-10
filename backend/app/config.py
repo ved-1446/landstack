@@ -52,6 +52,12 @@ CONFLICT_DESCRIPTIONS = {
     "missing_record": "The plot has no land record, registration or tax record (10 points each).",
 }
 
+# ---- Phase 9: the "unusual plot" statistical note (adds NO points, never changes a band or a finding) ----
+# A plot is "unusual" when its Isolation Forest score is in the top (100 - this) percent of the training plots.
+# 95 means the 5% most unusual. Lower = more badges, more false alarms; higher = fewer badges, more misses.
+# See `python -m ml.evaluate` for what each choice catches on the generated data.
+UNUSUAL_PERCENTILE = 95
+
 # ---- Phase 7: login, roles, rate limits ----
 ROLES = ("admin", "officer", "citizen")
 STAFF_ROLES = ("officer", "admin")        # may see every plot and /summary

@@ -15,6 +15,9 @@ sys.path.insert(0, str(ROOT / "db"))
 # only for this run (never written anywhere); it beats whatever is in .env.
 os.environ["JWT_SECRET"] = secrets.token_urlsafe(48)
 os.environ["JWT_EXPIRE_MINUTES"] = "60"
+# Phase 9: the tests never load a real ml/models file. An empty folder = "no model" = `"unusual": null`.
+# The model tests switch a small throw-away model on and off themselves (unusual.use_bundle).
+os.environ["UNUSUAL_MODEL_DIR"] = str(Path(__import__("tempfile").gettempdir()) / "landstack-no-model-here")
 
 import seed  # noqa: E402
 

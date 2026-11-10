@@ -115,7 +115,7 @@ Notes: features have no top-level `id`; with MapLibre use `promoteId: "ulpin"`. 
 |---|---|---|
 | `ulpin` | 14 capital letters/digits | the plot id |
 
-Fields: plot facts (`ulpin`, `village`, `land_use`, `survey_no`, `geometry`, `area_sqm`), the three records (`ror`, `registration`, `tax`; each is `null` when that record is missing), `score`, `band`, and `findings`. `area_sqm` is the real area in square metres, or `null` when the boundary shape is invalid. If a plot has several rows of a record type, the latest one is shown.
+Fields: plot facts (`ulpin`, `village`, `land_use`, `survey_no`, `geometry`, `area_sqm`), the three records (`ror`, `registration`, `tax`; each is `null` when that record is missing), `score`, `band`, `findings`, and `unusual` (Phase 9, see below). `area_sqm` is the real area in square metres, or `null` when the boundary shape is invalid. If a plot has several rows of a record type, the latest one is shown.
 
 Example `GET /plots/MH000100000006` (a red plot with four problems; geometry shortened):
 
@@ -146,6 +146,32 @@ A plot can have findings of several different types (up to four in the demo data
 The `boundary_overlap` evidence is worded by what kind of overlap it is: `overlaps plot X by 647 sq m (35% of this plot)` (a partial overlap), `lies completely inside plot X (470 sq m, all of this plot)`, `plot X lies completely inside this plot (470 sq m, 25% of this plot)`, or `has exactly the same boundary as plot X (1,850 sq m)`. Two plots count as overlapping only if they share at least 5 square metres of ground; plots that only touch along an edge or at a corner are not flagged.
 
 For a citizen, the evidence text never contains another plot's ULPIN (it says "another plot"), for example `{"type": "boundary_overlap", "points": 40, "evidence": "overlaps another plot by 656 sq m (35% of this plot)"}`.
+
+### The `unusual` field (Phase 9)
+
+A statistical hint from an Isolation Forest, **not a conflict**. It adds **no points**, never changes `score`, `band` or `findings`, and is **not part of the tamper-evidence hash** (so retraining or removing the model never makes an old printed passport say "records have changed").
+
+| Value | Meaning |
+|---|---|
+| `null` | no model file is installed (or it could not be loaded, or the note failed). The API works exactly as before. |
+| `{"flag": false, "percentile": 19.9, "reasons": []}` | not unusual |
+| `{"flag": true, "percentile": 100.0, "reasons": ["It overlaps or touches 1 other plot (typical 0)", "..."]}` | unusual: its score is in the top 5% (`config.UNUSUAL_PERCENTILE`) of the model's training plots |
+
+- `flag`: true when the plot is unusual compared with other plots.
+- `percentile`: 0 to 100, the share of the model's **training** plots that are *less* unusual than this one (100 = more unusual than every training plot). Not a probability, and not a chance of a conflict.
+- `reasons`: up to 3 plain-English lines (from SHAP, or z-scores if `shap` is not installed), **only when `flag` is true**. They describe numbers (area, shape, neighbours, tax age...) and never name another plot, so a citizen's copy is safe.
+- The PDF shows one extra footer line, "Statistical note: unusual compared with other plots; not a conflict; adds no points.", **only** when `flag` is true.
+- Training data is generated demo data, so this is a hint for a human to look at, never a verdict.
+
+Example (a red plot that is also unusual; geometry left out):
+
+```json
+{"ulpin": "MH000100000001", "score": 75, "band": "red", "area_sqm": 977.3369431346655,
+ "unusual": {"flag": true, "percentile": 100.0, "reasons": [
+   "It overlaps or touches 1 other plot (typical 0)",
+   "Tax is paid only up to 4.6 years before the reference date (typical 0.0)",
+   "The boundary is 125 m long, lower than typical (160 m)"]}}
+```
 
 Errors: 401, 404 (unknown ulpin, or a citizen asking for a plot that is not theirs), 422 (malformed ulpin; nothing is audited), 429, 503.
 

@@ -116,3 +116,8 @@ Claude Code and Antigravity are both used, one at a time, in this same folder. T
 - The frontend is now called LandStack and was rebuilt with a written design system (`docs/DESIGN_SYSTEM.md`: navy/cream/coral, tokens, self-hosted fonts, 12 UI components). Screens: login with an animated Flow Field background, map with rail, search pill, Layers (Light/Dark/Satellite) and Filters popovers, dock, passport drawer (bottom sheet on phones), Passports list for officers and admins, My plots for citizens. No backend or database change; `src/api.ts` is still the only file that talks to the API.
 - Checked in a real browser at 1440, 768 and 390 px with all four demo logins. API gaps and deployment risks (basemap terms, `VITE_DEMO_ACCOUNTS=false`, Flow Field licence) are in `docs/HANDOFF.md`.
 - Next: Phase 9, then 10, 11, 12.
+
+## Status update after Phase 9 (ML)
+- Two ML pieces, both advice only: the score is still computed by code alone. (1) An unsupervised Isolation Forest (`ml/`) adds an `unusual` field ({flag, percentile, reasons}, or null when no model file exists) to the passport, a footer line on flagged PDFs and a quiet "Unusual" chip in the drawer. It adds no points, never changes a band or a finding, and is not part of the tamper-evidence hash. (2) The name matcher was measured against 600 rule-made pairs; its threshold stays at 0.60 because tuning gained less than the agreed margin.
+- Honest limit: trained and tested on generated data, so it mostly relearns the generator (it is blind to owner mismatches, duplicate survey numbers and missing records; its overlap result is an artefact of the generated map). Numbers and the caveat are in `README.md`.
+- 348 backend tests pass. Next: Phase 10 (simulated construction alert), then 11 and 12.

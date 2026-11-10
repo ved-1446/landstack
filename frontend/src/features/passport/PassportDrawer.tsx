@@ -6,6 +6,7 @@ import { Button, Chip, Drawer, EmptyState, EvidenceCard, Gauge, Skeleton, useToa
 import { BAND_WORDS, prettyRole } from "../../constants";
 import { useFetch } from "../../hooks";
 import type { ConflictType, Passport } from "../../types";
+import { UnusualChip } from "./UnusualChip";
 import { VerifyDialog } from "./VerifyDialog";
 
 interface PassportDrawerProps {
@@ -164,6 +165,7 @@ export function PassportDrawer({ ulpin, role, rules, prefetched, onClose, onLoad
                     : `${passport.findings.length} ${passport.findings.length === 1 ? "conflict" : "conflicts"} found.`}
                 </p>
                 {capped && <p className="text-13 text-muted-on-cream">Score is capped at 100.</p>}
+                {passport.unusual?.flag && <UnusualChip unusual={passport.unusual} />}
               </div>
 
               <dl className="mt-6 grid grid-cols-2 gap-4 border-t border-line-on-cream pt-4">

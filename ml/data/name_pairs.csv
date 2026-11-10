@@ -1,0 +1,601 @@
+name_a,name_b,same_person,kind
+Rekha Nikam,Rekha Nikam,1,identical
+Kavita More,Kavita More,1,identical
+Ganesh Jadhav,Ganesh Jadhav,1,identical
+Ramesh Kale,Ramesh Kale,1,identical
+Manisha Jagtap,Manisha Jagtap,1,identical
+Rahul Kale,Rahul Kale,1,identical
+Mahesh Verma,Mahesh Verma,1,identical
+Savita Jadhav,Savita Jadhav,1,identical
+Archana Verma,Archana Verma,1,identical
+Swati Jadhav,Swati Jadhav,1,identical
+Prakash Gaikwad,Prakash Gaikwad,1,identical
+Anil Patil,Anil Patil,1,identical
+Ganesh Mane,Ganesh Mane,1,identical
+Sanjay Gupta,Sanjay Gupta,1,identical
+Savita Naik,Savita Naik,1,identical
+Amit Gokhale,Amit Gokhale,1,identical
+Santosh Pawar,Santosh Pawar,1,identical
+Dinesh Verma,Dinesh Verma,1,identical
+Neha Bhide,Neha Bhide,1,identical
+Rahul Gupta,Rahul Gupta,1,identical
+Vikas Gokhale,vikas gokhale,1,case_punctuation
+Pooja More,"More, Pooja",1,case_punctuation
+Mahesh Pawar,Mahesh pawar,1,case_punctuation
+Ramesh Bhide,Ramesh.Bhide,1,case_punctuation
+Anil Bhide,Anil.Bhide,1,case_punctuation
+Vaishali Shinde,VAISHALI SHINDE,1,case_punctuation
+Manoj Thorat,Manoj thorat,1,case_punctuation
+Nitin Nikam,NITIN NIKAM,1,case_punctuation
+Nitin Gupta,Nitin  Gupta,1,case_punctuation
+Rohit Bhide,rohit bhide,1,case_punctuation
+Anita Kulkarni,ANITA KULKARNI,1,case_punctuation
+Ganesh Sawant,GANESH SAWANT,1,case_punctuation
+Manisha Joshi,Manisha  Joshi,1,case_punctuation
+Vaishali Sawant,vaishali sawant,1,case_punctuation
+Neha Joshi,Neha.Joshi,1,case_punctuation
+Rohit Gore,ROHIT GORE,1,case_punctuation
+Deepak Jadhav,Deepak  Jadhav,1,case_punctuation
+Mahesh Deshpande,"Deshpande, Mahesh",1,case_punctuation
+Deepak Verma,"Verma, Deepak",1,case_punctuation
+Mahesh Patil,Mahesh patil,1,case_punctuation
+Pooja Bhide,pooja bhide,1,case_punctuation
+Prakash Nikam,Prakash  Nikam,1,case_punctuation
+Mahesh Verma,"Verma, Mahesh",1,case_punctuation
+Priya Lokhande,Priya  Lokhande,1,case_punctuation
+Rahul Apte,"Apte, Rahul",1,case_punctuation
+Nitin Apte,Nitin  Apte,1,case_punctuation
+Kavita Jagtap,kavita jagtap,1,case_punctuation
+Pooja Pawar,Pooja  Pawar,1,case_punctuation
+Suresh Salunkhe,Suresh  Salunkhe,1,case_punctuation
+Anita Kulkarni,Anita.Kulkarni,1,case_punctuation
+Nitin Pawar,Pawar Nitin,1,order
+Archana More,"More, Archana",1,order
+Rahul Bhosale,Bhosale Rahul,1,order
+Santosh Patil,Patil Santosh,1,order
+Anil Kulkarni,"Kulkarni, Anil",1,order
+Swati Kamble,"Kamble, Swati",1,order
+Manoj Lokhande,Lokhande Manoj,1,order
+Sanjay Thorat,Thorat Sanjay,1,order
+Dinesh Patil,"Patil, Dinesh",1,order
+Manisha Chavan,Chavan Manisha,1,order
+Kavita Shinde,Shinde Kavita,1,order
+Santosh Jadhav,Jadhav Santosh,1,order
+Ajay Kulkarni,Kulkarni Ajay,1,order
+Vijay More,More Vijay,1,order
+Nitin Nikam,Nikam Nitin,1,order
+Ramesh Deshpande,Deshpande Ramesh,1,order
+Archana Pawar,"Pawar, Archana",1,order
+Santosh Nikam,Nikam Santosh,1,order
+Meena Bhosale,Bhosale Meena,1,order
+Sheela Sawant,"Sawant, Sheela",1,order
+Ganesh Joshi,Joshi Ganesh,1,order
+Santosh Sharma,Sharma Santosh,1,order
+Sanjay Thorat,"Thorat, Sanjay",1,order
+Deepak Sharma,Sharma Deepak,1,order
+Savita Lokhande,Lokhande Savita,1,order
+Vikas Gupta,Gupta Vikas,1,order
+Vaishali Chavan,Chavan Vaishali,1,order
+Anil More,More Anil,1,order
+Ganesh Jadhav,Jadhav Ganesh,1,order
+Rahul Jadhav,Jadhav Rahul,1,order
+Ramesh Pawar,Pawar Ramesh,1,order
+Sheela Jagtap,Jagtap Sheela,1,order
+Asha Salunkhe,Salunkhe Asha,1,order
+Vijay Sawant,"Sawant, Vijay",1,order
+Ajay Sawant,Sawant Ajay,1,order
+Suresh Lokhande,Lokhande Suresh,1,order
+Swati Sawant,"Sawant, Swati",1,order
+Priya Mane,Mane Priya,1,order
+Sanjay Bhide,Bhide Sanjay,1,order
+Asha Bhosale,Bhosale Asha,1,order
+Dinesh Verma,Verma D.,1,initial
+Amit Patil,"Patil, A.",1,initial
+Rekha Deshpande,"Deshpande, R.",1,initial
+Anil Ghadge,A. Ghadge,1,initial
+Kavita Gaikwad,"Gaikwad, K.",1,initial
+Dinesh Chavan,"Chavan, D.",1,initial
+Manoj Deshpande,M. Deshpande,1,initial
+Anil Ghadge,"Ghadge, A.",1,initial
+Neha Lokhande,N. Lokhande,1,initial
+Rahul Pawar,R. Pawar,1,initial
+Vijay Joshi,V. Joshi,1,initial
+Suresh Chavan,"Chavan, S.",1,initial
+Asha Kamble,A. Kamble,1,initial
+Sanjay Kale,S. Kale,1,initial
+Sunita Kulkarni,"Kulkarni, S.",1,initial
+Archana Lokhande,Lokhande A.,1,initial
+Savita Kamble,Kamble S.,1,initial
+Amit Bhide,A Bhide,1,initial
+Dinesh Jagtap,Jagtap D.,1,initial
+Rohit Gaikwad,R. Gaikwad,1,initial
+Nitin Deshpande,N. Deshpande,1,initial
+Sanjay Gore,S. Gore,1,initial
+Kavita Patil,K. Patil,1,initial
+Rekha Gore,Gore R.,1,initial
+Kavita Apte,K. Apte,1,initial
+Manoj Kulkarni,M Kulkarni,1,initial
+Priya Ghadge,Ghadge P.,1,initial
+Ramesh Jagtap,R Jagtap,1,initial
+Suresh Patil,"Patil, S.",1,initial
+Anil Bhide,A Bhide,1,initial
+Sheela Apte,S Apte,1,initial
+Dinesh Gore,D. Gore,1,initial
+Vikas Shinde,V Shinde,1,initial
+Mahesh Naik,Naik M.,1,initial
+Meena Naik,"Naik, M.",1,initial
+Ramesh Bhide,R Bhide,1,initial
+Amit Kulkarni,A Kulkarni,1,initial
+Archana Gaikwad,"Gaikwad, A.",1,initial
+Sunita Kamble,S Kamble,1,initial
+Pooja Thorat,Thorat P.,1,initial
+Rahul More,More Rahul V.,1,middle_initial
+Rekha Nikam,Nikam Rekha N.,1,middle_initial
+Archana Salunkhe,Salunkhe Archana G.,1,middle_initial
+Pooja Deshpande,Pooja M. Deshpande,1,middle_initial
+Prakash Kale,Prakash H. Kale,1,middle_initial
+Rohit Pawar,Rohit M Pawar,1,middle_initial
+Ganesh Gore,Gore Ganesh D.,1,middle_initial
+Archana Nikam,Archana N Nikam,1,middle_initial
+Savita Pawar,Pawar Savita H.,1,middle_initial
+Sanjay Kulkarni,Kulkarni Sanjay H.,1,middle_initial
+Sheela Gaikwad,Sheela M Gaikwad,1,middle_initial
+Manisha Patil,Manisha B Patil,1,middle_initial
+Ramesh Bhosale,Ramesh H. Bhosale,1,middle_initial
+Sanjay Gaikwad,Gaikwad Sanjay S.,1,middle_initial
+Mahesh Joshi,Joshi Mahesh G.,1,middle_initial
+Prakash Sharma,Prakash D Sharma,1,middle_initial
+Pooja Gore,Gore Pooja R.,1,middle_initial
+Manisha Apte,Manisha G Apte,1,middle_initial
+Meena Chavan,Meena V. Chavan,1,middle_initial
+Sunita Gokhale,Sunita R Gokhale,1,middle_initial
+Vijay Namdev Naik,Vijay Naik,1,dropped_middle
+Prakash Vishnu Kulkarni,Prakash Kulkarni,1,dropped_middle
+Vikas Hari Kamble,Kamble Vikas,1,dropped_middle
+Rahul Vishnu More,Rahul More,1,dropped_middle
+Priya Balkrishna Jagtap,Priya Jagtap,1,dropped_middle
+Vijay Ganpat Kale,Kale Vijay,1,dropped_middle
+Anil Vishnu Sawant,Sawant Anil,1,dropped_middle
+Suresh Ganpat Lokhande,Suresh Lokhande,1,dropped_middle
+Rekha Madhav Shinde,Rekha Shinde,1,dropped_middle
+Asha Raghunath Shinde,Asha Shinde,1,dropped_middle
+Manisha Namdev Pawar,Pawar Manisha,1,dropped_middle
+Ramesh Hari Apte,Ramesh Apte,1,dropped_middle
+Meena Madhav Kamble,Meena Kamble,1,dropped_middle
+Kavita Raghunath Naik,Naik Kavita,1,dropped_middle
+Swati Bhaskar Gore,Swati Gore,1,dropped_middle
+Prakash Dattatray Lokhande,Lokhande Prakash,1,dropped_middle
+Ajay Bhaskar Bhide,Bhide Ajay,1,dropped_middle
+Priya Hari Jadhav,Priya Jadhav,1,dropped_middle
+Asha Bhaskar Kale,Asha Kale,1,dropped_middle
+Suresh Namdev Deshpande,Suresh Deshpande,1,dropped_middle
+Anita Ganpat Bhosale,Bhosale Anita,1,dropped_middle
+Pradeep Shankar Salunkhe,Pradeep Salunkhe,1,dropped_middle
+Pooja Bhaskar Phadke,Phadke Pooja,1,dropped_middle
+Rekha Shankar Sharma,Sharma Rekha,1,dropped_middle
+Vijay Ganpat Phadke,Vijay Phadke,1,dropped_middle
+Priya Namdev Gokhale,Gokhale Priya,1,dropped_middle
+Manisha Raghunath Shinde,Manisha Shinde,1,dropped_middle
+Pooja Vishnu Shinde,Shinde Pooja,1,dropped_middle
+Sheela Ganpat Verma,Sheela Verma,1,dropped_middle
+Manisha Hari Kamble,Kamble Manisha,1,dropped_middle
+Ajay Chavan,Ajay Chawan,1,spelling
+Asha Kulkarni,Asha Kulkarny,1,spelling
+Amit Pawar,Amit Powar,1,spelling
+Pradeep Bhosale,Pradeep Bhosle,1,spelling
+Neha Gokhale,Neha Gokhalay,1,spelling
+Sunita Sawant,Sunita Savant,1,spelling
+Rahul Deshpande,Rahull Deshpande,1,spelling
+Archana Chavan,Archana Chavhan,1,spelling
+Swati Jadhav,Swati Jadhao,1,spelling
+Neha Deshpande,Neha Deshpanday,1,spelling
+Swati Naik,Swati Nayek,1,spelling
+Amit Deshpande,Amit Deshpandey,1,spelling
+Kavita Joshi,Kavita Joshy,1,spelling
+Nitin Naik,Nitin Nayek,1,spelling
+Swati Joshi,Swati Joshee,1,spelling
+Sheela Jadhav,Sheela Jadhao,1,spelling
+Savita Mane,Savitha Mane,1,spelling
+Pradeep Shinde,Pradeep Shinday,1,spelling
+Vijay Pawar,Vijaye Pawar,1,spelling
+Sheela Naik,Sheela Nayek,1,spelling
+Sheela Phadke,Sheela Phadkay,1,spelling
+Anita Joshi,Anita Joshee,1,spelling
+Asha Nikam,Asha Nickam,1,spelling
+Neha Sawant,Neha Savant,1,spelling
+Manisha Kulkarni,Manisha Kulakarni,1,spelling
+Vikas Kulkarni,Vikas Kulakarni,1,spelling
+Sunita Gupta,Suneeta Gupta,1,spelling
+Sunita Gokhale,Sunita Gokhle,1,spelling
+Ajay Bhosale,Ajay Bhonsle,1,spelling
+Sheela Joshi,Sheela Joshee,1,spelling
+Archana Bhosale,Archana Bhonsle,1,spelling
+Manisha Deshpande,Manisha Deshpandey,1,spelling
+Santosh Kulkarni,Santosh Kulakarni,1,spelling
+Prakash Phadke,Prakash Phadake,1,spelling
+Ajay Gaikwad,Ajay Gaekwad,1,spelling
+Rekha Gaikwad,Rekha Gaekwad,1,spelling
+Vijay Gupta,Vijaye Gupta,1,spelling
+Amit Naik,Amit Nayek,1,spelling
+Ganesh Gaikwad,Ganesh Gaekwad,1,spelling
+Meena Sawant,Meena Savant,1,spelling
+Amit Joshi,Amit Joshy,1,spelling
+Kavita Gore,Kaveeta Gore,1,spelling
+Anita Jadhav,Aneeta Jadhav,1,spelling
+Pooja Phadke,Pooja Phadake,1,spelling
+Ganesh Thorat,Ganesh Thoraat,1,spelling
+Sheela Joshi,Sheela Joshy,1,spelling
+Ramesh Chavan,Ramesh Chavhan,1,spelling
+Dinesh Naik,Dinesh Nayak,1,spelling
+Vikas Pawar,Vikas Pavar,1,spelling
+Rahul Pawar,Rahull Pawar,1,spelling
+Rohit Bhosale,Rohit Bhonsle,1,spelling
+Asha Joshi,Asha Joshee,1,spelling
+Manisha Pawar,Manisha Powar,1,spelling
+Deepak Deshpande,Deepak Deshpandey,1,spelling
+Suresh Gokhale,Suresh Gokhle,1,spelling
+Vijay Kulkarni,Vijay Kulakarni,1,spelling
+Sanjay Shinde,Sanjai Shinde,1,spelling
+Rekha Sawant,Rekha Sawanth,1,spelling
+Vaishali Gaikwad,Vaishali Gayakwad,1,spelling
+Archana Deshpande,Archana Deshpandey,1,spelling
+Deepak Jagtap,Smt Jagtap Deepak,1,honorific
+Nitin Thorat,Shri. Nitin Thorat,1,honorific
+Vijay Kale,Smt. Vijay Kale,1,honorific
+Amit Ghadge,Shri Amit Ghadge,1,honorific
+Sanjay Phadke,Shri. Sanjay Phadke,1,honorific
+Ajay Mane,Dr Mane Ajay,1,honorific
+Nitin Mane,Shri. Mane Nitin,1,honorific
+Neha Pawar,Dr Pawar Neha,1,honorific
+Sachin Bhosale,Mrs Bhosale Sachin,1,honorific
+Manisha Bhide,Shri. Bhide Manisha,1,honorific
+Deepak Pawar,Shri Deepak Pawar,1,honorific
+Anil Kale,Mrs Anil Kale,1,honorific
+Sanjay Naik,Smt. Naik Sanjay,1,honorific
+Kavita Sharma,Mr Kavita Sharma,1,honorific
+Suresh Verma,Shri. Suresh Verma,1,honorific
+Archana More,Shri Archana More,1,honorific
+Ajay Jagtap,Smt Ajay Jagtap,1,honorific
+Vikas Gokhale,Smt. Vikas Gokhale,1,honorific
+Sachin Thorat,Shri Thorat Sachin,1,honorific
+Anil Gore,Smt. Anil Gore,1,honorific
+Neha Nikam,Shri Neha Nikam,1,honorific
+Santosh Chavan,Smt Santosh Chavan,1,honorific
+Sheela Apte,Smt Apte Sheela,1,honorific
+Vijay Deshpande,Dr Deshpande Vijay,1,honorific
+Swati Salunkhe,Shri. Salunkhe Swati,1,honorific
+Suresh Gore,Mrs Suresh Gore,1,honorific
+Neha Kale,Mrs Kale Neha,1,honorific
+Suresh Kale,Smt Suresh Kale,1,honorific
+Nitin Salunkhe,Shri. Nitin Salunkhe,1,honorific
+Savita Nikam,Mrs Savita Nikam,1,honorific
+Meena Thorat,Mrs Thoraat Meena,1,combined
+Kavita Bhide,Shri Bhide Kaveeta,1,combined
+Sanjay Thorat,Smt. Thoraat Sanjay,1,combined
+Rohit Salunkhe,Mr Salunke Rohit,1,combined
+Kavita Sawant,Dr Savant K.,1,combined
+Amit Naik,Mr Nayak A.,1,combined
+Meena Gokhale,Smt Gokhle M.,1,combined
+Manisha Shinde,Shri Shindey Manisha,1,combined
+Pooja Gaikwad,Dr Gayakwad P.,1,combined
+Manisha Naik,Smt Nayek M.,1,combined
+Anil Kulkarni,Shri. Kulakarni A.,1,combined
+Ramesh Patil,Smt Pateel Ramesh,1,combined
+Savita Gaikwad,Mr Gaekwad S.,1,combined
+Asha Phadke,Mr Phadake A.,1,combined
+Anita Joshi,Mrs Joshee A.,1,combined
+Anil Salunkhe,Mr Salunke Anil,1,combined
+Ramesh Gaikwad,Smt Gaekwad R.,1,combined
+Archana Joshi,Smt Joshee Archana,1,combined
+Swati Joshi,Shri. Joshee S.,1,combined
+Ramesh Joshi,Shri. Joshy Ramesh,1,combined
+Savita Gaikwad,Mr Gaekwad Savitha,1,combined
+Savita Gupta,Mrs Gupta Savitha,1,combined
+Prakash Joshi,Mr Joshee Prakash,1,combined
+Anita Joshi,Mr Joshee Anitha,1,combined
+Vaishali Thorat,Mrs Thoraat V.,1,combined
+Kavita Apte,Smt. Apte K.,1,combined
+Sachin Shinde,Shri. Shindey Sachin,1,combined
+Prakash Sawant,Dr Savant Prakash,1,combined
+Suresh Thorat,Mr Thorrat Suresh,1,combined
+Rahul Gupta,Shri Gupta R.,1,combined
+Santosh Lokhande,Sunita Lokhande,0,same_surname
+Deepak Lokhande,Rahul Lokhande,0,same_surname
+Mahesh Sharma,Sanjay Sharma,0,same_surname
+Vaishali Kamble,Swati Kamble,0,same_surname
+Kavita Sawant,Sheela Sawant,0,same_surname
+Meena Sawant,Pradeep Sawant,0,same_surname
+Ganesh Gupta,Priya Gupta,0,same_surname
+Rekha Kamble,Rohit Kamble,0,same_surname
+Priya Shinde,Neha Shinde,0,same_surname
+Sanjay Deshpande,Prakash Deshpande,0,same_surname
+Deepak Gore,Suresh Gore,0,same_surname
+Rekha Bhide,Dinesh Bhide,0,same_surname
+Deepak Shinde,Vikas Shinde,0,same_surname
+Priya Sawant,Ramesh Sawant,0,same_surname
+Swati Mane,Vijay Mane,0,same_surname
+Deepak Sharma,Swati Sharma,0,same_surname
+Neha Gaikwad,Rohit Gaikwad,0,same_surname
+Anil Sawant,Ramesh Sawant,0,same_surname
+Manisha Sharma,Amit Sharma,0,same_surname
+Anita Pawar,Archana Pawar,0,same_surname
+Mahesh Deshpande,Manoj Deshpande,0,same_surname
+Amit Shinde,Pradeep Shinde,0,same_surname
+Pooja Joshi,Pradeep Joshi,0,same_surname
+Sanjay Kulkarni,Kavita Kulkarni,0,same_surname
+Rahul Gupta,Savita Gupta,0,same_surname
+Manoj Pawar,Savita Pawar,0,same_surname
+Sunita Pawar,Nitin Pawar,0,same_surname
+Archana Kamble,Meena Kamble,0,same_surname
+Anita Thorat,Manisha Thorat,0,same_surname
+Meena Nikam,Pooja Nikam,0,same_surname
+Priya Gupta,Dinesh Gupta,0,same_surname
+Anita Nikam,Vikas Nikam,0,same_surname
+Neha Shinde,Vijay Shinde,0,same_surname
+Rekha Gokhale,Vikas Gokhale,0,same_surname
+Mahesh Patil,Pooja Patil,0,same_surname
+Prakash Lokhande,Anita Lokhande,0,same_surname
+Meena Bhide,Suresh Bhide,0,same_surname
+Rahul More,Deepak More,0,same_surname
+Priya Jagtap,Ramesh Jagtap,0,same_surname
+Sachin Thorat,Mahesh Thorat,0,same_surname
+Manoj Thorat,Manisha Thorat,0,same_surname
+Rekha Jagtap,Dinesh Jagtap,0,same_surname
+Manoj Shinde,Archana Shinde,0,same_surname
+Rekha Chavan,Dinesh Chavan,0,same_surname
+Prakash Joshi,Anita Joshi,0,same_surname
+Swati Apte,Pooja Apte,0,same_surname
+Vaishali Bhide,Pooja Bhide,0,same_surname
+Manisha Nikam,Pooja Nikam,0,same_surname
+Archana Salunkhe,Rahul Salunkhe,0,same_surname
+Santosh Sawant,Manisha Sawant,0,same_surname
+Vijay Jagtap,Mahesh Jagtap,0,same_surname
+Vaishali Joshi,Prakash Joshi,0,same_surname
+Rohit Bhide,Swati Bhide,0,same_surname
+Asha Mane,Kavita Mane,0,same_surname
+Anita Kulkarni,Rohit Kulkarni,0,same_surname
+Pooja Patil,Manoj Patil,0,same_surname
+Amit Bhosale,Anita Bhosale,0,same_surname
+Mahesh Gokhale,Dinesh Gokhale,0,same_surname
+Amit Apte,Archana Apte,0,same_surname
+Asha Gokhale,Rekha Gokhale,0,same_surname
+Pooja Kele,Pooja Kale,0,lookalike_surname
+Sachin Thorve,Sachin Thorat,0,lookalike_surname
+Ramesh Mane,Ramesh Mene,0,lookalike_surname
+Vikas Mane,Vikas Mene,0,lookalike_surname
+Ajay Deshpande,Ajay Deshmukh,0,lookalike_surname
+Amit Joshua,Amit Joshi,0,lookalike_surname
+Rohit Sanap,Rohit Sawant,0,lookalike_surname
+Mahesh Salvi,Mahesh Salunkhe,0,lookalike_surname
+Vaishali Salunkhe,Vaishali Salvi,0,lookalike_surname
+Sanjay Yadav,Sanjay Jadhav,0,lookalike_surname
+Deepak Chavan,Deepak Chauhan,0,lookalike_surname
+Pradeep Shinde,Pradeep Shende,0,lookalike_surname
+Neha Patil,Neha Patel,0,lookalike_surname
+Sanjay Gole,Sanjay Gore,0,lookalike_surname
+Manisha Gore,Manisha Gole,0,lookalike_surname
+Sanjay Karnik,Sanjay Kulkarni,0,lookalike_surname
+Pooja Kulkarni,Pooja Karnik,0,lookalike_surname
+Manisha Bhosale,Manisha Bhonde,0,lookalike_surname
+Amit Yadav,Amit Jadhav,0,lookalike_surname
+Santosh Kele,Santosh Kale,0,lookalike_surname
+Pooja Chavan,Pooja Chauhan,0,lookalike_surname
+Manoj Shinde,Manoj Shende,0,lookalike_surname
+Rekha Mane,Rekha Mene,0,lookalike_surname
+Mahesh Chavan,Mahesh Chauhan,0,lookalike_surname
+Deepak Bhonde,Deepak Bhosale,0,lookalike_surname
+Priya Jadhav,Priya Yadav,0,lookalike_surname
+Suresh Kale,Suresh Kele,0,lookalike_surname
+Nitin Chauhan,Nitin Chavan,0,lookalike_surname
+Vikas Bhosale,Vikas Bhonde,0,lookalike_surname
+Ganesh Patel,Ganesh Patil,0,lookalike_surname
+Mahesh Gole,Mahesh Gore,0,lookalike_surname
+Dinesh Nair,Dinesh Naik,0,lookalike_surname
+Ajay Chavan,Ajay Chauhan,0,lookalike_surname
+Anil Shende,Anil Shinde,0,lookalike_surname
+Anil Mane,Anil Mene,0,lookalike_surname
+Vijay Shende,Vijay Shinde,0,lookalike_surname
+Archana Panwar,Archana Pawar,0,lookalike_surname
+Nitin Verma,Nitin Sharma,0,lookalike_surname
+Meena Salvi,Meena Salunkhe,0,lookalike_surname
+Rahul Thorat,Rahul Thorve,0,lookalike_surname
+Rekha Patil,Rekha Gaikwad,0,same_first_name
+Amit Joshi,Amit Thorat,0,same_first_name
+Asha Gupta,Asha Salunkhe,0,same_first_name
+Ajay Jadhav,Ajay Lokhande,0,same_first_name
+Archana Patil,Archana Gaikwad,0,same_first_name
+Ganesh Kamble,Ganesh Deshpande,0,same_first_name
+Rahul Nikam,Rahul Gupta,0,same_first_name
+Anita Apte,Anita Naik,0,same_first_name
+Archana More,Archana Gupta,0,same_first_name
+Sheela Sawant,Sheela Salunkhe,0,same_first_name
+Priya Phadke,Priya Jadhav,0,same_first_name
+Pooja Gaikwad,Pooja More,0,same_first_name
+Vijay Gokhale,Vijay Apte,0,same_first_name
+Manoj Phadke,Manoj Verma,0,same_first_name
+Sheela Bhosale,Sheela Sharma,0,same_first_name
+Ramesh Pawar,Ramesh Patil,0,same_first_name
+Kavita Gaikwad,Kavita Gore,0,same_first_name
+Kavita Lokhande,Kavita Kamble,0,same_first_name
+Suresh Phadke,Suresh Bhide,0,same_first_name
+Vijay Lokhande,Vijay Shinde,0,same_first_name
+Rekha Kale,Rekha Bhide,0,same_first_name
+Savita Jadhav,Savita Kamble,0,same_first_name
+Pradeep Phadke,Pradeep More,0,same_first_name
+Priya Joshi,Priya Gupta,0,same_first_name
+Sheela Thorat,Sheela Jagtap,0,same_first_name
+Savita Salunkhe,Savita Chavan,0,same_first_name
+Dinesh Gupta,Dinesh Sharma,0,same_first_name
+Anil Ghadge,Anil Gupta,0,same_first_name
+Pooja Thorat,Pooja Gupta,0,same_first_name
+Kavita Kamble,Kavita Ghadge,0,same_first_name
+Rahul Kulkarni,Rahul Sawant,0,same_first_name
+Rekha Verma,Rekha More,0,same_first_name
+Prakash Shinde,Prakash Nikam,0,same_first_name
+Vikas Gokhale,Vikas Kulkarni,0,same_first_name
+Nitin Deshpande,Nitin Gupta,0,same_first_name
+Savita Joshi,Savita Gaikwad,0,same_first_name
+Vijay Pawar,Vijay Kale,0,same_first_name
+Anita Naik,Anita Pawar,0,same_first_name
+Manisha Gupta,Manisha Lokhande,0,same_first_name
+Amit Bhide,Amit Verma,0,same_first_name
+Manoj Patil,Manoj Bhide,0,same_first_name
+Savita Ghadge,Savita Naik,0,same_first_name
+Rahul Gokhale,Rahul Kale,0,same_first_name
+Prakash Gokhale,Prakash Salunkhe,0,same_first_name
+Asha Jadhav,Asha Mane,0,same_first_name
+Amit Gaikwad,Amit Chavan,0,same_first_name
+Vikas Gore,Vikas Gupta,0,same_first_name
+Sunita Lokhande,Sunita Deshpande,0,same_first_name
+Vikas Kamble,Vikas Gupta,0,same_first_name
+Santosh Apte,Santosh Nikam,0,same_first_name
+Mahesh Lokhande,Ramesh Lokhande,0,lookalike_first_name
+Rekha Sawant,Reshma Sawant,0,lookalike_first_name
+Swati Ghadge,Sweta Ghadge,0,lookalike_first_name
+Manoj Gore,Manish Gore,0,lookalike_first_name
+Mahesh Kulkarni,Ramesh Kulkarni,0,lookalike_first_name
+Ajay Sharma,Abhay Sharma,0,lookalike_first_name
+Priya Chavan,Pria Chavan,0,lookalike_first_name
+Priya Nikam,Pria Nikam,0,lookalike_first_name
+Vijay Lokhande,Vinay Lokhande,0,lookalike_first_name
+Nitin Gokhale,Nikhil Gokhale,0,lookalike_first_name
+Neha Shinde,Meena Shinde,0,lookalike_first_name
+Rahul Apte,Rohit Apte,0,lookalike_first_name
+Priya Mane,Pria Mane,0,lookalike_first_name
+Archana Ghadge,Aradhana Ghadge,0,lookalike_first_name
+Mahesh Verma,Ramesh Verma,0,lookalike_first_name
+Mahesh Gore,Ramesh Gore,0,lookalike_first_name
+Rahul Gaikwad,Rohit Gaikwad,0,lookalike_first_name
+Amit Kale,Ajit Kale,0,lookalike_first_name
+Rahul Sawant,Rohit Sawant,0,lookalike_first_name
+Anil Joshi,Anand Joshi,0,lookalike_first_name
+Suresh Pawar,Ramesh Pawar,0,lookalike_first_name
+Neha Kulkarni,Meena Kulkarni,0,lookalike_first_name
+Sachin Gaikwad,Satish Gaikwad,0,lookalike_first_name
+Suresh Chavan,Ramesh Chavan,0,lookalike_first_name
+Savita Patil,Kavita Patil,0,lookalike_first_name
+Anita Mane,Sunita Mane,0,lookalike_first_name
+Dinesh Chavan,Mahesh Chavan,0,lookalike_first_name
+Archana Joshi,Aradhana Joshi,0,lookalike_first_name
+Swati Verma,Sweta Verma,0,lookalike_first_name
+Swati Apte,Sweta Apte,0,lookalike_first_name
+Anil Kamble,Anand Kamble,0,lookalike_first_name
+Amit Gore,Ajit Gore,0,lookalike_first_name
+Dinesh Sharma,Mahesh Sharma,0,lookalike_first_name
+Neha Patil,Meena Patil,0,lookalike_first_name
+Anita Bhide,Sunita Bhide,0,lookalike_first_name
+Neha Bhide,Meena Bhide,0,lookalike_first_name
+Sachin Verma,Satish Verma,0,lookalike_first_name
+Amit Kamble,Ajit Kamble,0,lookalike_first_name
+Anil Gupta,Anand Gupta,0,lookalike_first_name
+Archana Bhide,Aradhana Bhide,0,lookalike_first_name
+Swati Ganpat Sharma,Swati Bhaskar Sharma,0,different_middle_name
+Vaishali Dattatray Kale,Vaishali Vishnu Kale,0,different_middle_name
+Ramesh Balkrishna Phadke,Ramesh Hari Phadke,0,different_middle_name
+Kavita Ganpat Lokhande,Kavita Madhav Lokhande,0,different_middle_name
+Sunita Vishnu Naik,Sunita Dattatray Naik,0,different_middle_name
+Pooja Hari Sharma,Pooja Madhav Sharma,0,different_middle_name
+Mahesh Dattatray Mane,Mahesh Bhaskar Mane,0,different_middle_name
+Dinesh Ganpat Joshi,Dinesh Vishnu Joshi,0,different_middle_name
+Asha Hari Sharma,Asha Dattatray Sharma,0,different_middle_name
+Vijay Hari Mane,Vijay Vishnu Mane,0,different_middle_name
+Manisha Balkrishna Bhosale,Manisha Hari Bhosale,0,different_middle_name
+Rohit Raghunath Jadhav,Rohit Madhav Jadhav,0,different_middle_name
+Rohit Balkrishna Kamble,Rohit Ganpat Kamble,0,different_middle_name
+Asha Bhaskar Gaikwad,Asha Hari Gaikwad,0,different_middle_name
+Mahesh Bhaskar Gokhale,Mahesh Ganpat Gokhale,0,different_middle_name
+Vaishali Balkrishna Lokhande,Vaishali Raghunath Lokhande,0,different_middle_name
+Vikas Madhav Phadke,Vikas Ganpat Phadke,0,different_middle_name
+Dinesh Shankar More,Dinesh Dattatray More,0,different_middle_name
+Rahul Balkrishna Verma,Rahul Vishnu Verma,0,different_middle_name
+Asha Dattatray Shinde,Asha Shankar Shinde,0,different_middle_name
+Suresh Hari Bhide,Suresh Madhav Bhide,0,different_middle_name
+Swati Vishnu Sawant,Swati Ganpat Sawant,0,different_middle_name
+Rohit Namdev Bhide,Rohit Hari Bhide,0,different_middle_name
+Sheela Balkrishna Bhide,Sheela Madhav Bhide,0,different_middle_name
+Vikas Madhav Phadke,Vikas Bhaskar Phadke,0,different_middle_name
+Priya Shankar Salunkhe,Priya Raghunath Salunkhe,0,different_middle_name
+Pooja Madhav Kale,Pooja Namdev Kale,0,different_middle_name
+Sachin Balkrishna Chavan,Sachin Vishnu Chavan,0,different_middle_name
+Rohit Shankar Bhosale,Rohit Bhaskar Bhosale,0,different_middle_name
+Rekha Ganpat Bhide,Rekha Bhaskar Bhide,0,different_middle_name
+Rekha Thorat,Bhosale Mahesh,0,swapped_other_person
+Neha Joshi,Gokhale Suresh,0,swapped_other_person
+Manisha Gaikwad,Chavan Vijay,0,swapped_other_person
+Nitin Chavan,Lokhande Pradeep,0,swapped_other_person
+Meena Kamble,Jagtap Ramesh,0,swapped_other_person
+Anil Salunkhe,Bhide Archana,0,swapped_other_person
+Sachin Salunkhe,Kamble Priya,0,swapped_other_person
+Neha Kale,Nikam Vikas,0,swapped_other_person
+Rahul Kale,Bhide Vijay,0,swapped_other_person
+Pooja Kamble,Sawant Sheela,0,swapped_other_person
+Suresh Gupta,Shinde Ramesh,0,swapped_other_person
+Dinesh Naik,Gaikwad Pradeep,0,swapped_other_person
+Pradeep Sharma,Apte Prakash,0,swapped_other_person
+Vikas Nikam,Shinde Prakash,0,swapped_other_person
+Prakash Sawant,Shinde Pradeep,0,swapped_other_person
+Rohit Thorat,Gupta Ramesh,0,swapped_other_person
+Mahesh Mane,Lokhande Santosh,0,swapped_other_person
+Dinesh Kamble,Gokhale Rekha,0,swapped_other_person
+Prakash Apte,Mane Neha,0,swapped_other_person
+Prakash Apte,Patil Archana,0,swapped_other_person
+Savita Jadhav,Jagtap Sunita,0,swapped_other_person
+Sachin Bhide,Jagtap Sunita,0,swapped_other_person
+Sheela Kulkarni,Verma Meena,0,swapped_other_person
+Anita Patil,Jadhav Pradeep,0,swapped_other_person
+Manoj More,Nikam Sanjay,0,swapped_other_person
+Savita Phadke,Lokhande Ganesh,0,swapped_other_person
+Priya Gaikwad,Deshpande Dinesh,0,swapped_other_person
+Kavita Bhosale,Patil Sunita,0,swapped_other_person
+Rahul Lokhande,Salunkhe Neha,0,swapped_other_person
+Savita Salunkhe,Gokhale Santosh,0,swapped_other_person
+Shri Rekha Ghadge,Shri. Dinesh Phadke,0,different_honorific
+Smt Deepak Sharma,Mrs Meena Salunkhe,0,different_honorific
+Mr Dinesh Kamble,Smt. Meena Jagtap,0,different_honorific
+Dr Meena Gupta,Shri. Manisha Jadhav,0,different_honorific
+Shri Meena Chavan,Mrs Kavita Lokhande,0,different_honorific
+Mrs Rohit Mane,Smt. Vaishali Sharma,0,different_honorific
+Shri. Ramesh Thorat,Shri Rekha Verma,0,different_honorific
+Shri. Anil Gore,Mrs Rohit Deshpande,0,different_honorific
+Smt. Anil Gokhale,Dr Prakash Nikam,0,different_honorific
+Mr Sanjay Thorat,Mrs Sunita Mane,0,different_honorific
+Smt. Priya Deshpande,Dr Neha Gupta,0,different_honorific
+Mr Ramesh Phadke,Smt Priya Sharma,0,different_honorific
+Shri Manisha Shinde,Dr Anita Gore,0,different_honorific
+Dr Savita Verma,Smt. Ajay Nikam,0,different_honorific
+Dr Archana Thorat,Shri Anil Jadhav,0,different_honorific
+Smt Manoj Kamble,Smt Anita Naik,0,different_honorific
+Shri Priya Bhosale,Mr Rohit Joshi,0,different_honorific
+Mrs Meena Sharma,Mrs Vikas Gokhale,0,different_honorific
+Smt. Manisha Phadke,Smt Neha Gaikwad,0,different_honorific
+Smt Ganesh Kale,Smt Meena More,0,different_honorific
+Sunita Chavan,Anil Jagtap,0,unrelated
+Archana Salunkhe,Mahesh Deshpande,0,unrelated
+Nitin Sawant,Sunita Bhide,0,unrelated
+Pradeep Sharma,Rekha Salunkhe,0,unrelated
+Anil More,Deepak Lokhande,0,unrelated
+Kavita Sawant,Anita Bhosale,0,unrelated
+Neha Salunkhe,Sheela Jagtap,0,unrelated
+Ajay Ghadge,Kavita Mane,0,unrelated
+Manoj Kamble,Meena Deshpande,0,unrelated
+Rekha Gaikwad,Anil Shinde,0,unrelated
+Rahul Gokhale,Mahesh Naik,0,unrelated
+Vijay Thorat,Ajay Chavan,0,unrelated
+Vaishali Bhosale,Pooja Bhide,0,unrelated
+Priya Sharma,Sunita Kamble,0,unrelated
+Sachin Mane,Archana Salunkhe,0,unrelated
+Archana Thorat,Rahul Patil,0,unrelated
+Manoj Gore,Manisha Nikam,0,unrelated
+Nitin Deshpande,Anita Kale,0,unrelated
+Pradeep Nikam,Amit Naik,0,unrelated
+Archana Chavan,Kavita Patil,0,unrelated
+Manoj Joshi,Vikas Bhosale,0,unrelated
+Vijay Kulkarni,Anil Gokhale,0,unrelated
+Anil Verma,Manoj Apte,0,unrelated
+Meena Sharma,Suresh Mane,0,unrelated
+Nitin Gupta,Santosh Sharma,0,unrelated
+Manoj Verma,Kavita Apte,0,unrelated
+Vijay Ghadge,Meena Mane,0,unrelated
+Vijay Gore,Sachin Mane,0,unrelated
+Ajay Sharma,Savita Joshi,0,unrelated
+Ramesh Lokhande,Deepak Apte,0,unrelated

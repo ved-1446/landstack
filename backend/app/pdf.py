@@ -289,12 +289,15 @@ def _draw_issue_block(c, doc_id, issued_at, issued_to, issued_role, url, top):
         _text(c, x, top - 93 - i * 10, line, "Courier", 8)
 
 
-def _draw_footer(c, ulpin, doc_id):
+def _draw_footer(c, ulpin, doc_id, flagged_unusual=False):
     c.setStrokeColor(GREY)
     c.setLineWidth(0.6)
     c.line(M, 80, W - M, 80)
     for i, line in enumerate(DISCLAIMER):
         _text(c, M, 68 - i * 10, line, "Helvetica", 7.5, GREY)
+    if flagged_unusual:
+        _text(c, M, 49, "Statistical note: unusual compared with other plots; not a conflict; adds no points.",
+              "Helvetica-Oblique", 7.5, GREY)
     _text(c, M, 40, f"LandStack Land Passport  |  {ulpin}  |  {doc_id}", "Helvetica", 7.5, GREY)
     _text(c, W - M, 40, "Page 1 of 1", "Helvetica", 7.5, GREY, align="right")
 
@@ -321,7 +324,7 @@ def build_passport_pdf(passport, *, doc_id, issued_at, issued_to, issued_role, u
     records_bottom = records_top - 86
     _draw_records(c, passport, records_top, records_bottom)
     _draw_issue_block(c, doc_id, issued_at, issued_to, issued_role, url, top=records_bottom - 22)
-    _draw_footer(c, passport["ulpin"], doc_id)
+    _draw_footer(c, passport["ulpin"], doc_id, bool((passport.get("unusual") or {}).get("flag")))
     c.showPage()
     c.save()
     return buffer.getvalue()

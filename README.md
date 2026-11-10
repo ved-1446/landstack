@@ -188,3 +188,55 @@ python -m db.adapters.make_samples
 
 ## Frontend settings (Phase 5)
 Optional variables in `frontend/.env`: `VITE_API_URL` (default `http://localhost:8000`), `VITE_DEMO_ACCOUNTS` (default `true`; shows the demo-login row, set `false` for any real deployment), `VITE_CARTO_KEY` and `VITE_ESRI_KEY` (optional basemap keys). `npm run check:design` checks the design rules. Design notes: `docs/DESIGN_SYSTEM.md`; screenshots: `docs/design/screens/`.
+
+## Machine learning (Phase 9)
+
+Two things, both **advice for a human, never part of the risk score**. The score comes only from the eight checks in `backend/app/checks.py`. Models never add or remove points, change a band or change which conflicts are flagged.
+
+### An honest caveat first
+Everything here is trained and measured on **generated** data (`db/seed.py`). A model trained on generated data mostly relearns the generator: the problems are planted by simple rules, so the rules show up as odd numbers, and a model finds odd numbers easily. Good numbers below do **not** show it would work on real land records. That needs real records and a person checking the answers.
+
+### Part A: the "unusual plot" note (unsupervised)
+Commands (from the repo root, venv active; `pip install -r backend/requirements.txt`, and `pip install -r ml/requirements.txt` for the notebook):
+```
+python -m ml.make_dataset        # 5,000 generated plots, ~8% with a planted problem -> ml/data/ (git-ignored)
+python -m ml.train_unusual       # Isolation Forest, no labels -> ml/models/unusual.joblib + unusual.json (git-ignored)
+python -m ml.evaluate            # honest report on 2,000 NEW plots (labels used only here)
+python -m nbconvert --to notebook --execute ml/explore.ipynb --output-dir ml/data   # or just open ml/explore.ipynb
+```
+- `ml/features.py` has ONE function, `plot_features`, that turns a plot into 12 numbers (area, perimeter, compactness, aspect ratio, corners, recorded/mapped area, years since tax paid, years since registration, how many plots overlap or touch it, distance to the nearest zone, area compared with its village median, an invalid-shape flag). Training and the API both use it, so they cannot drift apart. Invalid or empty shapes get safe fallback numbers plus a flag.
+- The "unusual" badge goes to the top 5% of training scores (`UNUSUAL_PERCENTILE = 95` in `backend/app/config.py`). `python -m ml.evaluate` shows what other cut-offs would do.
+- The API loads the model once at start-up. **No model file = `"unusual": null` and everything else works as before.** Field description: `docs/api-contract.md`. The field is not part of the tamper-evidence hash. The PDF gets one footer line only when a plot is flagged. The passport drawer shows a quiet "Unusual" chip with a tooltip.
+- Reasons ("why unusual") come from SHAP (`TreeExplainer`) when `shap` is installed, otherwise from z-scores against the training median. They name numbers, never other plots.
+- **Only load model files you trained yourself.** `.joblib` is Python's pickle format; loading a file runs code. Model files are git-ignored and only read from `ml/models/` (or the folder in `UNUSUAL_MODEL_DIR`). The tests set that variable to an empty folder, so no test ever loads a real model.
+- Cost: each passport request builds the features for all plots (neighbours, village medians), like the scoring engine already recomputes every check per request. Fine for 100 plots; cache it if the data grows.
+
+Results on 2,000 new generated plots (160 with a planted problem = 8.0%). The model was trained on 5,000 others (different seed):
+
+| Cut-off | Flagged | Problem plots flagged | Clean plots flagged | Precision | vs luck |
+|---|---|---|---|---|---|
+| p90 | 194 | 71 of 160 (44.4%) | 123 (6.7%) | 36.6% | 4.6x |
+| **p95 (used)** | 104 | 51 of 160 (31.9%) | 53 (2.9%) | 49.0% | 6.1x |
+| p97 | 63 | 41 of 160 (25.6%) | 22 (1.2%) | 65.1% | 8.1x |
+| p99 | 22 | 22 of 160 (13.8%) | 0 (0.0%) | 100% | 12.5x |
+
+What it catches at p95 (plots where it is the **only** planted problem): overlap 28 of 28, tax overdue 3 of 11, area mismatch 5 of 18, invalid boundary 4 of 15, restricted zone 1 of 18, **owner mismatch 0 of 18, duplicate survey number 0 of 25, missing record 0 of 12**. The overlap result is flattering: in the generated map no two plots touch unless an overlap was planted, so "number of neighbours" gives it away. The model cannot see names, survey numbers or missing records at all.
+
+### Part B: tuning the name matcher
+```
+python -m ml.make_name_pairs     # 600 labelled pairs -> ml/data/name_pairs.csv (committed: a small test asset)
+python -m ml.tune_names          # train/test split, baselines, mistakes, and a decision
+```
+The 600 pairs (300 same person, 300 different, fixed seed) come from rules, not from real records: reordered names, initials, dropped middle names, spelling variants (Kulkarni/Kulkarny), case and punctuation noise, honorifics (Shri, Smt), and hard negatives (same surname, similar-looking names such as Patil/Patel or Anita/Sunita, different middle names). **Real-world names will behave differently.** Thresholds are picked on the 360 train pairs (best F1; ties: the middle of the tied range) and every number is measured on the 240 test pairs.
+
+| Method (test pairs) | Threshold | Precision | Recall | F1 | TP FP FN TN |
+|---|---|---|---|---|---|
+| **current matcher, as shipped** | 0.60 | 0.851 | 0.858 | 0.855 | 103 18 17 102 |
+| current matcher, tuned on train | 0.57 | 0.836 | 0.892 | 0.863 | 107 21 13 99 |
+| exact match | n/a | 1.000 | 0.067 | 0.125 | 8 0 112 120 |
+| difflib ratio | 0.37 | 0.545 | 1.000 | 0.706 | 120 100 0 20 |
+| token-sorted difflib ratio | 0.73 | 0.738 | 0.917 | 0.818 | 110 39 10 81 |
+
+Decision: **`NAME_MATCH_THRESHOLD` stays at 0.60.** Tuning gains only +0.008 F1 on the test pairs (the rule asks for at least +0.02, plus all 6 decoy pairs still matching and none of the 14 genuinely different demo pairs matching). The current matcher misses names written as only an initial plus a spelling variant plus an honorific (`Anita Joshi` vs `Mrs Joshee A.`, score 0.20) and wrongly matches near-identical different names (`Vijay Lokhande` vs `Vinay Lokhande`, 0.70).
+
+Tests: `backend/tests/test_ml_features.py`, `test_ml_model.py`, `test_unusual_api.py`, `test_ml_names.py`.

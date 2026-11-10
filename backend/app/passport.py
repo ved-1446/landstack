@@ -12,7 +12,7 @@ from decimal import Decimal
 
 from fastapi import HTTPException
 
-from . import audit, scoring
+from . import audit, scoring, unusual
 
 NOT_FOUND = "No plot found with ulpin {}"
 
@@ -101,6 +101,9 @@ def fetch_for_user(conn, user, ulpin, actions):
     audit.write(conn, user, ulpin, shown_action)
 
     shown = full if owned is None else {**full, "findings": hide_other_plots(full["findings"], set(owned))}
+    # The statistical note is added to what is SHOWN only. `full` (what gets hashed for tamper evidence) never has it,
+    # so retraining or removing the model cannot make an old printed passport say "records have changed".
+    shown = {**shown, "unusual": unusual.assess(conn, ulpin)}
     return shown, full
 
 
