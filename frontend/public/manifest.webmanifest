@@ -1,0 +1,10 @@
+{
+  "name": "LandStack",
+  "short_name": "LandStack",
+  "description": "Land records on a map, with conflicts, evidence and a risk score for every plot. Demo data.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a1429",
+  "theme_color": "#0a1429",
+  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

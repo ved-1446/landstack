@@ -7,11 +7,22 @@ import type {
   PlotFilters,
   Session,
   Summary,
+  Verification,
 } from "./types";
 
 const BASE_URL = (import.meta.env.VITE_API_URL ?? "http://localhost:8000").replace(/\/$/, "");
 
-export class ApiError extends Error {}
+export class ApiError extends Error {
+  /** the HTTP status (401, 404, 429...) or undefined when the server could not be reached */
+  status?: number;
+  /** seconds to wait, from a 429's Retry-After header */
+  retryAfter?: number;
+  constructor(message: string, status?: number, retryAfter?: number) {
+    super(message);
+    this.status = status;
+    this.retryAfter = retryAfter;
+  }
+}
 
 // ---- the login session ----
 //
@@ -101,12 +112,15 @@ async function send(path: string, options: Options = {}): Promise<Response> {
   if (response.status === 401 && authenticated) {
     logout();
     onUnauthorized?.();
-    throw new ApiError("Your session has ended. Please log in again.");
+    throw new ApiError("Your session has ended. Please log in again.", 401);
   }
   if (response.status === 429) {
-    const wait = response.headers.get("Retry-After");
+    const header = response.headers.get("Retry-After");
+    const wait = header ? Number(header) : undefined;
     throw new ApiError(
       wait ? `Too many requests. Please wait ${wait} seconds and try again.` : "Too many requests. Please wait a moment and try again.",
+      429,
+      wait,
     );
   }
   if (!response.ok) {
@@ -116,7 +130,7 @@ async function send(path: string, options: Options = {}): Promise<Response> {
     } catch {
       // not JSON; the generic message below is used
     }
-    throw new ApiError(messageFromBody(response.status, json));
+    throw new ApiError(messageFromBody(response.status, json), response.status);
   }
   return response;
 }
@@ -160,4 +174,9 @@ export function getConflictTypes(signal?: AbortSignal) {
 export async function downloadPassportPdf(ulpin: string, signal?: AbortSignal): Promise<Blob> {
   const response = await send(`/plots/${encodeURIComponent(ulpin)}/passport.pdf`, { signal });
   return response.blob();
+}
+
+/** Does a printed passport still match the records? Public endpoint: no login needed. */
+export function verifyDocument(docId: string, signal?: AbortSignal) {
+  return request<Verification>(`/verify/${encodeURIComponent(docId.trim())}`, { signal, authenticated: false });
 }

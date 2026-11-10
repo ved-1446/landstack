@@ -108,3 +108,12 @@ export interface Session {
   username: string;
   role: Role;
 }
+
+// ---- verify a printed passport (public endpoint) ----
+
+export interface Verification {
+  valid: boolean;
+  ulpin: string;
+  issued_at: string;
+  status: "matches" | "records have changed since this was issued";
+}

@@ -1,0 +1,203 @@
+@import "@fontsource/geist/400.css";
+@import "@fontsource/geist/500.css";
+@import "@fontsource/geist/600.css";
+@import "@fontsource/geist-mono/400.css";
+@import "@fontsource/geist-mono/500.css";
+@import "@fontsource/instrument-serif/400.css";
+@import "@fontsource/instrument-serif/400-italic.css";
+@import "tailwindcss";
+@import "./tokens.css";
+
+/* Map the tokens into the Tailwind theme. The default palette, sizes, radii and shadows are removed on
+   purpose, so only design-system values can be used. */
+@theme inline {
+  --color-*: initial;
+  --color-navy-950: var(--navy-950);
+  --color-navy-900: var(--navy-900);
+  --color-navy-800: var(--navy-800);
+  --color-cream: var(--cream);
+  --color-muted-on-navy: var(--muted-on-navy);
+  --color-faint-on-navy: var(--faint-on-navy);
+  --color-ink: var(--ink);
+  --color-muted-on-cream: var(--muted-on-cream);
+  --color-faint-on-cream: var(--faint-on-cream);
+  --color-coral: var(--coral);
+  --color-coral-hover: var(--coral-hover);
+  --color-coral-pressed: var(--coral-pressed);
+  --color-mist: var(--mist);
+  --color-risk-green: var(--risk-green);
+  --color-risk-amber: var(--risk-amber);
+  --color-risk-red: var(--risk-red);
+  --color-risk-green-ink: var(--risk-green-ink);
+  --color-risk-amber-ink: var(--risk-amber-ink);
+  --color-risk-red-ink: var(--risk-red-ink);
+  --color-gauge-red: var(--gauge-red);
+  --color-line-on-navy: var(--line-on-navy);
+  --color-line-on-cream: var(--line-on-cream);
+  --color-glass: var(--glass);
+
+  --font-sans: "Geist", system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, monospace;
+  --font-serif: "Instrument Serif", Georgia, serif;
+
+  --text-*: initial;
+  --text-11: 11px;
+  --text-11--line-height: 16px;
+  --text-12: 12px;
+  --text-12--line-height: 16px;
+  --text-13: 13px;
+  --text-13--line-height: 20px;
+  --text-14: 14px;
+  --text-14--line-height: 20px;
+  --text-16: 16px;
+  --text-16--line-height: 24px;
+  --text-20: 20px;
+  --text-20--line-height: 28px;
+  --text-26: 26px;
+  --text-26--line-height: 32px;
+  --text-34: 34px;
+  --text-34--line-height: 40px;
+  --text-58: 58px;
+  --text-58--line-height: 58px;
+
+  --spacing: 4px;
+
+  --radius-*: initial;
+  --radius-control: var(--r-control);
+  --radius-card: var(--r-card);
+  --radius-panel: var(--r-panel);
+  --radius-drawer: var(--r-drawer);
+  --radius-pill: var(--r-pill);
+
+  --shadow-*: initial;
+  --shadow-1: var(--sh-1);
+  --shadow-2: var(--sh-2);
+  --shadow-3: var(--sh-3);
+}
+
+/* named z layers */
+@utility z-map { z-index: var(--z-map); }
+@utility z-panel { z-index: var(--z-panel); }
+@utility z-rail { z-index: var(--z-rail); }
+@utility z-drawer { z-index: var(--z-drawer); }
+@utility z-modal { z-index: var(--z-modal); }
+@utility z-toast { z-index: var(--z-toast); }
+
+/* glass: ONLY for panels floating over the map (search pill, popovers, dock) */
+@utility glass {
+  background-color: var(--glass);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  border: 1px solid var(--line-on-navy);
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+    margin: 0;
+  }
+  body {
+    background: var(--navy-950);
+    color: var(--cream);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 20px;
+    color-scheme: dark;
+    -webkit-font-smoothing: antialiased;
+  }
+  /* one visible focus ring, everywhere */
+  :where(button, a, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--coral);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: var(--coral);
+    color: var(--navy-950);
+  }
+  :where(button) {
+    cursor: pointer;
+    font: inherit;
+  }
+  :where(button:disabled) {
+    cursor: not-allowed;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---- MapLibre controls, restyled to the system ---- */
+.maplibregl-ctrl-group {
+  background: var(--glass) !important;
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--line-on-navy);
+  border-radius: var(--r-control) !important;
+  box-shadow: var(--sh-1) !important;
+}
+.maplibregl-ctrl-group button {
+  width: 40px !important;
+  height: 40px !important;
+}
+.maplibregl-ctrl-group button + button {
+  border-top: 1px solid var(--line-on-navy) !important;
+}
+.maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+  filter: invert(1);
+}
+.maplibregl-ctrl-attrib {
+  background: var(--glass) !important;
+  color: var(--muted-on-navy) !important;
+  font-family: var(--font-sans);
+  font-size: 11px !important;
+  border-radius: var(--r-control) 0 0 0;
+}
+.maplibregl-ctrl-attrib a {
+  color: var(--cream) !important;
+}
+/* keep the map controls and the credit clear of the open passport drawer */
+.drawer-open .maplibregl-ctrl-top-right,
+.drawer-open .maplibregl-ctrl-bottom-right {
+  right: calc(var(--drawer-width) + var(--edge));
+}
+.maplibregl-ctrl-top-right {
+  top: var(--edge);
+  right: var(--edge);
+}
+@media (max-width: 767px) {
+  .maplibregl-ctrl-top-right {
+    display: none;
+  }
+  .drawer-open .maplibregl-ctrl-bottom-right {
+    right: 0;
+  }
+  .maplibregl-ctrl-bottom-right {
+    bottom: calc(var(--tabbar-height) + 8px);
+  }
+}
+
+/* ---- plot ULPIN labels on the map (small HTML labels, zoom 16 and closer) ---- */
+.plot-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 16px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  color: var(--cream);
+  text-shadow: 0 1px 2px var(--navy-950), 0 0 6px var(--navy-950);
+}
+.plot-label--on-light {
+  color: var(--ink);
+  text-shadow: 0 0 4px var(--cream);
+}

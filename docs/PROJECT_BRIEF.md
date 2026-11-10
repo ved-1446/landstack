@@ -111,3 +111,8 @@ Claude Code and Antigravity are both used, one at a time, in this same folder. T
 - The overlap check (`checks.py`) now uses `ST_Intersects` plus a minimum shared area (`MIN_OVERLAP_SQM = 5.0` in `config.py`), measured in square metres, instead of `ST_Overlaps`, so it finds a plot inside another and identical plots, and ignores edge-touching. Its evidence says "overlaps plot X by N sq m", "lies completely inside plot X", "plot X lies completely inside this plot" or "has exactly the same boundary as plot X".
 - Demo users: citizen1 now owns a red plot that overlaps another plot (so the hidden-partner privacy demo is real), a missing-record plot and a clean plot; citizen2 a restricted-zone plot and two clean plots.
 - Sample PDFs are `docs/samples/passport_clean.pdf` and `docs/samples/passport_red.pdf` (the capped 100 plot, four findings).
+
+## Status update after Phase 5 (design pass)
+- The frontend is now called LandStack and was rebuilt with a written design system (`docs/DESIGN_SYSTEM.md`: navy/cream/coral, tokens, self-hosted fonts, 12 UI components). Screens: login with an animated Flow Field background, map with rail, search pill, Layers (Light/Dark/Satellite) and Filters popovers, dock, passport drawer (bottom sheet on phones), Passports list for officers and admins, My plots for citizens. No backend or database change; `src/api.ts` is still the only file that talks to the API.
+- Checked in a real browser at 1440, 768 and 390 px with all four demo logins. API gaps and deployment risks (basemap terms, `VITE_DEMO_ACCOUNTS=false`, Flow Field licence) are in `docs/HANDOFF.md`.
+- Next: Phase 9, then 10, 11, 12.

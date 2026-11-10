@@ -185,3 +185,6 @@ python db/seed.py
 python db/seed_users.py
 python -m db.adapters.make_samples
 ```
+
+## Frontend settings (Phase 5)
+Optional variables in `frontend/.env`: `VITE_API_URL` (default `http://localhost:8000`), `VITE_DEMO_ACCOUNTS` (default `true`; shows the demo-login row, set `false` for any real deployment), `VITE_CARTO_KEY` and `VITE_ESRI_KEY` (optional basemap keys). `npm run check:design` checks the design rules. Design notes: `docs/DESIGN_SYSTEM.md`; screenshots: `docs/design/screens/`.

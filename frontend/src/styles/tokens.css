@@ -1,0 +1,86 @@
+/* LandStack design tokens. The ONLY place colours, sizes and layers are written down.
+   See docs/DESIGN_SYSTEM.md. Components use the Tailwind names mapped in index.css. */
+:root {
+  /* surfaces */
+  --navy-950: #0a1429;
+  --navy-900: #0f1e3d;
+  --navy-800: #182c54;
+  --cream: #f6f0e4;
+
+  /* text */
+  --muted-on-navy: #b4bdd0;
+  --faint-on-navy: #97a2ba;
+  --ink: #0f1e3d;
+  --muted-on-cream: #3e4a66;
+  --faint-on-cream: #5b6781;
+
+  /* coral: search button, primary buttons, selected-plot ring, focus rings, active rail icon. Never risk. */
+  --coral: #ff6f59;
+  --coral-hover: #ff8a78;
+  --coral-pressed: #e85a44;
+
+  /* soft blue-grey (login background particles) */
+  --mist: #8fa3c4;
+
+  /* risk: only for risk */
+  --risk-green: #3dbe7f;
+  --risk-amber: #e9b44c;
+  --risk-red: #e5535f;
+  --risk-green-ink: #1e7a4c;
+  --risk-amber-ink: #7a4b00;
+  --risk-red-ink: #a31e32;
+  --gauge-red: #d23a4a;
+
+  /* hairlines */
+  --line-on-navy: rgb(246 240 228 / 0.14);
+  --line-on-cream: rgb(15 30 61 / 0.14);
+
+  /* glass: only on panels floating over the map */
+  --glass: rgb(15 30 61 / 0.72);
+
+  /* radius */
+  --r-control: 8px;
+  --r-card: 12px;
+  --r-panel: 16px;
+  --r-drawer: 20px;
+  --r-pill: 9999px;
+
+  /* shadows, three levels */
+  --sh-1: 0 1px 2px rgb(5 10 24 / 0.35);
+  --sh-2: 0 8px 24px rgb(5 10 24 / 0.4);
+  --sh-3: 0 24px 64px rgb(5 10 24 / 0.55);
+
+  /* z layers */
+  --z-map: 0;
+  --z-panel: 10;
+  --z-rail: 20;
+  --z-drawer: 30;
+  --z-modal: 40;
+  --z-toast: 50;
+
+  /* layout */
+  --edge: 24px;
+  --rail-width: 68px;
+  --tabbar-height: 64px;
+  --drawer-width: 430px;
+  --popover-width: 360px;
+  --popover-top: 88px;
+  --popover-bottom: 112px;
+  --pill-width: 420px;
+  --popover-left: calc(var(--rail-width) + 16px);
+  --sheet-max: 70dvh;
+  --toast-bottom: 112px;
+  --bento-width: 560px;
+  --dock-bottom: var(--edge);
+
+  /* motion */
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+}
+
+@media (max-width: 767px) {
+  :root {
+    --edge: 16px;
+    --toast-bottom: 200px;
+    --dock-bottom: calc(var(--tabbar-height) + var(--edge));
+  }
+}

@@ -1,9 +1,9 @@
 # Handoff
 
 ## Current phase
-Phase 8 (printable land passport) and Phase 8b (data upgrade: multi-problem demo data, overlap-check containment fix) are finished and waiting for the user's commit. Phase 9 has NOT been started. The design pass (Phase 5) is the next phase by the user's order change.
+Phase 5 (the design pass, frontend only, product name LandStack) is finished and waiting for the user's commit, together with Phases 8 and 8b if those are not committed yet. Phase 9 has NOT been started.
 
-**ORDER CHANGE (from the user):** the design pass (Phase 5) is done AFTER Phase 8, not now. Order of work: 5 (design pass, next), then 9, 10, 11, 12. The checks and the score were not changed in Phase 8, and the frontend was not restyled.
+**ORDER (from the user):** 5 (done), then 9, 10, 11, 12. The backend, the database, the checks and the score were not touched in Phase 5.
 
 **ACTION NEEDED FROM THE USER:** the API now refuses to start without `JWT_SECRET`. My tool is blocked from editing `.env` and `.env.example`, so please add these lines yourself. In `.env` (real value: run `python -c "import secrets; print(secrets.token_urlsafe(48))"`):
 ```
@@ -21,6 +21,29 @@ Also: the schema changed, so re-run `db/schema.sql`, then `python db/seed.py` an
 **Phase 8 additions for the user:** the schema changed again (new `passport_issues` table), so re-run `db/schema.sql`, `python db/seed.py` and `python db/seed_users.py`, and run `pip install -r backend/requirements.txt` (reportlab, qrcode, pypdf). Optional, because the default is the same: add `PUBLIC_BASE_URL=http://localhost:8000` to `.env` and to `.env.example` (my tool cannot edit those files). Set it to the real public address when the API is deployed, or the QR codes will point at localhost.
 
 **Phase 8b data change for the user:** run `python db/seed.py`, `python db/seed_users.py` and `python -m db.adapters.make_samples` to get the new demo data (the schema did not change, so there is no need to re-run it). Any old `passport_issues` rows now say "records have changed", which is the intended behaviour; delete them or print new passports.
+
+## Phase 5 summary (design pass)
+- `frontend/` was rebuilt as LandStack. Design system: `docs/DESIGN_SYSTEM.md` (tokens in `src/styles/tokens.css`, mapped into Tailwind in `src/styles/index.css`). `npm run check:design` (script `frontend/scripts/check-design.mjs`) fails on hex codes, arbitrary px values, off-scale text sizes, default Tailwind palette, emoji and the old name in components.
+- Screens: Login (Flow Field background, two-step reveal, demo-account row, friendly 401/429), Map (rail; bottom tab bar under 768px; search pill; Layers popover with Light/Dark/Satellite and switches; Filters popover with band chips, village, conflict type and per-conflict counts; dock with band chips; risk fills; coral ring on the selected plot; ULPIN labels from zoom 16, capped at about 150), Passport drawer (430px; bottom sheet with peek/half/full on phones), Passports list (officers and admins), My plots bento (citizens), Verify dialog (public `GET /verify/{doc_id}`), account popover.
+- `src/api.ts` is still the only file that talks to the backend. No endpoint was added.
+- Flow Field (login background): authored file kept verbatim in `src/features/login/flow-field/flow-field.source.html`; `flowFieldDocument.ts` patches it at run time with checked `replace` calls (no beacon script, particle count, speed control, colours from tokens), hosted in a sandboxed iframe, loaded lazily on the login route only, paused when the tab is hidden, still frame for reduced motion. **Licence/attribution of Flow Field must be re-checked in Phase 12.**
+- Verified: `npm run build` and `tsc` pass; pytest 305 passed; scripted Chrome at 1440, 768 and 390 for all four demo logins (36 to 37 checks each, console clean); login error states (wrong password; 6 quick attempts give the friendly 429 message); Flow Field (moves, pauses when hidden, resumes, still under reduced motion, no external request); contrast audit of every visible text in 8 UI states (lowest 5.00:1, none below 4.5:1). The taste-skill `check.mjs` only handles landing pages (it crashes on an app without a hero or sections), so it could not be used here; my own matrix, contrast and token checks replaced it. Screens are in `docs/design/screens/`.
+- Bug found and fixed on the way: MapLibre's own CSS (`position: relative`, unlayered) beat Tailwind's layered `absolute inset-0`, which left the map 0px tall (the map only showed because of a 300px canvas default). The map container now sits inside a sized wrapper.
+
+## Phase 5 decisions, risks and settings
+- **Basemaps** use keyless endpoints: CARTO Positron/Dark Matter and Esri World Imagery. **Terms risk:** the keyless CARTO and Esri tile endpoints are fine for a demo, but their terms may require a key or paid plan for production or heavy use. Before any real deployment set `VITE_CARTO_KEY` and `VITE_ESRI_KEY` (or switch provider). Attribution is always visible. If a basemap fails to load the app shows a toast and falls back to Dark.
+- **Demo-account row** on the login screen is controlled by `VITE_DEMO_ACCOUNTS` (default true). **It must be `false` in any real deployment**, because it shows demo usernames and passwords.
+- Frontend env vars: `VITE_API_URL`, `VITE_DEMO_ACCOUNTS`, `VITE_CARTO_KEY`, `VITE_ESRI_KEY` (the last three optional). My tool cannot edit `.env*`; the lines to add to `frontend/.env.example` are in the Phase 5 report.
+- Plot labels are HTML markers (cap about 150 plots in view); the "Restricted zones" and "Unrecorded construction" switches are disabled on purpose (no data yet).
+- Test note: the API allows 5 logins a minute per IP, so repeated test logins (my browser tests) have to be spaced out.
+
+## API backlog (found in Phase 5, NOT built, by instruction)
+1. `GET /zones` (so the Restricted zones layer can be drawn).
+2. `X-Document-Id` header on the passport PDF response (so the UI can show the id and link to Verify straight after a download).
+3. A `source` field on each evidence item (which table or record the finding came from).
+4. A `capped` flag on the passport (the UI currently infers "Score is capped at 100." from the sum of points).
+5. `GET /villages` (from Phase 4), plus taluka and district on plots.
+6. Phase 9: a field for the ML "unusual plot" chip. Phase 10: construction-alert data and the layer behind the disabled switch.
 
 ## Done so far
 - Phase 0: CLAUDE.md, docs, docker-compose.yml (PostGIS 16-3.4, volume `pgdata`), .env.example, .gitignore, README, empty folders, `git init`.
@@ -65,9 +88,9 @@ Nothing.
 - Not built, by instruction: unrecorded-construction alert (Phase 10) and any ML (Phase 9).
 
 ## Next steps
-1. User adds the `.env` lines above, re-seeds (see above), and commits Phase 8 and 8b.
-2. Phase 5: the design pass (frontend styling; keep `api.ts` as the only file that talks to the backend; the Login screen, user bar and Download PDF button are plain on purpose).
-3. Phase 9: ML (unusual-plot model, tuned name matcher).
+1. User adds the `.env` lines above, re-seeds (see above), and commits Phase 5 (and 8 and 8b if not yet committed).
+2. Phase 9: ML (unusual-plot model, tuned name matcher); needs the "unusual plot" field in the API (see backlog).
+3. Phase 10, 11, 12 as planned. Phase 12 also: re-check the Flow Field licence, set `VITE_DEMO_ACCOUNTS=false`, add basemap keys.
 
 ## How to run
 After adding `JWT_SECRET` to `.env`: `docker exec -i landstack-db psql ... < db/schema.sql` (README has the PowerShell form), `python db/seed.py`, `python db/seed_users.py`, start the API and the frontend, log in at http://localhost:5173 (demo logins are in the README, demo only).
@@ -78,6 +101,8 @@ See README.md. Short version: `docker compose up -d`, create the schema (psql wi
 Run Python from the repo root with the venv active (`.venv\Scripts\activate`).
 
 ## Files touched
+Phase 5 (all in `frontend/` plus docs): `frontend/` rebuilt (`index.html`, `package.json` (added framer-motion, gsap, lucide-react, clsx, tailwind-merge, class-variance-authority, @fontsource packages, check:design script), `scripts/check-design.mjs`, `public/{favicon.svg,manifest.webmanifest}`, `src/{api,types,constants,main,App,vite-env}`, `src/styles/*`, `src/lib/*`, `src/components/ui/*`, `src/components/ErrorState.tsx`, `src/features/{login,map,myplots,passport}/*`, `src/screens/{LoginScreen,MapScreen}.tsx`); `docs/DESIGN_SYSTEM.md` (new); `docs/design/screens/*.jpg` (new); `docs/HANDOFF.md`, `docs/PROJECT_BRIEF.md`, `README.md`. NOT touched: `backend/`, `db/`, `.env*`, the checks, the score.
+
 Phase 8b: `db/seed.py` (rewritten plan + `generate()`), `db/seed_users.py`, `backend/app/checks.py` (overlap check), `backend/app/config.py` (`MIN_OVERLAP_SQM`, new boundary-overlap description), `db/planted_truth.json` and `db/adapters/samples/*` (regenerated), `docs/samples/passport_clean.pdf` + `passport_red.pdf` (regenerated; `passport_overlap.pdf` removed); tests changed: `test_seed.py` (rewritten), `test_checks.py` (+11 tests), `test_adapters.py` (ingest group made seed-independent), `test_api.py` (3), `test_names.py` (1), `test_auth.py` (+red-plot assertion), `conftest.py` (users fixture); `README.md`, `docs/api-contract.md`, `docs/HANDOFF.md`, `docs/PROJECT_BRIEF.md`. NOT touched: `frontend/`, scoring, points, bands, `db/schema.sql`.
 
 Phase 8: `backend/app/pdf.py`, `backend/app/passport.py` (new); `backend/app/{main,audit,limits,config}.py`, `backend/requirements.txt` (reportlab, qrcode, pypdf), `db/schema.sql`; `backend/tests/test_passport_pdf.py` (new), `backend/tests/{conftest,test_api}.py`; `frontend/src/api.ts`, `frontend/src/components/PassportPanel.tsx`; `docs/samples/passport_clean.pdf`, `docs/samples/passport_red.pdf` (new); `README.md`, `docs/api-contract.md`, `docs/HANDOFF.md`, `docs/PROJECT_BRIEF.md`. NOT touched: `.env`, `.env.example`, the checks, the score, frontend styling.

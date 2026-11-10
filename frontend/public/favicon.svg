@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="LandStack">
+  <rect width="64" height="64" rx="14" fill="#0a1429"/>
+  <path d="M14 40 32 30l18 10-18 10z" fill="none" stroke="#f6f0e4" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M14 30 32 20l18 10-18 10z" fill="#182c54" stroke="#f6f0e4" stroke-width="3" stroke-linejoin="round"/>
+  <circle cx="32" cy="30" r="3.5" fill="#ff6f59"/>
+</svg>
