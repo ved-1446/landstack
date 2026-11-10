@@ -20,6 +20,8 @@ from pydantic import BaseModel, Field
 from slowapi.errors import RateLimitExceeded
 
 from . import audit, auth, checks, config, limits, passport, pdf, unusual
+from . import explain as explainer
+from chatbot import guide as land_guide
 from .auth import ErrorBody, User, current_user, require_roles
 from .db import get_conn
 from .passport import fetch_for_user, hide_other_plots, owned_ulpins, scored  # noqa: F401  (hide_other_plots is re-exported)
@@ -120,6 +122,34 @@ class Passport(BaseModel):
     unusual: Unusual | None = Field(default=None, description="null when no model file is installed")
 
 
+class Explanation(BaseModel):
+    text: str = Field(description="plain words; only rewrites the passport's existing findings, never changes them")
+    source: Literal["ai", "template"] = Field(description="who wrote it: the AI, or a template written in code")
+    ai_status: Literal["on", "off", "busy", "failed"] = Field(description="on = AI wrote it; off = no key; busy = rate limited or timed out; failed = any other problem")
+    label: str = Field(description='"AI-written summary of the findings above" or the honest code-written label')
+    notice: str | None = Field(description="a friendly sentence when the AI was not used, else null")
+
+
+class GuideQuestion(BaseModel):
+    question: str = Field(min_length=1, max_length=config.GUIDE_QUESTION_MAX,
+                          description="a question about land records in general. Do NOT include personal data or plot ids")
+
+
+class GuideSource(BaseModel):
+    n: int = Field(description="the number used in the answer, like [1]")
+    title: str
+    url: str | None = Field(description="the public page, or null for the LandStack glossary")
+    retrieved: str | None = Field(description="the date the page was read (YYYY-MM-DD)")
+
+
+class GuideAnswer(BaseModel):
+    answer: str
+    status: Literal["answered", "no_sources", "ai_off", "ai_busy", "ai_failed"]
+    ai_status: Literal["on", "off", "busy", "failed"]
+    sources: list[GuideSource]
+    disclaimer: str = Field(description="a short 'not legal advice, can be wrong' note")
+
+
 class Summary(BaseModel):
     total_plots: int
     plots_per_band: dict[Band, int]
@@ -144,7 +174,8 @@ class AuditEntry(BaseModel):
     role: Literal["admin", "officer", "citizen"]
     ulpin: str | None
     action: Literal["view_passport", "view_passport_denied", "view_passport_not_found",
-                    "download_passport_pdf", "download_passport_pdf_denied", "download_passport_pdf_not_found"]
+                    "download_passport_pdf", "download_passport_pdf_denied", "download_passport_pdf_not_found",
+                    "explain_passport", "explain_passport_denied", "explain_passport_not_found", "guide_ask"]
     looked_at: datetime
 
 
@@ -162,7 +193,7 @@ class Verification(BaseModel):
 
 app = FastAPI(
     title="LandStack API",
-    version="0.10.0",
+    version="0.11.0",
     description="Land records on a map. Plots, land passports, conflicts and risk scores "
                 "(fake demo data). Log in at POST /auth/login first; what you may see depends on your role.",
 )
@@ -286,6 +317,18 @@ def land_passport(request: Request, ulpin: Ulpin, conn: Conn, user: AnyUser):
     return shown
 
 
+@app.post("/plots/{ulpin}/explain", response_model=Explanation, tags=["plots"],
+          responses={401: {"model": ErrorBody}, 404: {"model": ErrorBody}, 429: {"model": ErrorBody}, 503: {"model": ErrorBody}})
+@limits.per_user
+def explain_passport(request: Request, ulpin: Ulpin, conn: Conn, user: AnyUser):
+    """Plain-words explanation of the plot's EXISTING findings. Same role rules, 404 behaviour, audit log and rate limit
+    as the passport. The AI (if configured) only rewrites the findings: it never changes a finding, the score or the band.
+    Only finding types, points, numbers and the band are sent to it, never names or ids. If the AI is off, busy or
+    wrong, a template written in code is returned instead (see `source` and `ai_status`)."""
+    shown, _full = fetch_for_user(conn, user, ulpin, audit.EXPLAIN)
+    return explainer.explain(shown)
+
+
 @app.get("/plots/{ulpin}/passport.pdf", tags=["plots"],
          responses={200: {"content": {"application/pdf": {}}, "description": "The printable passport (one A4 page)"},
                     401: {"model": ErrorBody}, 404: {"model": ErrorBody}, 429: {"model": ErrorBody},
@@ -327,6 +370,19 @@ def verify_document(
     matches = now is not None and hmac.compare_digest(passport.content_hash(now), printed_hash)
     return {"valid": matches, "ulpin": ulpin, "issued_at": issued_at,
             "status": "matches" if matches else CHANGED}
+
+
+@app.post("/guide/ask", response_model=GuideAnswer, tags=["guide"],
+          responses={401: {"model": ErrorBody}, 422: {"model": ErrorBody}, 429: {"model": ErrorBody}})
+@limits.per_user
+def guide_ask(request: Request, body: GuideQuestion, conn: Conn, user: AnyUser):
+    """The Land Guide: answers a general question about land records ONLY from a small set of public pages and the LandStack
+    glossary, with the source links. Needs a login and shares the 60 per minute allowance. It never sees any plot or personal
+    data (the only input is the question; ids, e-mail addresses and long digit runs are removed from it). Each call is audited
+    as `guide_ask`; the question itself is NOT stored. If nothing in the sources covers the question the answer is
+    "I don't know from my sources." If the AI is off or busy the answer says so and lists the related pages."""
+    audit.write(conn, user, None, audit.GUIDE_ASKED)
+    return land_guide.ask(body.question, land_guide.get_index())
 
 
 @app.get("/summary", response_model=Summary, tags=["summary"],

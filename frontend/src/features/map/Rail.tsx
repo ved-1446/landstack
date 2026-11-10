@@ -1,7 +1,7 @@
-import { FileText, Layers, LayoutGrid, Search, SlidersHorizontal, User, type LucideIcon } from "lucide-react";
+import { FileText, Layers, LayoutGrid, MessageCircleQuestion, Search, SlidersHorizontal, User, type LucideIcon } from "lucide-react";
 import { cn } from "../../lib/cn";
 
-export type PanelId = "layers" | "filters" | "plots" | "account";
+export type PanelId = "layers" | "filters" | "plots" | "guide" | "account";
 
 interface RailProps {
   /** officers and admins see "Passports"; citizens see "My plots" */
@@ -31,6 +31,7 @@ export function Rail({ staff, active, onToggle, onSearch }: RailProps) {
     staff
       ? { key: "plots", label: "Passports", icon: FileText, panel: "plots" }
       : { key: "plots", label: "My plots", icon: LayoutGrid, panel: "plots" },
+    { key: "guide", label: "Land Guide", icon: MessageCircleQuestion, panel: "guide" },
     { key: "account", label: "Account", icon: User, panel: "account", bottom: true },
   ];
 

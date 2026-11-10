@@ -2,6 +2,8 @@
 import type {
   ConflictTypeInfo,
   ConstructionCollection,
+  Explanation,
+  GuideAnswer,
   LoginResponse,
   Passport,
   PlotCollection,
@@ -169,6 +171,16 @@ export function getSummary(signal?: AbortSignal) {
 
 export function getConflictTypes(signal?: AbortSignal) {
   return request<ConflictTypeInfo[]>("/conflict-types", { signal });
+}
+
+/** Plain-words explanation of a plot's existing findings (Phase 11). The AI only rewrites them; it never changes any. */
+export function explainPassport(ulpin: string, signal?: AbortSignal) {
+  return request<Explanation>(`/plots/${encodeURIComponent(ulpin)}/explain`, { body: {}, signal });
+}
+
+/** Ask the Land Guide a general question. Only the question is sent: no plot, no personal data. */
+export function askGuide(question: string, signal?: AbortSignal) {
+  return request<GuideAnswer>("/guide/ask", { body: { question }, signal });
 }
 
 /** SIMULATED new-building outlines for the map (citizens get only their own plots). */

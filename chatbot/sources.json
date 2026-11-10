@@ -1,0 +1,41 @@
+{
+  "note": "The public pages the Land Guide may read (Phase 11). Vikaspedia (C-DAC, MeitY, Government of India) allows reproduction with clear credit to the source; every answer links the page it used. DOLR (dolr.gov.in) is a possible future source if its terms or permission are confirmed; igrmaharashtra.gov.in and bhulekh.mahabhumi.gov.in are NOT used. Raw pages are kept locally in chatbot/raw/ and are not committed. title, retrieved and status are filled in by `python -m chatbot.build`.",
+  "sources": [
+    {
+      "url": "https://en.vikaspedia.in/viewcontent/e-governance/online-citizen-services/government-to-citizen-services-g2c/all-about-aadhaar/bhu-aadhaar?lgn=en",
+      "title": "Bhu-Aadhaar | Vikaspedia - English - Digital Governance",
+      "retrieved": "2026-11-11",
+      "status": "ok"
+    },
+    {
+      "url": "https://en.vikaspedia.in/viewcontent/social-welfare/rural-poverty-alleviation-1/schemes-department-of-land-resources/computerisation-of-land-records?lgn=en",
+      "title": "Digital India Land Record modernisation programme | Vikaspedia - English - Social-Welfare",
+      "retrieved": "2026-11-11",
+      "status": "ok"
+    },
+    {
+      "url": "https://en.vikaspedia.in/viewcontent/e-governance/digital-india/national-generic-document-registration-system?lgn=en",
+      "title": "National Generic Document Registration System | Vikaspedia - English - Digital Governance",
+      "retrieved": "2026-11-11",
+      "status": "ok"
+    },
+    {
+      "url": "https://en.vikaspedia.in/viewcontent/aspirational-districts/sikkim/west-sikkim/citizen-services/apply-for-mutation-of-land",
+      "title": "Apply for Mutation of Land | Vikaspedia - English - Aspirational District",
+      "retrieved": "2026-11-11",
+      "status": "ok"
+    },
+    {
+      "url": "https://en.vikaspedia.in/viewcontent/social-welfare/rural-poverty-alleviation-1/svamitva-scheme?lgn=en",
+      "title": "SVAMITVA scheme | Vikaspedia - English - Social-Welfare",
+      "retrieved": "2026-11-11",
+      "status": "ok"
+    },
+    {
+      "url": "https://en.vikaspedia.in/viewcontent/social-welfare/rural-poverty-alleviation-1/schemes-department-of-land-resources/land-reforms-programmes",
+      "title": "Land Reforms Programmes | Vikaspedia - English - Social-Welfare",
+      "retrieved": "2026-11-11",
+      "status": "ok"
+    }
+  ]
+}

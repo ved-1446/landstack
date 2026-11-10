@@ -5,6 +5,8 @@ import { ApiError, getConflictTypes, getConstructionAlerts, getPassport, getPlot
 import { ErrorState } from "../components/ErrorState";
 import { Button, EmptyState, SearchPill, Skeleton, useToast } from "../components/ui";
 import { ALL_BANDS } from "../constants";
+import { GuideButton } from "../features/guide/GuideButton";
+import { GuidePanel } from "../features/guide/GuidePanel";
 import { AccountPopover } from "../features/map/AccountPopover";
 import { BASEMAPS, type BasemapId } from "../features/map/basemaps";
 import { Dock } from "../features/map/Dock";
@@ -212,6 +214,9 @@ export default function MapScreen({ session, onLogout }: MapScreenProps) {
         <MyPlots open={panel === "plots"} onClose={closePanel} plots={all} loading={plots.loading} error={plots.error} onRetry={plots.retry} selected={selected} onPick={choose} />
       )}
       <AccountPopover open={panel === "account"} onClose={closePanel} session={session} onLogout={onLogout} />
+      {/* the Land Guide: opened by the rail icon AND the floating button (same panel); it stays mounted to keep the chat */}
+      <GuidePanel open={panel === "guide"} onClose={closePanel} />
+      <GuideButton open={panel === "guide"} onToggle={() => togglePanel("guide")} drawerOpen={selected !== null} />
 
       {plots.loading && !all && (
         <div className="pointer-events-none fixed inset-0 z-panel flex items-center justify-center" role="status" aria-label="Loading plots">

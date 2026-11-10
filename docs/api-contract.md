@@ -23,6 +23,8 @@ JSON API over the seeded fake data. Build against this file; it is checked again
 | `GET /conflict-types` | 401 | 200 | 200 | 200 |
 | `GET /plots` | 401 | 200, **only their own plots** | 200, all plots | 200, all plots |
 | `GET /construction-alerts` (SIMULATED) | 401 | 200, **only their own plots** | 200, all plots | 200, all plots |
+| `POST /plots/{ulpin}/explain` (Phase 11) | 401 | 200 for their own plot; **404 for any other plot** | 200 (404 only if it does not exist) | 200 (404 only if it does not exist) |
+| `POST /guide/ask` (Phase 11) | 401 | 200 | 200 | 200 |
 | `GET /plots/{ulpin}` | 401 | 200 for their own plot; **404 for any other plot** | 200 (404 only if it does not exist) | 200 (404 only if it does not exist) |
 | `GET /plots/{ulpin}/passport.pdf` | 401 | 200 for their own plot; **404 for any other plot** | 200 (404 only if it does not exist) | 200 (404 only if it does not exist) |
 | `GET /verify/{doc_id}` | 200 (public, strict limit) | 200 | 200 | 200 |
@@ -31,7 +33,7 @@ JSON API over the seeded fake data. Build against this file; it is checked again
 
 **Citizens never learn which other plots exist.** A plot that is not theirs returns exactly the same `404` as a plot that does not exist (not `403`). In a citizen's findings, any other plot's ULPIN in the evidence text is replaced by "another plot" (so "overlaps plot MH000400000070 by 656 sq m" becomes "overlaps another plot by 656 sq m"). Scores, points and bands are never changed.
 
-**Audit log.** Every `GET /plots/{ulpin}` writes one audit row: who, their role, which ulpin, when, and what happened: `view_passport` (shown), `view_passport_denied` (a citizen asked for a plot that is not theirs, or one that does not exist) or `view_passport_not_found` (an officer or admin asked for a plot that does not exist). A PDF download is logged the same way, with `download_passport_pdf`, `download_passport_pdf_denied` and `download_passport_pdf_not_found`. Listing plots and other calls are not logged. If writing the row fails, the request still works and the failure goes to the server log.
+**Audit log.** Every `GET /plots/{ulpin}` writes one audit row: who, their role, which ulpin, when, and what happened: `view_passport` (shown), `view_passport_denied` (a citizen asked for a plot that is not theirs, or one that does not exist) or `view_passport_not_found` (an officer or admin asked for a plot that does not exist). A PDF download is logged the same way, with `download_passport_pdf`, `download_passport_pdf_denied` and `download_passport_pdf_not_found`. `POST /plots/{ulpin}/explain` is logged the same way too (`explain_passport`, `explain_passport_denied`, `explain_passport_not_found`), and every `POST /guide/ask` writes one `guide_ask` row with no ulpin and **no question text** (the audit log never stores what was asked). Listing plots and other calls are not logged. If writing the row fails, the request still works and the failure goes to the server log.
 
 **Rate limits.** `POST /auth/login`: 5 per minute per IP address. Everything else: 60 per minute per logged-in user, as one allowance shared by all endpoints (per IP address if the request has no valid token). A blocked request gets `429` with a `Retry-After` header (whole seconds) and `{"detail": "Too many requests. Please wait 31 seconds and try again."}`. `GET /verify/{doc_id}` (public, so strict): 10 per minute per IP address, with its own counter. Counters are per endpoint, not per URL, so trying many different document ids is limited too. The limits live in `backend/app/config.py`.
 
@@ -245,6 +247,51 @@ The real response has all nine entries (the rest: `area_mismatch` 25, `owner_mis
 
 `new_sqm` is the new built area on the whole plot (the number in the evidence); `piece_sqm` is the area of this one outline (a plot with two new buildings has two features). `simulated` is always `true`. Errors: 401, 429, 503.
 
+## POST /plots/{ulpin}/explain (Phase 11)
+
+**Who:** the same as the passport: any logged-in user, a citizen only for their own plots (any other plot is the same `404` as a plot that does not exist). Same audit log and the same shared 60 per minute allowance. No request body (send `{}` or nothing).
+
+"Explain in plain words": it rewrites the findings the plot **already has** into plain words. **It never changes, adds or removes a finding and never touches the score or the band**: it only reads the passport. Only finding types, points, a few numbers and the band go to the AI, **never owner names, ULPINs, survey numbers or villages** (evidence text is not sent; per-type patterns pull out the numbers only). If the AI is off, busy or fails, or if its text contains a number we did not send, a link or a ULPIN-looking id, a **template written in code** is returned instead.
+
+```json
+{"text": "This plot has a high risk rating: score 100 out of 100, red band.\n4 findings explain the score:\n- ...",
+ "source": "template", "ai_status": "off",
+ "label": "Plain-words summary of the findings above (written by code, not by AI)",
+ "notice": "AI is off, so this summary was written by code."}
+```
+
+| Field | Values |
+|---|---|
+| `source` | `ai` (the AI wrote it) or `template` (written in code) |
+| `ai_status` | `on`, `off` (no `OPENROUTER_API_KEY` or `OPENROUTER_MODEL`), `busy` (429, a server error or a timeout, even after one retry) or `failed` (any other problem, or its text was rejected) |
+| `label` | `AI-written summary of the findings above` when `source` is `ai`, otherwise the honest code-written label; the UI shows it |
+| `notice` | a friendly sentence when the AI was not used, else `null` |
+
+Errors: 401, 404, 422 (malformed ulpin; nothing is audited), 429, 503. The AI being down is never an error: you get the template with `200`.
+
+## POST /guide/ask (Phase 11)
+
+**Who:** any logged-in user (401 otherwise). Shares the 60 per minute per-user allowance. Each call writes one `guide_ask` audit row with no ulpin and no question text.
+
+The Land Guide answers a **general** question about land records ONLY from a small set of public pages (Vikaspedia, C-DAC) and the original LandStack glossary. **It never sees any plot or personal data**: the only input is the question; plot ids, e-mail addresses and long digit runs are removed from it before anything is sent; do not type personal details. Request: `{"question": "What is a ULPIN?"}` (1 to 500 characters, else `422`).
+
+```json
+{"answer": "A ULPIN is a 14-character alphanumeric code that identifies one land parcel [1].",
+ "status": "answered", "ai_status": "on",
+ "sources": [{"n": 1, "title": "Bhu-Aadhaar | Vikaspedia - English - Digital Governance",
+              "url": "https://en.vikaspedia.in/viewcontent/e-governance/online-citizen-services/government-to-citizen-services-g2c/all-about-aadhaar/bhu-aadhaar?lgn=en",
+              "retrieved": "2026-11-11"}],
+ "disclaimer": "This is general information from the sources listed, not legal advice. ..."}
+```
+
+| `status` | Meaning |
+|---|---|
+| `answered` | an AI answer written only from the sources, each claim tied to `[n]`; `sources` lists the pages it cited |
+| `no_sources` | **"I don't know from my sources."** Nothing covers the question (the AI is not even called), or its answer was not grounded (no valid `[n]`, a number that is in no source, or an obeyed injected instruction) |
+| `ai_off`, `ai_busy`, `ai_failed` | the AI could not write an answer. A friendly sentence is returned and `sources` lists the related pages (title and link only) |
+
+Source text is treated as **data, never instructions** (it is stripped of anything that could close a block, the prompt says to ignore instructions inside it, and the answer is checked afterwards); links are removed from the answer (the sources are listed separately). `url` is `null` for the "LandStack glossary", which has no web page. Every answer carries a `disclaimer`: general information, not legal advice. The language step is one swappable pair of functions in `chatbot/guide.py` (English only for now). Errors: 401, 422, 429.
+
 ## POST /auth/login
 
 **Who:** everyone (no token needed). Limited to 5 requests per minute per IP address.
@@ -292,7 +339,7 @@ Request body (JSON): `{"username": "citizen1", "password": "..."}` (1 to 64 char
 ]
 ```
 
-`action` is one of `view_passport`, `view_passport_denied`, `view_passport_not_found`, `download_passport_pdf`, `download_passport_pdf_denied`, `download_passport_pdf_not_found`. `looked_at` is an ISO 8601 time (UTC). Errors: 401, 403, 422 (bad `limit`), 429, 503.
+`action` is one of `view_passport`, `view_passport_denied`, `view_passport_not_found`, `download_passport_pdf`, `download_passport_pdf_denied`, `download_passport_pdf_not_found`, `explain_passport`, `explain_passport_denied`, `explain_passport_not_found`, `guide_ask`. `looked_at` is an ISO 8601 time (UTC). Errors: 401, 403, 422 (bad `limit`), 429, 503.
 
 ## GET /plots/{ulpin}/passport.pdf
 

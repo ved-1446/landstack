@@ -105,6 +105,32 @@ export interface ConstructionCollection {
   features: ConstructionFeature[];
 }
 
+// POST /plots/{ulpin}/explain (Phase 11): plain words for the findings a plot already has.
+export type AiStatus = "on" | "off" | "busy" | "failed";
+export interface Explanation {
+  text: string;
+  source: "ai" | "template"; // who wrote it: the AI, or a template written in code
+  ai_status: AiStatus;
+  label: string; // "AI-written summary of the findings above", or the honest code-written label
+  notice: string | null; // a friendly sentence when the AI was not used
+}
+
+// POST /guide/ask (Phase 11): the Land Guide.
+export type GuideStatus = "answered" | "no_sources" | "ai_off" | "ai_busy" | "ai_failed";
+export interface GuideSource {
+  n: number;
+  title: string;
+  url: string | null; // null for the LandStack glossary (it has no web page)
+  retrieved: string | null; // YYYY-MM-DD
+}
+export interface GuideAnswer {
+  answer: string;
+  status: GuideStatus;
+  ai_status: AiStatus;
+  sources: GuideSource[];
+  disclaimer: string;
+}
+
 // Query parameters of GET /plots (all optional).
 export interface PlotFilters {
   band?: Band;

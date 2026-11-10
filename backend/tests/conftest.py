@@ -17,6 +17,12 @@ os.environ["JWT_SECRET"] = secrets.token_urlsafe(48)
 os.environ["JWT_EXPIRE_MINUTES"] = "60"
 # Phase 9: the tests never load a real ml/models file. An empty folder = "no model" = `"unusual": null`.
 # The model tests switch a small throw-away model on and off themselves (unusual.use_bundle).
+# Phase 11: the AI is OFF in tests whatever .env says (an empty value beats .env), and no test may reach the network:
+# tests that need an answer switch the AI on with a fake (see backend/tests/test_explain.py).
+os.environ["OPENROUTER_API_KEY"] = ""
+os.environ["OPENROUTER_MODEL"] = ""
+# ...and the Land Guide never reads a real scraped corpus in tests (an empty folder = no chunks); tests build tiny corpora themselves.
+os.environ["CHATBOT_DATA_DIR"] = str(Path(__import__("tempfile").gettempdir()) / "landstack-no-chatbot-data-here")
 os.environ["UNUSUAL_MODEL_DIR"] = str(Path(__import__("tempfile").gettempdir()) / "landstack-no-model-here")
 
 import seed  # noqa: E402
@@ -66,6 +72,25 @@ def _remove_test_users(connection):
     connection.execute("DELETE FROM audit_log WHERE username = ANY(%s::text[])", (names,))
     connection.execute("DELETE FROM passport_issues WHERE issued_to = ANY(%s::text[])", (names,))
     connection.execute("DELETE FROM users WHERE username = ANY(%s::text[])", (names,))   # user_plots cascades
+
+
+@pytest.fixture(autouse=True)
+def no_network_for_the_ai(monkeypatch):
+    """The ONE function that talks to the AI service is blocked in every test, so nothing can reach the network by accident."""
+    from backend.app import llm
+
+    def blocked(*args, **kwargs):
+        raise AssertionError("a test tried to call the AI service over the network; mock llm.complete instead")
+    monkeypatch.setattr(llm, "_post", blocked)
+
+    from chatbot import guide, scrape
+
+    def blocked_scrape(*args, **kwargs):
+        raise AssertionError("a test tried to fetch a web page over the network; pass a fake `get` to scrape() instead")
+    monkeypatch.setattr(scrape, "_http_get", blocked_scrape)
+    guide.set_index(None)                                  # every test starts without a cached Land Guide index
+    yield
+    guide.set_index(None)
 
 
 @pytest.fixture(scope="session", autouse=True)

@@ -19,3 +19,7 @@ ml/data/*
 !ml/data/name_pairs.csv
 ml/models/
 .ipynb_checkpoints/
+
+# Phase 11: the Land Guide's raw pages and chunks are other people's text: local only, rebuilt by `python -m chatbot.build`
+chatbot/raw/
+chatbot/chunks.jsonl

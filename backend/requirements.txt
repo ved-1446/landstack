@@ -12,4 +12,6 @@ slowapi>=0.1.9
 reportlab>=4.0
 qrcode>=7.4
 pypdf>=4.0
+rank_bm25>=0.2.2    # Phase 11: the Land Guide's word-matching search
+beautifulsoup4>=4.12   # Phase 11: reading the saved web pages
 shap>=0.46      # Phase 9: plain-English reasons for the unusual-plot note (optional at run time)

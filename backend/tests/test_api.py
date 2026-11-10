@@ -181,7 +181,8 @@ def test_openapi_lists_every_endpoint(client):
     assert set(paths) == {"/health", "/plots", "/plots/{ulpin}", "/summary", "/conflict-types",
                           "/auth/login", "/auth/me", "/audit",
                           "/plots/{ulpin}/passport.pdf", "/verify/{doc_id}",
-                          "/construction-alerts"}      # Phase 10 (SIMULATED footprints for the map)
+                          "/construction-alerts",       # Phase 10 (SIMULATED footprints for the map)
+                          "/plots/{ulpin}/explain", "/guide/ask"}      # Phase 11 (the AI explainer and the Land Guide)
 
 
 def test_database_down_returns_clean_json(monkeypatch):

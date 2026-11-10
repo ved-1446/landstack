@@ -71,6 +71,17 @@ CONFLICT_DESCRIPTIONS = {
 # See `python -m ml.evaluate` for what each choice catches on the generated data.
 UNUSUAL_PERCENTILE = 95
 
+# ---- Phase 11: the AI features (explainer and Land Guide). The key and model name live in .env, never here. ----
+OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"     # OPENROUTER_BASE_URL in .env overrides (optional)
+LLM_TIMEOUT_S = 30                    # free models can be slow
+LLM_RETRY_WAIT_S = 2.0                # a busy model (429) is retried ONCE after this pause
+GUIDE_QUESTION_MAX = 500              # characters in a question to the Land Guide
+GUIDE_TOP_K = 4                       # source passages handed to the model
+# A passage needs at least this BM25 score to count as "covers the question". Measured on the real corpus (53 chunks): genuine
+# questions scored 2.4 to 14, while off-topic ones that share only the common word "land" scored 0.61 at most. Too low: the LLM is
+# asked about things the sources do not cover. Too high: a real question gets "I don't know".
+GUIDE_MIN_SCORE = 1.5
+
 # ---- Phase 7: login, roles, rate limits ----
 ROLES = ("admin", "officer", "citizen")
 STAFF_ROLES = ("officer", "admin")        # may see every plot and /summary

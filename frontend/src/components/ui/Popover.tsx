@@ -11,6 +11,8 @@ interface PopoverProps {
   onClose: () => void;
   title: string;
   children: ReactNode;
+  /** pinned under the scrolling content (for example a chat input) */
+  footer?: ReactNode;
   className?: string;
 }
 
@@ -18,7 +20,7 @@ interface PopoverProps {
  * A frosted panel that floats next to the rail. Under 768px it becomes a bottom sheet above the tab bar.
  * Escape closes it, and so does a click anywhere outside it (the rail buttons toggle it themselves).
  */
-export function Popover({ open, onClose, title, children, className }: PopoverProps) {
+export function Popover({ open, onClose, title, children, footer, className }: PopoverProps) {
   const mobile = useIsMobile();
   const panel = useRef<HTMLDivElement>(null);
 
@@ -67,6 +69,7 @@ export function Popover({ open, onClose, title, children, className }: PopoverPr
             </Button>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">{children}</div>
+          {footer && <div className="shrink-0 border-t border-line-on-navy px-4 py-3">{footer}</div>}
         </motion.div>
       )}
     </AnimatePresence>

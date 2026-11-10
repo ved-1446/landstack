@@ -15,9 +15,15 @@ PDF_DOWNLOADED = "download_passport_pdf"
 PDF_DENIED = "download_passport_pdf_denied"
 PDF_NOT_FOUND = "download_passport_pdf_not_found"
 
+EXPLAINED = "explain_passport"                      # Phase 11: POST /plots/{ulpin}/explain
+EXPLAIN_DENIED = "explain_passport_denied"
+EXPLAIN_NOT_FOUND = "explain_passport_not_found"
+GUIDE_ASKED = "guide_ask"                           # Phase 11: POST /guide/ask (no ulpin, and NO question text is stored)
+
 # (shown, denied, not found): the three audit actions of one kind of request.
 JSON_VIEW = (VIEWED, DENIED, NOT_FOUND)
 PDF_DOWNLOAD = (PDF_DOWNLOADED, PDF_DENIED, PDF_NOT_FOUND)
+EXPLAIN = (EXPLAINED, EXPLAIN_DENIED, EXPLAIN_NOT_FOUND)
 
 INSERT_SQL = "INSERT INTO audit_log (username, role, ulpin, action) VALUES (%s, %s, %s, %s)"
 

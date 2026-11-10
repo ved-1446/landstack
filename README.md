@@ -260,3 +260,43 @@ The 600 pairs (300 same person, 300 different, fixed seed) come from rules, not 
 Decision: **`NAME_MATCH_THRESHOLD` stays at 0.60.** Tuning gains only +0.008 F1 on the test pairs (the rule asks for at least +0.02, plus all 6 decoy pairs still matching and none of the 14 genuinely different demo pairs matching). The current matcher misses names written as only an initial plus a spelling variant plus an honorific (`Anita Joshi` vs `Mrs Joshee A.`, score 0.20) and wrongly matches near-identical different names (`Vijay Lokhande` vs `Vinay Lokhande`, 0.70).
 
 Tests: `backend/tests/test_ml_features.py`, `test_ml_model.py`, `test_unusual_api.py`, `test_ml_names.py`.
+
+## AI features: "Explain in plain words" and the Land Guide (Phase 11)
+
+Two optional AI features. **The server starts and works without them** (the AI shows a friendly "AI is off" message); the risk score never depends on them.
+
+**Turn the AI on.** Put these in `.env` (never commit it; `.env.example` has the names without values):
+```
+OPENROUTER_API_KEY=your-key
+OPENROUTER_MODEL=the-model-id-you-chose        # a free model is fine
+# OPENROUTER_BASE_URL=https://openrouter.ai/api/v1   (optional)
+```
+Free models often answer 429 (busy) or time out. That is treated as a normal case: one retry after a short wait, then a friendly "AI is busy, try again". Whatever you send goes to a third-party service, so the app sends as little as it can (below).
+
+### "Explain in plain words" (passport drawer, `POST /plots/{ulpin}/explain`)
+It rewrites the findings a plot **already has** into plain words. It never changes, adds or removes a finding and never touches the score or the band. Only finding types, points, a few numbers and the band are sent to the AI: **no owner names, no ULPINs, no survey numbers, no villages**. If the AI is off, busy or wrong (for example it mentions a number we did not send), a template written in code is shown instead, honestly labelled "written by code, not by AI". Same role rules, 404 behaviour, audit log and rate limit as the passport.
+
+### The Land Guide (chat panel, `POST /guide/ask`)
+A chatbot that answers general questions about land records **only from a small set of public pages and the LandStack glossary**, with the source links. It uses plain word-matching search (BM25), then asks the AI to answer only from the best passages and cite them. If nothing matches it says "I don't know from my sources." (without calling the AI). It never sees plot or personal data, treats page text as data (never as instructions), and adds a "not legal advice" note. It can be wrong.
+
+**Build its corpus (a fresh clone has none; one command):**
+```
+python -m chatbot.build                # scrape the listed pages (politely, cached), then rebuild the chunks
+python -m chatbot.build --index-only   # no network: rebuild the chunks from what is already saved
+```
+Until you run it, the Guide still works from the original glossary alone (`chatbot/glossary.md`, written for LandStack, safe to commit). `pip install -r backend/requirements.txt` adds `rank_bm25` and `beautifulsoup4`. To start from scratch, delete `chatbot/raw/` and `chatbot/chunks.jsonl`.
+
+**Sources and what they allow (checked 11 November 2026):**
+
+| Site | robots.txt | Terms | Used? |
+|---|---|---|---|
+| en.vikaspedia.in (C-DAC, MeitY) | allows everything except a few named bots | reproduction allowed with clear credit to the source; third-party material excluded; the agriculture subdomain asks for permission | **Yes**, 6 `en.` land-record pages only, every answer links the page |
+| dolr.gov.in (Dept. of Land Resources) | allows everything | terms could not be read (a JavaScript site) | **No, on hold.** A future source if its terms or permission are confirmed |
+| igrmaharashtra.gov.in | no real rules | copyright policy: no reproduction without the department's permission | **No** |
+| bhulekh.mahabhumi.gov.in | no robots.txt | no terms page found; a transactional portal with personal land records | **No** |
+
+**Credit:** the Land Guide's answers draw on pages from **Vikaspedia (C-DAC Hyderabad, Ministry of Electronics and Information Technology, Government of India)**. The pages used are listed, with the date each was read, in `chatbot/sources.json` (committed). The raw pages and the chunks are other people's text, so they stay on your machine (`chatbot/raw/`, `chatbot/chunks.jsonl`, both git-ignored).
+
+**The scraper is polite:** it reads only the URLs in `sources.json` (it never crawls), sends a descriptive User-Agent, waits at least 4 seconds between requests (or the site's Crawl-delay if larger), checks robots.txt, caches every page (a re-run fetches nothing new), reads at most 30 pages per run, and **stops at once on any 403 or 429**.
+
+**Limits:** the corpus is small (6 pages and the glossary), so many questions get "I don't know from my sources". The pages are a snapshot (the DILRMP page says it is several years old). Answers can be wrong or out of date, and nothing here is legal advice. English only for now: the language step is one swappable pair of functions (`translate_to_english` and `translate_from_english` in `chatbot/guide.py`); Hindi and Marathi, with a Unicode font for the UI and the PDF, come in a later step.

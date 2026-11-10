@@ -6,6 +6,7 @@ import { Button, Chip, Drawer, EmptyState, EvidenceCard, Gauge, Skeleton, useToa
 import { BAND_WORDS, prettyRole } from "../../constants";
 import { useFetch } from "../../hooks";
 import type { ConflictType, Passport } from "../../types";
+import { ExplainSection } from "./ExplainSection";
 import { UnusualChip } from "./UnusualChip";
 import { VerifyDialog } from "./VerifyDialog";
 
@@ -191,6 +192,8 @@ export function PassportDrawer({ ulpin, role, rules, simulatedTypes, prefetched,
                   ))}
                 </section>
               )}
+
+              <ExplainSection ulpin={ulpin} />
 
               <section aria-label="Records on file" className="mt-6">
                 <h3 className="mb-1 font-mono text-11 tracking-wider text-faint-on-cream">RECORDS ON FILE</h3>
