@@ -1,6 +1,7 @@
 // The ONLY file that talks to the backend. Everything else calls these functions.
 import type {
   ConflictTypeInfo,
+  ConstructionCollection,
   LoginResponse,
   Passport,
   PlotCollection,
@@ -168,6 +169,11 @@ export function getSummary(signal?: AbortSignal) {
 
 export function getConflictTypes(signal?: AbortSignal) {
   return request<ConflictTypeInfo[]>("/conflict-types", { signal });
+}
+
+/** SIMULATED new-building outlines for the map (citizens get only their own plots). */
+export function getConstructionAlerts(signal?: AbortSignal) {
+  return request<ConstructionCollection>("/construction-alerts", { signal });
 }
 
 /** The printable passport as a PDF file (the login token is sent, so the same role rules apply). */

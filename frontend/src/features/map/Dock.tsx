@@ -10,10 +10,12 @@ interface DockProps {
   onToggle: (band: Band) => void;
   loading: boolean;
   drawerOpen: boolean;
+  /** while the simulated construction layer is on: how many new buildings are drawn (null = loading or off) */
+  construction?: { count: number | null } | null;
 }
 
 /** The bottom dock: how many plots are showing, and the three band chips (they toggle, and show the score ranges). */
-export function Dock({ shown, counts, active, onToggle, loading, drawerOpen }: DockProps) {
+export function Dock({ shown, counts, active, onToggle, loading, drawerOpen, construction }: DockProps) {
   return (
     <div
       className={cn(
@@ -38,6 +40,11 @@ export function Dock({ shown, counts, active, onToggle, loading, drawerOpen }: D
               {BAND_LABEL[band]} {BAND_RANGE[band]}
             </Chip>
           ))}
+          {construction && (
+            <Chip tone="sim" label={`Simulated new buildings on the map${construction.count === null ? "" : `: ${construction.count}`}`}>
+              Simulated new buildings{construction.count === null ? "" : ` · ${construction.count}`}
+            </Chip>
+          )}
         </div>
       </section>
     </div>

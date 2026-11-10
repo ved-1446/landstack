@@ -52,7 +52,12 @@ export function LayersPopover({ open, onClose, basemap, onBasemap, layers, onLay
         onCheckedChange={(risk) => onLayers({ ...layers, risk })}
       />
       <Switch label="Restricted zones" description="Not available yet: the API has no zones data" checked={false} disabled onCheckedChange={() => undefined} />
-      <Switch label="Unrecorded construction" description="Simulated, Phase 10" checked={false} disabled onCheckedChange={() => undefined} />
+      <Switch
+        label="Unrecorded construction (simulated)"
+        description="New buildings between two generated snapshots, T0 and T1. Not real imagery."
+        checked={layers.construction}
+        onCheckedChange={(construction) => onLayers({ ...layers, construction })}
+      />
 
       <p className="mt-4 border-t border-line-on-navy pt-3 text-11 text-faint-on-navy">Map data: {BASEMAPS[basemap].credit}</p>
     </Popover>

@@ -1,7 +1,7 @@
 import { AnimatePresence } from "framer-motion";
 import { SearchX } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ApiError, getConflictTypes, getPassport, getPlots, getSummary } from "../api";
+import { ApiError, getConflictTypes, getConstructionAlerts, getPassport, getPlots, getSummary } from "../api";
 import { ErrorState } from "../components/ErrorState";
 import { Button, EmptyState, SearchPill, Skeleton, useToast } from "../components/ui";
 import { ALL_BANDS } from "../constants";
@@ -36,7 +36,7 @@ export default function MapScreen({ session, onLogout }: MapScreenProps) {
   const [filters, setFilters] = useState<MapFilters>({ village: "", conflictType: "" });
   const [bands, setBands] = useState<Set<Band>>(new Set(ALL_BANDS));
   const [basemap, setBasemap] = useState<BasemapId>("dark");
-  const [layers, setLayers] = useState<MapLayerSwitches>({ boundaries: true, labels: true, risk: true });
+  const [layers, setLayers] = useState<MapLayerSwitches>({ boundaries: true, labels: true, risk: true, construction: false });
   const [selected, setSelected] = useState<string | null>(null);
   const [focus, setFocus] = useState<FocusRequest | null>(null);
   const [prefetched, setPrefetched] = useState<Passport | null>(null);
@@ -54,6 +54,12 @@ export default function MapScreen({ session, onLogout }: MapScreenProps) {
   // Citizens may not see /summary (the server answers 403), so they never ask for it.
   const summary = useFetch<Summary | null>((signal) => (staff ? getSummary(signal) : Promise.resolve(null)), [staff]);
 
+  // SIMULATED new buildings: fetched only while the layer is switched on (citizens get only their own plots)
+  const construction = useFetch(
+    (signal) => (layers.construction ? getConstructionAlerts(signal) : Promise.resolve(null)),
+    [layers.construction],
+  );
+
   const all: PlotFeature[] | null = plots.data ? plots.data.features : null;
   const visible = useMemo(() => (all ? all.filter((f) => bands.has(f.properties.band)) : []), [all, bands]);
   const counts = useMemo(() => {
@@ -66,6 +72,19 @@ export default function MapScreen({ session, onLogout }: MapScreenProps) {
     (types.data ?? []).forEach((info) => (byType[info.type] = info.description));
     return byType;
   }, [types.data]);
+
+  const simulatedTypes = useMemo(
+    () => new Set<ConflictType>((types.data ?? []).filter((info) => info.simulated).map((info) => info.type)),
+    [types.data],
+  );
+
+  // if the simulated layer cannot load, say so (and switch it off) instead of drawing nothing in silence
+  useEffect(() => {
+    if (!layers.construction || !construction.error) return;
+    toast.push({ title: "Simulated buildings could not load", description: construction.error, tone: "error" });
+    setLayers((old) => ({ ...old, construction: false }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [construction.error]);
 
   // the API has no list of villages, so remember every village seen in a response
   useEffect(() => {
@@ -153,6 +172,7 @@ export default function MapScreen({ session, onLogout }: MapScreenProps) {
     <div className="relative h-dvh overflow-hidden bg-navy-950">
       <MapView
         features={visible}
+        construction={layers.construction ? construction.data : null}
         selected={selected}
         onSelect={(ulpin) => (ulpin ? choose(ulpin) : setSelected(null))}
         basemap={basemap}
@@ -173,7 +193,8 @@ export default function MapScreen({ session, onLogout }: MapScreenProps) {
         if (next.has(band)) next.delete(band);
         else next.add(band);
         return next;
-      })} loading={plots.loading} drawerOpen={selected !== null} />
+      })} loading={plots.loading} drawerOpen={selected !== null}
+        construction={layers.construction ? { count: construction.data ? new Set(construction.data.features.map((f) => f.properties.ulpin)).size : null } : null} />
 
       <LayersPopover open={panel === "layers"} onClose={closePanel} basemap={basemap} onBasemap={setBasemap} layers={layers} onLayers={setLayers} />
       <FiltersPopover
@@ -234,6 +255,7 @@ export default function MapScreen({ session, onLogout }: MapScreenProps) {
             ulpin={selected}
             role={session.role}
             rules={rules}
+            simulatedTypes={simulatedTypes}
             prefetched={prefetched}
             onClose={() => setSelected(null)}
             onLoaded={onPassportLoaded}

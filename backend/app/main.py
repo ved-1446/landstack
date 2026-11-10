@@ -19,7 +19,7 @@ from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, Field
 from slowapi.errors import RateLimitExceeded
 
-from . import audit, auth, config, limits, passport, pdf, unusual
+from . import audit, auth, checks, config, limits, passport, pdf, unusual
 from .auth import ErrorBody, User, current_user, require_roles
 from .db import get_conn
 from .passport import fetch_for_user, hide_other_plots, owned_ulpins, scored  # noqa: F401  (hide_other_plots is re-exported)
@@ -64,6 +64,24 @@ class PlotFeature(BaseModel):
 class PlotCollection(BaseModel):
     type: Literal["FeatureCollection"] = "FeatureCollection"
     features: list[PlotFeature]
+
+
+class ConstructionProperties(BaseModel):
+    ulpin: str
+    new_sqm: float = Field(description="new built-up area on the whole plot, square metres (SIMULATED)")
+    piece_sqm: float = Field(description="area of this one building outline, square metres")
+    simulated: Literal[True] = Field(default=True, description="always true: the two building snapshots are generated, not real imagery")
+
+
+class ConstructionFeature(BaseModel):
+    type: Literal["Feature"] = "Feature"
+    geometry: PolygonGeometry
+    properties: ConstructionProperties
+
+
+class ConstructionCollection(BaseModel):
+    type: Literal["FeatureCollection"] = "FeatureCollection"
+    features: list[ConstructionFeature]
 
 
 class RorRecord(BaseModel):
@@ -112,6 +130,7 @@ class ConflictTypeInfo(BaseModel):
     type: ConflictType
     points: int
     description: str
+    simulated: bool = Field(description="true when the data behind this check is SIMULATED (there is no real source for it)")
 
 
 class Health(BaseModel):
@@ -143,7 +162,7 @@ class Verification(BaseModel):
 
 app = FastAPI(
     title="LandStack API",
-    version="0.9.0",
+    version="0.10.0",
     description="Land records on a map. Plots, land passports, conflicts and risk scores "
                 "(fake demo data). Log in at POST /auth/login first; what you may see depends on your role.",
 )
@@ -240,6 +259,21 @@ def list_plots(
     return {"type": "FeatureCollection", "features": features}
 
 
+@app.get("/construction-alerts", response_model=ConstructionCollection, tags=["plots"],
+         responses={401: {"model": ErrorBody}, 429: {"model": ErrorBody}, 503: {"model": ErrorBody}})
+@limits.per_user
+def construction_alerts(request: Request, conn: Conn, user: AnyUser):
+    """SIMULATED: the outlines of new buildings (in the later snapshot T1 but not in the earlier T0) on the plots that
+    have an unrecorded-construction alert, as a GeoJSON FeatureCollection for the map. There is no real imagery behind
+    it. Citizens get only their own plots; officers and admins get all of them. Not audited (it is a list, like /plots)."""
+    owned = owned_ulpins(conn, user.username) if user.role == "citizen" else None
+    rows = checks.construction_footprints(conn, owned)
+    return {"type": "FeatureCollection", "features": [
+        {"type": "Feature", "geometry": r["geometry"],
+         "properties": {"ulpin": r["ulpin"], "new_sqm": r["new_sqm"], "piece_sqm": r["piece_sqm"], "simulated": True}}
+        for r in rows]}
+
+
 @app.get("/plots/{ulpin}", response_model=Passport, tags=["plots"],
          responses={401: {"model": ErrorBody}, 404: {"model": ErrorBody},
                     429: {"model": ErrorBody}, 503: {"model": ErrorBody}})
@@ -315,8 +349,9 @@ def summary(request: Request, conn: Conn, user: Staff):
          responses={401: {"model": ErrorBody}, 429: {"model": ErrorBody}})
 @limits.per_user
 def conflict_types(request: Request, user: AnyUser):
-    """The eight conflict types with their points and a plain description. Any logged-in user."""
-    return [{"type": t, "points": p, "description": config.CONFLICT_DESCRIPTIONS[t]}
+    """The nine conflict types with their points, a plain description and a `simulated` marker (true for the
+    unrecorded-construction alert: its two building snapshots are generated, not real imagery). Any logged-in user."""
+    return [{"type": t, "points": p, "description": config.CONFLICT_DESCRIPTIONS[t], "simulated": t in config.SIMULATED_TYPES}
             for t, p in config.POINTS.items()]
 
 

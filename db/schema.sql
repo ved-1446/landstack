@@ -46,12 +46,18 @@ CREATE TABLE zones (
 );
 CREATE INDEX zones_geom_gix ON zones USING GIST (geom);
 
+-- Phase 10 (SIMULATED change detection; there is no real satellite or imagery data anywhere in this project).
+-- Building outlines from two survey rounds: 'T0' (the earlier one) and 'T1' (the later one). A building that is
+-- in T1 but not in T0 is "new". ulpin deliberately has NO foreign key to plots: db/seed.py clears `plots` with
+-- TRUNCATE ... CASCADE on every re-seed (it clears this table too).
 CREATE TABLE building_snapshots (
     id         bigserial PRIMARY KEY,
-    snapshot   text NOT NULL,            -- label of the survey round, e.g. 'T0'
+    ulpin      text NOT NULL,                              -- the plot this building stands on
+    snapshot   text NOT NULL CHECK (snapshot IN ('T0', 'T1')),
     footprint  geometry(Polygon, 4326) NOT NULL
 );
 CREATE INDEX building_snapshots_footprint_gix ON building_snapshots USING GIST (footprint);
+CREATE INDEX building_snapshots_ulpin_snapshot_idx ON building_snapshots (ulpin, snapshot);
 
 CREATE TABLE users (
     username       text PRIMARY KEY,

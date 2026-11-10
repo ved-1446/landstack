@@ -1,4 +1,4 @@
-"""The eight conflict checks. Every check is visible raw PostGIS SQL plus a few lines of Python.
+"""The nine conflict checks. Every check is visible raw PostGIS SQL plus a few lines of Python.
 
 Each check_* function takes an open psycopg connection and returns a list of findings:
     {"ulpin": ..., "type": ..., "points": ..., "evidence": "plain facts with real numbers"}
@@ -181,6 +181,59 @@ def check_tax_overdue(conn):
     return out
 
 
+# SIMULATED change detection with two snapshots of building outlines, T0 (earlier) and T1 (later); there is no real
+# satellite or imagery data. Per plot: merge all T1 footprints (ST_Union), merge all T0 footprints, and SUBTRACT T0
+# from T1 (ST_Difference). What is left is ground that has a building in T1 but had none in T0: the new built-up
+# area. A building in both snapshots subtracts to nothing, a building that disappeared in T1 is not in T1 at all, and
+# a footprint shifted by a metre or two leaves only a thin sliver. The area is measured in square metres (geography
+# cast). A plot with a T1 footprint but no T0 footprints at all has everything new (COALESCE gives an empty T0).
+# Plots with an invalid shape are skipped, like in the other geometry checks.
+# The map's footprints (construction_footprints below) use this SAME text, so the map can never disagree with the check.
+_NEW_BUILT_SQL = """
+    WITH t0 AS (
+        SELECT ulpin, ST_Union(footprint) AS geom FROM building_snapshots WHERE snapshot = 'T0' GROUP BY ulpin
+    ), t1 AS (
+        SELECT ulpin, ST_Union(footprint) AS geom FROM building_snapshots WHERE snapshot = 'T1' GROUP BY ulpin
+    ), new_built AS (
+        SELECT t1.ulpin,
+               ST_Difference(t1.geom, COALESCE(t0.geom, ST_GeomFromText('POLYGON EMPTY', 4326))) AS geom,
+               ST_Area(ST_Difference(t1.geom,
+                       COALESCE(t0.geom, ST_GeomFromText('POLYGON EMPTY', 4326)))::geography) AS new_sqm
+        FROM t1
+        JOIN plots p ON p.ulpin = t1.ulpin
+        LEFT JOIN t0 ON t0.ulpin = t1.ulpin
+        WHERE ST_IsValid(p.geom)
+    )
+"""
+
+
+def check_unrecorded_construction(conn):
+    # Flag the plot only if the new built area is at least MIN_NEW_BUILT_SQM, so slivers (survey jitter) stay below the line.
+    sql = _NEW_BUILT_SQL + "SELECT ulpin, new_sqm FROM new_built WHERE new_sqm >= %s ORDER BY ulpin"
+    return [_finding(ulpin, "unrecorded_construction",
+                     f"SIMULATED: about {new_sqm:,.0f} sq m of new building appeared between T0 and T1 that is not "
+                     f"in the records; limit is {config.MIN_NEW_BUILT_SQM:,.0f} sq m (no real imagery is used)")
+            for ulpin, new_sqm in conn.execute(sql, (config.MIN_NEW_BUILT_SQM,)).fetchall()]
+
+
+def construction_footprints(conn, ulpins=None):
+    """The new-building outlines behind the alert (SIMULATED), one row per building piece, for the map.
+    Only plots the check flags (so no jitter slivers); `ulpins` (a list) limits them to those plots, for citizens.
+    Returns [{"ulpin", "new_sqm" (for the whole plot), "piece_sqm", "geometry" (GeoJSON Polygon)}]."""
+    sql = _NEW_BUILT_SQL + """
+        SELECT nb.ulpin, nb.new_sqm, ST_Area(d.geom::geography) AS piece_sqm, ST_AsGeoJSON(d.geom)::json
+        FROM new_built nb
+        CROSS JOIN LATERAL ST_Dump(nb.geom) AS d
+        WHERE nb.new_sqm >= %(minimum)s
+          AND (%(ulpins)s::text[] IS NULL OR nb.ulpin = ANY(%(ulpins)s::text[]))
+          AND ST_Area(d.geom::geography) >= 1
+        ORDER BY nb.ulpin, piece_sqm DESC
+    """
+    return [{"ulpin": u, "new_sqm": new, "piece_sqm": piece, "geometry": geometry}
+            for u, new, piece, geometry in conn.execute(
+                sql, {"minimum": config.MIN_NEW_BUILT_SQM, "ulpins": ulpins}).fetchall()]
+
+
 # Fixed table names (never user input), so building the SQL text here is safe.
 _RECORD_TABLES = [("ror_records", "RoR record"), ("registrations", "registration"),
                   ("tax_records", "tax record")]
@@ -208,6 +261,7 @@ ALL_CHECKS = {
     "invalid_boundary": check_invalid_boundary,
     "tax_overdue": check_tax_overdue,
     "missing_record": check_missing_record,
+    "unrecorded_construction": check_unrecorded_construction,
 }
 
 

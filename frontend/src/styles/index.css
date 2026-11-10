@@ -31,6 +31,8 @@
   --color-risk-green-ink: var(--risk-green-ink);
   --color-risk-amber-ink: var(--risk-amber-ink);
   --color-risk-red-ink: var(--risk-red-ink);
+  --color-sim: var(--sim);
+  --color-sim-ink: var(--sim-ink);
   --color-gauge-red: var(--gauge-red);
   --color-line-on-navy: var(--line-on-navy);
   --color-line-on-cream: var(--line-on-cream);
@@ -183,6 +185,22 @@
   .maplibregl-ctrl-bottom-right {
     bottom: calc(var(--tabbar-height) + 8px);
   }
+}
+
+/* ---- simulated new-building labels (zoom 16 and closer): the word SIMULATED is always in the label ---- */
+.sim-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 16px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  padding: 0 6px;
+  border-radius: var(--r-control);
+  color: var(--navy-950);
+  background: var(--sim);
+  border: 1px solid var(--navy-950);
 }
 
 /* ---- plot ULPIN labels on the map (small HTML labels, zoom 16 and closer) ---- */

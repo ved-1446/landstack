@@ -48,7 +48,7 @@ def inputs_from_generated(data):
 
 def build(plots=DEFAULT_PLOTS, rate=DEFAULT_RATE, seed_value=DEFAULT_SEED):
     """Returns (ulpins, matrix, labels) where labels = {ulpin: [planted problem types]} (empty list = clean)."""
-    data = seed.generate(plots, rate, seed_value)
+    data = seed.generate(plots, rate, seed_value, construction=False)   # the ML never looks at the simulated buildings
     plot_inputs, zones, conflicts = inputs_from_generated(data)
     ulpins, matrix = features.features_for_all(plot_inputs, zones)
     return ulpins, matrix, {u: conflicts.get(u, []) for u in ulpins}

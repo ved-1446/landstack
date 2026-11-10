@@ -43,5 +43,7 @@ def test_point_values_match_the_brief():
         "boundary_overlap": 40, "restricted_zone_clash": 30, "area_mismatch": 25,
         "owner_mismatch": 25, "duplicate_survey_no": 20, "invalid_boundary": 15,
         "tax_overdue": 15, "missing_record": 10,
+        "unrecorded_construction": 15,           # Phase 10 (SIMULATED)
     }
+    assert config.POINTS["unrecorded_construction"] == config.CONSTRUCTION_ALERT_POINTS == 15
     assert config.SCORE_CAP == 100

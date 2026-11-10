@@ -10,7 +10,8 @@ export type ConflictType =
   | "duplicate_survey_no"
   | "invalid_boundary"
   | "tax_overdue"
-  | "missing_record";
+  | "missing_record"
+  | "unrecorded_construction"; // SIMULATED (Phase 10)
 
 export interface Finding {
   type: ConflictType;
@@ -90,6 +91,18 @@ export interface ConflictTypeInfo {
   type: ConflictType;
   points: number;
   description: string;
+  simulated: boolean; // true when the data behind this check is SIMULATED (the construction alert)
+}
+
+// GET /construction-alerts (SIMULATED): outlines of new buildings, in T1 but not in T0.
+export interface ConstructionFeature {
+  type: "Feature";
+  geometry: PolygonGeometry;
+  properties: { ulpin: string; new_sqm: number; piece_sqm: number; simulated: true };
+}
+export interface ConstructionCollection {
+  type: "FeatureCollection";
+  features: ConstructionFeature[];
 }
 
 // Query parameters of GET /plots (all optional).

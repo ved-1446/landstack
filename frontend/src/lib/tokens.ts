@@ -21,6 +21,7 @@ export interface Palette {
   riskGreen: string;
   riskAmber: string;
   riskRed: string;
+  sim: string;
 }
 
 export function readPalette(): Palette {
@@ -33,5 +34,6 @@ export function readPalette(): Palette {
     riskGreen: cssVar("--risk-green"),
     riskAmber: cssVar("--risk-amber"),
     riskRed: cssVar("--risk-red"),
+    sim: cssVar("--sim"),
   };
 }

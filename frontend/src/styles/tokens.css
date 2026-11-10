@@ -31,6 +31,10 @@
   --risk-red-ink: #a31e32;
   --gauge-red: #d23a4a;
 
+  /* simulated data (the construction alert): only for things that are SIMULATED. sim-ink is the version for cream */
+  --sim: #5cc8ff;
+  --sim-ink: #0b5c86;
+
   /* hairlines */
   --line-on-navy: rgb(246 240 228 / 0.14);
   --line-on-cream: rgb(15 30 61 / 0.14);

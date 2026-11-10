@@ -22,6 +22,7 @@ JSON API over the seeded fake data. Build against this file; it is checked again
 | `GET /auth/me` | 401 | 200 | 200 | 200 |
 | `GET /conflict-types` | 401 | 200 | 200 | 200 |
 | `GET /plots` | 401 | 200, **only their own plots** | 200, all plots | 200, all plots |
+| `GET /construction-alerts` (SIMULATED) | 401 | 200, **only their own plots** | 200, all plots | 200, all plots |
 | `GET /plots/{ulpin}` | 401 | 200 for their own plot; **404 for any other plot** | 200 (404 only if it does not exist) | 200 (404 only if it does not exist) |
 | `GET /plots/{ulpin}/passport.pdf` | 401 | 200 for their own plot; **404 for any other plot** | 200 (404 only if it does not exist) | 200 (404 only if it does not exist) |
 | `GET /verify/{doc_id}` | 200 (public, strict limit) | 200 | 200 | 200 |
@@ -41,7 +42,7 @@ JSON API over the seeded fake data. Build against this file; it is checked again
 | Name | Values |
 |---|---|
 | `band` | `green` (score 0-24), `amber` (25-59), `red` (60-100) |
-| `conflict type` | `boundary_overlap`, `restricted_zone_clash`, `area_mismatch`, `owner_mismatch`, `duplicate_survey_no`, `invalid_boundary`, `tax_overdue`, `missing_record` (get points and descriptions from `/conflict-types`) |
+| `conflict type` | `boundary_overlap`, `restricted_zone_clash`, `area_mismatch`, `owner_mismatch`, `duplicate_survey_no`, `invalid_boundary`, `tax_overdue`, `missing_record`, `unrecorded_construction` (**SIMULATED**, Phase 10) (get points, descriptions and the `simulated` marker from `/conflict-types`) |
 | `ulpin` | 14 capital letters/digits, e.g. `MH000100000001` |
 
 Finding object: `{"type": <conflict type>, "points": <int>, "evidence": <plain-text facts with real numbers>}`.
@@ -185,7 +186,7 @@ Errors: 401, 404 (unknown ulpin, or a citizen asking for a plot that is not thei
 ```json
 {
   "total_plots": 100,
-  "plots_per_band": {"green": 60, "amber": 28, "red": 12},
+  "plots_per_band": {"green": 58, "amber": 29, "red": 13},
   "findings_per_type": {
     "boundary_overlap": 14,
     "restricted_zone_clash": 12,
@@ -194,29 +195,55 @@ Errors: 401, 404 (unknown ulpin, or a citizen asking for a plot that is not thei
     "duplicate_survey_no": 8,
     "invalid_boundary": 4,
     "tax_overdue": 6,
-    "missing_record": 4
+    "missing_record": 4,
+    "unrecorded_construction": 10
   }
 }
 ```
 
-`findings_per_type` counts findings, not plots. Because a plot has at most one finding per type, each number is also the number of plots with that problem (a plot with several problems is counted once under each). All three bands and all eight types are always present, with `0` when empty. (Numbers shown are for the default seed: 100 plots, seed 42.) Errors: 401, 403, 429, 503.
+`findings_per_type` counts findings, not plots. Because a plot has at most one finding per type, each number is also the number of plots with that problem (a plot with several problems is counted once under each). All three bands and all nine types are always present, with `0` when empty. (Numbers shown are for the default seed: 100 plots, seed 42.) Errors: 401, 403, 429, 503.
 
 ## GET /conflict-types
 
-**Who:** any logged-in user. The eight conflict types in a fixed order (highest points first), so the frontend never hard-codes them.
+**Who:** any logged-in user. The nine conflict types in a fixed order (highest points first, the newest last), so the frontend never hard-codes them.
 
 - Parameters: none
-- 200: a list of `{"type", "points", "description"}`, for example:
+- 200: a list of `{"type", "points", "description", "simulated"}`, for example:
 
 ```json
 [
-  {"type": "boundary_overlap", "points": 40, "description": "This plot overlaps another plot, or lies inside it, or has another plot inside it."},
-  {"type": "restricted_zone_clash", "points": 30, "description": "More than 20% of the plot lies inside a restricted zone."},
-  {"type": "area_mismatch", "points": 25, "description": "The recorded area differs from the mapped area by more than 10%."}
+  {"type": "boundary_overlap", "points": 40, "description": "This plot overlaps another plot, or lies inside it, or has another plot inside it.", "simulated": false},
+  {"type": "restricted_zone_clash", "points": 30, "description": "More than 20% of the plot lies inside a restricted zone.", "simulated": false},
+  {"type": "unrecorded_construction", "points": 15, "description": "SIMULATED: at least 30 sq m of building appears in the later survey snapshot (T1) that is not in the earlier one (T0). There is no real satellite or imagery data behind this.", "simulated": true}
 ]
 ```
 
-The real response has all eight entries (the rest: `owner_mismatch` 25, `duplicate_survey_no` 20, `invalid_boundary` 15, `tax_overdue` 15, `missing_record` 10 per missing record). The score caps at 100. Errors: 401, 429.
+The real response has all nine entries (the rest: `area_mismatch` 25, `owner_mismatch` 25, `duplicate_survey_no` 20, `invalid_boundary` 15, `tax_overdue` 15, `missing_record` 10 per missing record). `simulated` is `true` only for `unrecorded_construction`: **the data behind that check is generated, not real**. The score caps at 100. Errors: 401, 429.
+
+## The unrecorded-construction alert (Phase 10, SIMULATED)
+
+**Everything about this feature is simulated.** There is no real satellite or aerial imagery anywhere in the project. `db/seed.py` generates two snapshots of building outlines for every plot, `T0` (earlier) and `T1` (later), in the table `building_snapshots`. It plants about 10 plots with a new building in T1 (the alerts) and about 8 plots whose buildings only shifted a little between the snapshots (survey jitter, which must NOT be flagged).
+
+- **The check** (`check_unrecorded_construction`, raw PostGIS in `backend/app/checks.py`): per plot, the T1 footprints minus the T0 footprints (`ST_Difference`), measured in square metres through a geography cast. A plot is flagged when that new built area is **at least `MIN_NEW_BUILT_SQM` = 30 sq m**. Plots with an invalid shape are skipped. A building in both snapshots, or one removed in T1, is not new.
+- **Points:** `CONSTRUCTION_ALERT_POINTS` = **15**, fixed, added like every other finding (the cap at 100 still holds). No model or LLM changes it.
+- **Finding:** type `unrecorded_construction`, evidence like `"SIMULATED: about 61 sq m of new building appeared between T0 and T1 that is not in the records; limit is 30 sq m (no real imagery is used)"`. It appears in the passport, the PDF findings table, `/summary` (`findings_per_type`) and the `conflict_type` filter of `GET /plots` like any other type. The evidence never names another plot, so citizens see it unchanged.
+
+### GET /construction-alerts
+
+**Who:** any logged-in user. A **citizen gets only the footprints on their own plots**; officers and admins get all of them. Not audited (it is a list, like `/plots`). The outlines of the new buildings behind the alerts, as a GeoJSON FeatureCollection for the map. Only plots that have an alert appear, so the jitter plots never do.
+
+```json
+{
+  "type": "FeatureCollection",
+  "features": [
+    {"type": "Feature",
+     "geometry": {"type": "Polygon", "coordinates": [[[73.80213, 18.55105], "... 3 more points, first point repeated last"]]},
+     "properties": {"ulpin": "MH000100000008", "new_sqm": 60.6, "piece_sqm": 60.6, "simulated": true}}
+  ]
+}
+```
+
+`new_sqm` is the new built area on the whole plot (the number in the evidence); `piece_sqm` is the area of this one outline (a plot with two new buildings has two features). `simulated` is always `true`. Errors: 401, 429, 503.
 
 ## POST /auth/login
 

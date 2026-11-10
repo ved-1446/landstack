@@ -20,9 +20,10 @@ The look of `frontend/` (Phase 5). Everything below lives in `frontend/src/style
 | `risk-green` / `risk-amber` / `risk-red` | #3DBE7F / #E9B44C / #E5535F | **only** for risk (plot fills, chips' dots and borders) |
 | `risk-*-ink` | #1E7A4C / #7A4B00 / #A31E32 | risk on cream (chip text, gauge arcs) |
 | `gauge-red` | #D23A4A | the gauge arc on cream |
+| `sim` / `sim-ink` | #5CC8FF / #0B5C86 | **only** for SIMULATED data (Phase 10, the construction alert): the new-building footprints and labels on the map, and the "Simulated" chips. `sim` on navy (about 10:1), `sim-ink` on cream (about 6:1) |
 | `line-on-navy` / `line-on-cream` | cream 14% / navy 14% | hairlines |
 
-Coral never marks risk. Risk colours are never used for anything but risk.
+Coral never marks risk. Risk colours are never used for anything but risk. `sim` never marks risk either: it is the colour of "this is simulated", always next to the word SIMULATED (a dashed outline on the map, a chip in the drawer), never colour alone.
 
 ### Contrast rules (checked with a script; all text 4.5:1 or better)
 - Text on a coral button is **navy-950** (6.70:1). Cream on coral fails (2.41:1), so it is never used.

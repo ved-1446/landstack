@@ -50,7 +50,8 @@
     ],
     "MH000200000021": [
       "boundary_overlap",
-      "missing_record"
+      "missing_record",
+      "unrecorded_construction"
     ],
     "MH000200000023": [
       "restricted_zone_clash"
@@ -72,7 +73,8 @@
     ],
     "MH000200000030": [
       "boundary_overlap",
-      "area_mismatch"
+      "area_mismatch",
+      "unrecorded_construction"
     ],
     "MH000200000032": [
       "area_mismatch",
@@ -106,7 +108,8 @@
       "owner_mismatch"
     ],
     "MH000400000063": [
-      "duplicate_survey_no"
+      "duplicate_survey_no",
+      "unrecorded_construction"
     ],
     "MH000400000065": [
       "restricted_zone_clash"
@@ -153,13 +156,15 @@
     "MH000500000089": [
       "area_mismatch",
       "owner_mismatch",
-      "tax_overdue"
+      "tax_overdue",
+      "unrecorded_construction"
     ],
     "MH000500000090": [
       "invalid_boundary"
     ],
     "MH000500000091": [
-      "duplicate_survey_no"
+      "duplicate_survey_no",
+      "unrecorded_construction"
     ],
     "MH000500000094": [
       "restricted_zone_clash"
@@ -173,6 +178,21 @@
     "MH000500000098": [
       "boundary_overlap",
       "missing_record"
+    ],
+    "MH000200000037": [
+      "unrecorded_construction"
+    ],
+    "MH000300000046": [
+      "unrecorded_construction"
+    ],
+    "MH000100000008": [
+      "unrecorded_construction"
+    ],
+    "MH000400000066": [
+      "unrecorded_construction"
+    ],
+    "MH000300000041": [
+      "unrecorded_construction"
     ]
   },
   "details": {
@@ -214,7 +234,8 @@
     "MH000200000021": {
       "overlap_partner": "MH000100000001",
       "overlap_relation": "overlaps",
-      "missing_table": "registrations"
+      "missing_table": "registrations",
+      "new_built_sqm": 60.8
     },
     "MH000200000023": {
       "zone_fraction": 0.45
@@ -236,7 +257,8 @@
     },
     "MH000200000030": {
       "overlap_partner": "MH000200000028",
-      "overlap_relation": "overlaps"
+      "overlap_relation": "overlaps",
+      "new_built_sqm": 59.2
     },
     "MH000200000032": {
       "dup_partner": "MH000200000029"
@@ -245,7 +267,8 @@
       "zone_fraction": 0.684
     },
     "MH000400000063": {
-      "dup_partner": "MH000100000006"
+      "dup_partner": "MH000100000006",
+      "new_built_sqm": 63.2
     },
     "MH000400000065": {
       "zone_fraction": 0.625
@@ -276,7 +299,8 @@
       "overlap_relation": "contains"
     },
     "MH000500000091": {
-      "dup_partner": "MH000100000001"
+      "dup_partner": "MH000100000001",
+      "new_built_sqm": 80.2
     },
     "MH000500000094": {
       "zone_fraction": 0.692
@@ -285,6 +309,24 @@
       "overlap_partner": "MH000100000005",
       "overlap_relation": "overlaps",
       "missing_table": "ror_records"
+    },
+    "MH000200000037": {
+      "new_built_sqm": 67.4
+    },
+    "MH000300000046": {
+      "new_built_sqm": 58.3
+    },
+    "MH000100000008": {
+      "new_built_sqm": 60.6
+    },
+    "MH000400000066": {
+      "new_built_sqm": 46.1
+    },
+    "MH000300000041": {
+      "new_built_sqm": 44.5
+    },
+    "MH000500000089": {
+      "new_built_sqm": 53.4
     }
   },
   "decoys": [
@@ -324,5 +366,47 @@
       "MH000500000086",
       "MH000400000075"
     ]
+  ],
+  "construction_decoys": [
+    {
+      "ulpin": "MH000100000003",
+      "kind": "edge_noise",
+      "new_sqm": 0.3
+    },
+    {
+      "ulpin": "MH000200000033",
+      "kind": "shift",
+      "new_sqm": 12.3
+    },
+    {
+      "ulpin": "MH000300000048",
+      "kind": "edge_noise",
+      "new_sqm": 2.4
+    },
+    {
+      "ulpin": "MH000300000058",
+      "kind": "shift",
+      "new_sqm": 11.6
+    },
+    {
+      "ulpin": "MH000400000062",
+      "kind": "shift",
+      "new_sqm": 19.8
+    },
+    {
+      "ulpin": "MH000400000065",
+      "kind": "shift",
+      "new_sqm": 13.4
+    },
+    {
+      "ulpin": "MH000400000073",
+      "kind": "edge_noise",
+      "new_sqm": 1.9
+    },
+    {
+      "ulpin": "MH000500000082",
+      "kind": "edge_noise",
+      "new_sqm": 2.8
+    }
   ]
 }

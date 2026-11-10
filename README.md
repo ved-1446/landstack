@@ -147,8 +147,9 @@ A one-page A4 PDF of a plot's passport: header with a clear "DEMO DATA, NOT AN O
 **Samples** (made with the demo admin account, demo data only; open them to see the layout):
 - [docs/samples/passport_clean.pdf](docs/samples/passport_clean.pdf): a clean plot, "No conflicts found".
 - [docs/samples/passport_red.pdf](docs/samples/passport_red.pdf): a red plot with four problems (overlap, area mismatch, owner mismatch, duplicate survey number: the points add up to 110 and the score is capped at 100).
+- [docs/samples/passport_construction.pdf](docs/samples/passport_construction.pdf) (Phase 10): a plot with an overlap, a missing record and the **SIMULATED** unrecorded-construction finding (50 + 15 = 65, red).
 
-Their QR codes point at `http://localhost:8000/verify/<document id>` and work on a machine whose database still holds those two issue rows (a re-run of `db/schema.sql` removes them).
+Their QR codes point at `http://localhost:8000/verify/<document id>` and work on a machine whose database still holds those three issue rows (a re-run of `db/schema.sql` removes them).
 
 **Download one.** In the app, open a plot and press **Download PDF**. Or with the API (replace the token; see "Login" above):
 ```
@@ -172,10 +173,10 @@ The PDF uses the built-in Helvetica and Courier fonts, which cover English. Hind
 
 | | Count |
 |---|---|
-| Plots with no planted problem | 52 (6 of them are the "same person, different spelling" decoys; 2 touch each other along an edge and must stay clean) |
-| Plots with 1 / 2 / 3 / 4 planted problems | 33 / 6 / 7 / 2 |
-| **Risk bands** | **60 green, 28 amber, 12 red** (two red plots reach the cap: their points add up to 110 and the score stops at 100) |
-| Plots per problem type | overlap 14, zone 12, area 12, owner 14, duplicate survey number 8, invalid boundary 4, tax overdue 6, missing record 4 |
+| Plots with no planted problem | **47** (was 52 before Phase 10; 6 of them are the "same person, different spelling" decoys; 2 touch each other along an edge and must stay clean) |
+| Plots with 1 / 2 / 3 / 4 planted problems | **36 / 6 / 8 / 3** (was 33 / 6 / 7 / 2) |
+| **Risk bands** | **58 green, 29 amber, 13 red** (was 60 / 28 / 12: the +15 alert tips two plots from green to amber and one from amber to red; two red plots reach the cap at 100) |
+| Plots per problem type | overlap 14, zone 12, area 12, owner 14, duplicate survey number 8, invalid boundary 4, tax overdue 6, missing record 4, **unrecorded construction 10 (SIMULATED)** |
 
 A single problem scores at most 40, so every red plot (60 or more) carries several problems. `db/planted_truth.json` lists every problem on every plot. The boundary-overlap check now finds a partial overlap, one plot inside another, and two identical plots, but not two plots that only touch along an edge (they must share at least `MIN_OVERLAP_SQM`, 5 square metres, set in `backend/app/config.py`).
 
@@ -186,12 +187,31 @@ python db/seed_users.py
 python -m db.adapters.make_samples
 ```
 
+## Unrecorded-construction alert (Phase 10) — SIMULATED
+
+**Everything about this feature is simulated.** There is no real satellite or aerial imagery in this project. `db/seed.py` *generates* two snapshots of building outlines for every plot, **T0** (earlier) and **T1** (later), in the table `building_snapshots` (with `ulpin`, `snapshot`, `footprint`; no foreign key to `plots`). The words "SIMULATED" appear in the passport evidence text, the filter label, the PDF, the map labels and the API docs, on purpose.
+
+- **How it works (change detection with two snapshots):** per plot, take the T1 buildings and subtract the T0 buildings (`ST_Difference`, raw SQL visible in `backend/app/checks.py`). What is left is new building that is not in the records. It is measured in square metres (geography cast).
+- **Threshold:** a plot is flagged when the new area is at least `MIN_NEW_BUILT_SQM` = **30 sq m** (`backend/app/config.py`). Small survey noise (a building shifted 1 to 2 m, or wobbly edges) leaves only a sliver of up to about 20 sq m, so it is not flagged.
+- **Points:** `CONSTRUCTION_ALERT_POINTS` = **15**, fixed, added to the score like every other finding (the cap at 100 still holds). No model or LLM changes it.
+- **Demo data:** 10 planted alerts (5 on plots that had no other problem, 5 on plots that already had problems, chosen so the +15 visibly moves some plots up a band) and 8 jitter plots that must NOT be flagged. Invalid-shape plots, the decoy-owner plots and the touching pair never get an alert. The earlier eight problem types are unchanged. `db/planted_truth.json` lists the alerts (under `conflicts`, with `details[ulpin].new_built_sqm`) and the jitter plots (`construction_decoys`).
+- **In the app:** Map layers, switch **Unrecorded construction (simulated)** draws the new-building outlines in a light blue (the `sim` colour, used only for simulated data) with a dashed edge, labelled "SIMULATED · 61 sq m" from zoom 16, and a "Simulated new buildings" chip in the dock. The Filters popover lists the type with its count, and the passport drawer shows the finding with a "Simulated" chip. The map gets the outlines from `GET /construction-alerts` (see `docs/api-contract.md`).
+- **PDF:** the finding is in the findings table with "SIMULATED" in its evidence text.
+
+To load the new data (the schema changed: `building_snapshots` has a `ulpin` column, so re-run it, which also drops the users table):
+```
+docker exec -i landstack-db psql -U landstack -d landstack -v ON_ERROR_STOP=1 < db/schema.sql
+python db/seed.py
+python db/seed_users.py
+```
+`python -m backend.app.checks` prints flagged against planted per type (all equal, 10 and 10 for the new one) and the band counts.
+
 ## Frontend settings (Phase 5)
 Optional variables in `frontend/.env`: `VITE_API_URL` (default `http://localhost:8000`), `VITE_DEMO_ACCOUNTS` (default `true`; shows the demo-login row, set `false` for any real deployment), `VITE_CARTO_KEY` and `VITE_ESRI_KEY` (optional basemap keys). `npm run check:design` checks the design rules. Design notes: `docs/DESIGN_SYSTEM.md`; screenshots: `docs/design/screens/`.
 
 ## Machine learning (Phase 9)
 
-Two things, both **advice for a human, never part of the risk score**. The score comes only from the eight checks in `backend/app/checks.py`. Models never add or remove points, change a band or change which conflicts are flagged.
+Two things, both **advice for a human, never part of the risk score**. The score comes only from the nine checks in `backend/app/checks.py`. Models never add or remove points, change a band or change which conflicts are flagged.
 
 ### An honest caveat first
 Everything here is trained and measured on **generated** data (`db/seed.py`). A model trained on generated data mostly relearns the generator: the problems are planted by simple rules, so the rules show up as odd numbers, and a model finds odd numbers easily. Good numbers below do **not** show it would work on real land records. That needs real records and a person checking the answers.

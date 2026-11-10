@@ -14,6 +14,8 @@ interface PassportDrawerProps {
   role: string;
   /** the rule text for each kind of conflict, from /conflict-types */
   rules: Partial<Record<ConflictType, string>>;
+  /** the conflict types whose data is SIMULATED (shown with a visible "Simulated" chip) */
+  simulatedTypes: ReadonlySet<ConflictType>;
   /** a passport that was already fetched (by the search box), so it is not fetched twice */
   prefetched: Passport | null;
   onClose: () => void;
@@ -62,7 +64,7 @@ function SheetSkeleton() {
   );
 }
 
-export function PassportDrawer({ ulpin, role, rules, prefetched, onClose, onLoaded }: PassportDrawerProps) {
+export function PassportDrawer({ ulpin, role, rules, simulatedTypes, prefetched, onClose, onLoaded }: PassportDrawerProps) {
   const toast = useToast();
   const [verifyOpen, setVerifyOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -178,7 +180,14 @@ export function PassportDrawer({ ulpin, role, rules, prefetched, onClose, onLoad
               {passport.findings.length > 0 && (
                 <section aria-label="Conflicts" className="mt-6 space-y-2">
                   {passport.findings.map((finding, i) => (
-                    <EvidenceCard key={`${finding.type}-${i}`} type={finding.type} points={finding.points} evidence={finding.evidence} rule={rules[finding.type]} />
+                    <EvidenceCard
+                      key={`${finding.type}-${i}`}
+                      type={finding.type}
+                      points={finding.points}
+                      evidence={finding.evidence}
+                      rule={rules[finding.type]}
+                      simulated={simulatedTypes.has(finding.type)}
+                    />
                   ))}
                 </section>
               )}

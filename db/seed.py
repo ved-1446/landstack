@@ -21,6 +21,7 @@ from shapely.geometry import Polygon, box
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
+from backend.app import config  # noqa: E402
 from backend.app.config import REFERENCE_DATE  # noqa: E402  (single copy lives in config.py)
 TRUTH_PATH = Path(__file__).resolve().parent / "planted_truth.json"
 
@@ -56,6 +57,108 @@ MISSING_TABLES = ["ror_records", "registrations", "tax_records"]
 
 OVERLAP, ZONE, AREA, OWNER = "boundary_overlap", "restricted_zone_clash", "area_mismatch", "owner_mismatch"
 DUP, INVALID, TAX, MISSING = "duplicate_survey_no", "invalid_boundary", "tax_overdue", "missing_record"
+
+
+# ---- Phase 10: SIMULATED building snapshots (no real imagery exists in this project) ----
+CONSTRUCTION = "unrecorded_construction"
+ALERT_SHARE = 0.10      # about 10 plots in 100 get a new building in T1 (the planted alerts)
+JITTER_SHARE = 0.08     # about 8 plots in 100 get small shifts or edge noise between T0 and T1 (must NOT be flagged)
+MIN_ELIGIBLE_SIDE_M = 28   # a plot needs room for its old buildings AND a new one
+
+
+def _rect(x0, y0, x1, y1):
+    return box(x0, y0, x1, y1)
+
+
+def _jittered(rng, building, kind):
+    """The same building surveyed again, slightly differently. "shift": the whole footprint moved 1 to 1.8 m along one
+    axis (plus a little wobble). "edge_noise": only the corners wobble by up to 0.3 m. Redrawn until the area that
+    is NEW compared with the original stays under 85% of the alert threshold less margin, so a decoy is never close
+    to being flagged."""
+    limit = 0.85 * config.MIN_NEW_BUILT_SQM
+    corners = list(building.exterior.coords)[:-1]
+    for _ in range(50):
+        if kind == "shift":
+            s = rng.uniform(1.0, 1.8) * rng.choice([-1, 1])
+            dx, dy = (s, 0.0) if rng.random() < 0.5 else (0.0, s)
+            pts = [(x + dx + rng.uniform(-0.15, 0.15), y + dy + rng.uniform(-0.15, 0.15)) for x, y in corners]
+        else:
+            pts = [(x + rng.uniform(-0.3, 0.3), y + rng.uniform(-0.3, 0.3)) for x, y in corners]
+        moved = Polygon(pts)
+        if moved.is_valid and moved.difference(building).area < limit:
+            return moved
+    raise RuntimeError("could not make a safe jitter")          # cannot happen with these sizes; a loud failure beats a silent one
+
+
+def _make_buildings(seed, plots, shapes, ulpins, problems, avoid, rows, truth, details, planted=True):
+    """T0 and T1 building footprints for every plot, the planted alerts and the jitter decoys.
+
+    Uses its OWN random stream (seeded from `seed` and a fixed word), so nothing drawn above (plots, records, problems)
+    changes. Every plot gets 1 or 2 buildings in T0, inside its boundary. T1 = T0, except:
+      - alert plots (about 10%, half of them plots that had no problem): T1 also has ONE new building of 42 to 90 sq m;
+      - jitter plots (about 8%): one T0 building is surveyed again slightly shifted or with wobbly edges (decoys).
+    Plots with an invalid shape never get an alert or jitter (the check skips them anyway)."""
+    rng = random.Random(f"buildings-{seed}")
+    t0 = {}
+    for i in range(plots):
+        x0, y0, x1, y1 = shapes[i].bounds
+        w, h = x1 - x0, y1 - y0
+        ax, ay = x0 + 0.08 * w, y0 + 0.08 * h
+        a = _rect(ax, ay, ax + min(rng.uniform(0.25, 0.35) * w, 11), ay + min(rng.uniform(0.2, 0.3) * h, 9))
+        found = [a]
+        if rng.random() < 0.5:
+            bw, bh = min(rng.uniform(0.15, 0.25) * w, 8), min(rng.uniform(0.15, 0.25) * h, 7)
+            found.append(_rect(ax, y1 - 0.08 * h - bh, ax + bw, y1 - 0.08 * h))
+        t0[i] = found
+
+    def eligible(i):
+        x0, y0, x1, y1 = shapes[i].bounds
+        return (x1 - x0 >= MIN_ELIGIBLE_SIDE_M and y1 - y0 >= MIN_ELIGIBLE_SIDE_M and INVALID not in problems.get(i, ()))
+
+    ok = [i for i in range(plots) if eligible(i)]
+    clean_ok = [i for i in ok if i not in problems and i not in avoid]     # decoy owners and the touching pair stay clean
+    problem_ok = [i for i in ok if i in problems]
+    wanted = round(plots * ALERT_SHARE) if planted else 0           # planted=False: buildings only, no alerts, no jitter
+    alerts = rng.sample(clean_ok, min(len(clean_ok), (wanted + 1) // 2))
+    # The other half: plots that already had problems, chosen so the +15 points visibly matter in the demo:
+    # two whose score is below the amber line (a small problem plus the alert tips green into amber), one just
+    # under the red line (amber tips into red), one that is already red, and the rest at random.
+    def before(i):
+        return min(sum(config.POINTS[t] for t in problems[i]), config.SCORE_CAP)
+    tiers = [[i for i in problem_ok if before(i) < config.AMBER_FROM],
+             [i for i in problem_ok if config.RED_FROM - config.CONSTRUCTION_ALERT_POINTS <= before(i) < config.RED_FROM],
+             [i for i in problem_ok if before(i) >= config.RED_FROM]]
+    picked = []
+    for tier, how_many in zip(tiers, (2, 1, 1)):
+        picked += rng.sample(tier, min(how_many, len(tier)))
+    left = [i for i in problem_ok if i not in picked]
+    picked += rng.sample(left, min(len(left), max(0, wanted - len(alerts) - len(picked))))
+    alerts += picked[:wanted - len(alerts)]
+    rest = [i for i in ok if i not in set(alerts)]
+    jitter = rng.sample(rest, min(len(rest), round(plots * JITTER_SHARE) if planted else 0))
+    kind_of = {i: ("shift" if n % 2 == 0 else "edge_noise") for n, i in enumerate(jitter)}
+
+    new_building, decoys = {}, []
+    t1 = {i: list(t0[i]) for i in range(plots)}
+    for i in alerts:
+        x0, y0, x1, y1 = shapes[i].bounds
+        w, h = x1 - x0, y1 - y0
+        nw, nh = rng.uniform(7, 10), rng.uniform(6, 9)
+        ny = rng.choice([y0 + 0.08 * h, y1 - 0.08 * h - nh])
+        new_building[i] = _rect(x1 - 0.08 * w - nw, ny, x1 - 0.08 * w, ny + nh)    # right-hand side: clear of the old buildings
+        t1[i].append(new_building[i])
+    for i in jitter:
+        t1[i][0] = _jittered(rng, t0[i][0], kind_of[i])
+        decoys.append({"ulpin": ulpins[i], "kind": kind_of[i],
+                       "new_sqm": round(t1[i][0].difference(t0[i][0]).area, 1)})
+
+    for i in range(plots):
+        for label, footprints in (("T0", t0[i]), ("T1", t1[i])):
+            rows["building_snapshots"] += [{"ulpin": ulpins[i], "snapshot": label, "wkt": _wkt(b)} for b in footprints]
+    for i in alerts:
+        truth.setdefault(ulpins[i], []).append(CONSTRUCTION)
+        details.setdefault(ulpins[i], {})["new_built_sqm"] = round(new_building[i].area, 1)
+    return sorted(decoys, key=lambda d: d["ulpin"])
 
 
 def _g(plots, *links):
@@ -153,7 +256,7 @@ def _make_plan(rng, n, rate):
     return problems, links
 
 
-def generate(plots=100, problem_rate=0.48, seed=42):
+def generate(plots=100, problem_rate=0.48, seed=42, construction=True):
     rng = random.Random(seed)
     cols = math.ceil(math.sqrt(plots))
     problems, links = _make_plan(rng, plots, problem_rate)
@@ -284,6 +387,13 @@ def generate(plots=100, problem_rate=0.48, seed=42):
         if info:
             details[ulpins[i]] = info
 
+    # Phase 10: the simulated building snapshots, drawn from their own random stream so nothing above changes.
+    construction_decoys = []
+    if construction:       # every plot gets its buildings; alerts and jitter are planted only when problems are (rate above 0)
+        construction_decoys = _make_buildings(
+            seed, plots, shapes, ulpins, problems, set(decoy_by_idx) | set(touching or ()), rows, truth, details,
+            planted=problem_rate > 0)
+
     return {
         "rows": rows,
         "truth": {
@@ -292,6 +402,8 @@ def generate(plots=100, problem_rate=0.48, seed=42):
             "conflicts": truth, "details": details, "decoys": decoys,
             # two clean plots that only touch along an edge: the overlap check must NOT flag them
             "touching_pairs": [[ulpins[touching[0]], ulpins[touching[1]]]] if touching else [],
+            # SIMULATED change detection: plots whose building moved a little between T0 and T1. They must NOT be flagged.
+            "construction_decoys": construction_decoys,
         },
     }
 
@@ -342,6 +454,9 @@ def load(data):
         cur.executemany(
             "INSERT INTO zones (zone_type, geom) "
             "VALUES (%(zone_type)s, ST_GeomFromText(%(wkt)s, 4326))", r["zones"])
+        cur.executemany(
+            "INSERT INTO building_snapshots (ulpin, snapshot, footprint) "
+            "VALUES (%(ulpin)s, %(snapshot)s, ST_GeomFromText(%(wkt)s, 4326))", r["building_snapshots"])
 
 
 def main():

@@ -64,7 +64,9 @@ export function FiltersPopover({ open, onClose, filters, onFilters, villages, co
       <h3 className="mb-2 mt-4 font-mono text-11 tracking-wider text-faint-on-navy">CONFLICT TYPE{summary ? " · FINDINGS" : ""}</h3>
       <ul className="space-y-1">
         {row("", "All conflict types")}
-        {(conflictTypes ?? []).map((info) => row(info.type, prettyType(info.type), summary?.findings_per_type[info.type]))}
+        {(conflictTypes ?? []).map((info) =>
+          row(info.type, info.simulated ? `${prettyType(info.type)} (simulated)` : prettyType(info.type), summary?.findings_per_type[info.type]),
+        )}
       </ul>
 
       {active && (

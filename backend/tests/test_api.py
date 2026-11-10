@@ -158,7 +158,7 @@ def test_summary_matches_engine_and_truth(client, truth, results):
     ulpins = [f["properties"]["ulpin"] for f in client.get("/plots").json()["features"]]
     scores = [min(sum(config.POINTS[t] for t in truth["conflicts"].get(u, [])), config.SCORE_CAP) for u in ulpins]
     assert body["plots_per_band"] == {b: sum(band(s) == b for s in scores) for b in ("green", "amber", "red")}
-    assert body["plots_per_band"] == {"green": 60, "amber": 28, "red": 12}
+    assert body["plots_per_band"] == {"green": 58, "amber": 29, "red": 13}      # was 60 / 28 / 12 before Phase 10
 
 
 def test_conflict_types(client):
@@ -180,7 +180,8 @@ def test_openapi_lists_every_endpoint(client):
     paths = client.get("/openapi.json").json()["paths"]
     assert set(paths) == {"/health", "/plots", "/plots/{ulpin}", "/summary", "/conflict-types",
                           "/auth/login", "/auth/me", "/audit",
-                          "/plots/{ulpin}/passport.pdf", "/verify/{doc_id}"}
+                          "/plots/{ulpin}/passport.pdf", "/verify/{doc_id}",
+                          "/construction-alerts"}      # Phase 10 (SIMULATED footprints for the map)
 
 
 def test_database_down_returns_clean_json(monkeypatch):

@@ -11,7 +11,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "db"))
 import seed  # noqa: E402
 from backend.app import config  # noqa: E402
 
-EXPECTED_DEFAULT_COUNTS = {            # how many PLOTS carry each problem (a plot may carry several)
+CONSTRUCTION = "unrecorded_construction"      # Phase 10 (SIMULATED): counted apart from the eight earlier problems
+EXPECTED_DEFAULT_COUNTS = {            # how many PLOTS carry each of the EIGHT earlier problems (a plot may carry several)
     "boundary_overlap": 14,            # 6 partial-overlap pairs + 1 contained pair = 14 plots
     "restricted_zone_clash": 12,
     "area_mismatch": 12,
@@ -59,23 +60,38 @@ def test_different_seed_gives_different_data(data):
 # ---------------- the designed mix ----------------
 
 def test_truth_counts_per_conflict_type(data):
-    counts = Counter(t for types in data["truth"]["conflicts"].values() for t in types)
+    # CHANGED in Phase 10: the truth now also lists the planted construction alerts. The eight earlier problems must be
+    # exactly what they were (same counts, same 48 plots); the alerts are checked separately below.
+    conflicts = data["truth"]["conflicts"]
+    counts = Counter(t for types in conflicts.values() for t in types)
+    assert counts.pop(CONSTRUCTION) == 10
     assert dict(counts) == EXPECTED_DEFAULT_COUNTS
     assert all(n >= 4 for n in counts.values())                  # every type on at least 4 plots
-    assert len(data["truth"]["conflicts"]) == 48
+    had_earlier_problem = {u for u, types in conflicts.items() if set(types) - {CONSTRUCTION}}
+    assert len(had_earlier_problem) == 48
+    assert len(conflicts) == 53                                  # 48, plus 5 alert plots that had no other problem
 
 
 def test_some_plots_carry_several_problems(data):
+    # CHANGED in Phase 10: without the alerts the mix is exactly the old {1: 33, 2: 6, 3: 7, 4: 2}; with them (the alert is
+    # one more problem on 10 plots, 5 of them new problem plots) it is {1: 36, 2: 6, 3: 8, 4: 3}.
+    earlier = Counter(len([t for t in types if t != CONSTRUCTION]) for types in data["truth"]["conflicts"].values())
+    earlier.pop(0)                                              # plots that only have an alert
+    assert dict(earlier) == {1: 33, 2: 6, 3: 7, 4: 2}
     sizes = Counter(len(types) for types in data["truth"]["conflicts"].values())
-    assert dict(sizes) == {1: 33, 2: 6, 3: 7, 4: 2}
+    assert dict(sizes) == {1: 36, 2: 6, 3: 8, 4: 3}
     for types in data["truth"]["conflicts"].values():
         assert types == [t for t in config.POINTS if t in types]  # listed in the standard order, no repeats
 
 
-def test_the_demo_has_60_green_28_amber_12_red(data):
+def test_the_demo_has_58_green_29_amber_13_red(data):
+    # CHANGED in Phase 10 (was 60 / 28 / 12): the +15 alert moves two plots green -> amber and one amber -> red.
     scores = {u: score_of(t) for u, t in data["truth"]["conflicts"].items()}
     bands = Counter(band_of(scores.get(p["ulpin"], 0)) for p in data["rows"]["plots"])
-    assert dict(bands) == {"green": 60, "amber": 28, "red": 12}
+    assert dict(bands) == {"green": 58, "amber": 29, "red": 13}
+    before = {u: score_of([t for t in types if t != CONSTRUCTION]) for u, types in data["truth"]["conflicts"].items()}
+    moved = {(band_of(before[u]), band_of(scores[u])) for u in scores if band_of(before[u]) != band_of(scores[u])}
+    assert moved == {("green", "amber"), ("amber", "red")}            # the alert visibly matters in the demo
     capped = [u for u, t in data["truth"]["conflicts"].items() if sum(config.POINTS[x] for x in t) > config.SCORE_CAP]
     assert len(capped) == 2 and all(scores[u] == 100 for u in capped)          # the cap is really shown
     red = [u for u, s in scores.items() if s >= config.RED_FROM]
@@ -133,11 +149,13 @@ def test_planted_problems_do_not_clash_in_geometry(data):
 
 # ---------------- clean plots, decoys, duplicates, zones ----------------
 
-def test_clean_plots_have_no_planted_problems(data):
+def test_plots_with_no_planted_problem_have_clean_records(data):
+    # CHANGED in Phase 10: 5 formerly clean plots now carry a planted construction alert, so 47 plots (was 52) have no
+    # planted problem at all. (Renamed from "clean plots": a plot with a record in good order can still have an alert.)
     plots = {p["ulpin"] for p in data["rows"]["plots"]}
     problem = set(data["truth"]["conflicts"])
     clean = plots - problem
-    assert len(clean) == 52 and problem <= plots
+    assert len(clean) == 47 and problem <= plots
     # clean plots have all three records, exact same owner (or a decoy), recent tax
     ror = {r["ulpin"]: r for r in data["rows"]["ror_records"]}
     reg = {r["ulpin"]: r for r in data["rows"]["registrations"]}
@@ -188,15 +206,21 @@ def test_truth_file_is_written(data, tmp_path):
 def test_small_runs_work():
     d = seed.generate(10, 0.3, 1)
     assert len(d["rows"]["plots"]) == 10
-    assert len(d["truth"]["conflicts"]) == 3
+    # CHANGED in Phase 10: the 3 earlier problem plots are unchanged; one more plot carries the (planted) alert
+    earlier = {u for u, types in d["truth"]["conflicts"].items() if set(types) - {CONSTRUCTION}}
+    assert len(earlier) == 3
+    assert sum(CONSTRUCTION in t for t in d["truth"]["conflicts"].values()) == 1
     assert d["truth"]["touching_pairs"] == []              # too few plots for a touching pair
 
 
 def test_other_problem_rates_work():
     none = seed.generate(100, 0.0, 42)
-    assert none["truth"]["conflicts"] == {}
+    assert none["truth"]["conflicts"] == {}                  # rate 0 = no planted problem of any kind, alerts included
+    assert none["truth"]["construction_decoys"] == []
+    assert len(none["rows"]["building_snapshots"]) > 0       # ...but every plot still has its buildings
     more = seed.generate(100, 0.6, 42)                       # beyond the designed set: filler problems are added
-    assert len(more["truth"]["conflicts"]) == 60
+    # CHANGED in Phase 10: 60 plots with an earlier problem, plus the alerts (which only add plots that had none)
+    assert len([u for u, t in more["truth"]["conflicts"].items() if set(t) - {CONSTRUCTION}]) == 60
     assert seed.generate(100, 0.6, 42) == more
 
 

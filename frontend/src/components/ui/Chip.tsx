@@ -2,7 +2,7 @@ import { cva } from "class-variance-authority";
 import type { ReactNode } from "react";
 import { cn } from "../../lib/cn";
 
-export type ChipTone = "neutral" | "green" | "amber" | "red" | "ml";
+export type ChipTone = "neutral" | "green" | "amber" | "red" | "ml" | "sim";
 export type ChipSurface = "navy" | "cream";
 
 // Risk is shown by a coloured dot and border PLUS the words in the chip, never by colour alone.
@@ -14,6 +14,7 @@ const BORDER: Record<ChipSurface, Record<ChipTone, string>> = {
     amber: "border-risk-amber",
     red: "border-risk-red",
     ml: "border-mist",
+    sim: "border-sim",
   },
   cream: {
     neutral: "border-line-on-cream",
@@ -21,6 +22,7 @@ const BORDER: Record<ChipSurface, Record<ChipTone, string>> = {
     amber: "border-risk-amber-ink",
     red: "border-risk-red-ink",
     ml: "border-faint-on-cream",
+    sim: "border-sim-ink",
   },
 };
 const DOT: Record<ChipSurface, Record<ChipTone, string>> = {
@@ -30,6 +32,7 @@ const DOT: Record<ChipSurface, Record<ChipTone, string>> = {
     amber: "bg-risk-amber",
     red: "bg-risk-red",
     ml: "bg-mist",
+    sim: "bg-sim",
   },
   cream: {
     neutral: "bg-faint-on-cream",
@@ -37,6 +40,7 @@ const DOT: Record<ChipSurface, Record<ChipTone, string>> = {
     amber: "bg-risk-amber-ink",
     red: "bg-risk-red-ink",
     ml: "bg-faint-on-cream",
+    sim: "bg-sim-ink",
   },
 };
 

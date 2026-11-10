@@ -6,7 +6,7 @@ import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "../../lib/cn";
 import { readPalette, type Palette } from "../../lib/tokens";
-import type { PlotFeature, PlotCollection, PolygonGeometry } from "../../types";
+import type { ConstructionCollection, PlotFeature, PlotCollection, PolygonGeometry } from "../../types";
 import { BASEMAPS, type BasemapId } from "./basemaps";
 
 maplibregl.setWorkerUrl(workerUrl);
@@ -16,6 +16,10 @@ const FILL = "plots-fill";
 const LINE = "plots-line";
 const GLOW = "plots-ring-glow";
 const RING = "plots-ring";
+const C_SOURCE = "construction"; // SIMULATED new buildings
+const C_FILL = "construction-fill";
+const C_LINE = "construction-line";
+const EMPTY_CONSTRUCTION: ConstructionCollection = { type: "FeatureCollection", features: [] };
 const LABEL_MIN_ZOOM = 16;
 const LABEL_CAP = 150; // never more than this many HTML labels, so the map stays fast
 const STYLE_TIMEOUT_MS = 10_000;
@@ -32,10 +36,14 @@ export interface MapLayerSwitches {
   boundaries: boolean;
   labels: boolean;
   risk: boolean;
+  /** the SIMULATED new-building footprints (off by default) */
+  construction: boolean;
 }
 
 interface MapViewProps {
   features: PlotFeature[];
+  /** SIMULATED new-building outlines to draw while layers.construction is on */
+  construction: ConstructionCollection | null;
   selected: string | null;
   onSelect: (ulpin: string | null) => void;
   basemap: BasemapId;
@@ -65,17 +73,21 @@ function boundsOf(geometries: PolygonGeometry[]): maplibregl.LngLatBounds | null
 }
 
 
-function asGeoJson(data: PlotCollection) {
+function asGeoJson(data: PlotCollection | ConstructionCollection) {
   return data as unknown as Parameters<maplibregl.GeoJSONSource["setData"]>[0];
 }
 
 /** Add our source and layers to whatever style is loaded (runs again after every basemap switch). */
-function addPlotLayers(map: maplibregl.Map, data: PlotCollection) {
+function addPlotLayers(map: maplibregl.Map, data: PlotCollection, construction: ConstructionCollection) {
   if (!map.getSource(SOURCE)) {
     map.addSource(SOURCE, { type: "geojson", data: asGeoJson(data), promoteId: "ulpin" });
   }
+  if (!map.getSource(C_SOURCE)) map.addSource(C_SOURCE, { type: "geojson", data: asGeoJson(construction) });
   if (!map.getLayer(FILL)) map.addLayer({ id: FILL, type: "fill", source: SOURCE });
   if (!map.getLayer(LINE)) map.addLayer({ id: LINE, type: "line", source: SOURCE });
+  // the simulated new buildings sit above the plots but under the selected-plot ring
+  if (!map.getLayer(C_FILL)) map.addLayer({ id: C_FILL, type: "fill", source: C_SOURCE });
+  if (!map.getLayer(C_LINE)) map.addLayer({ id: C_LINE, type: "line", source: C_SOURCE });
   if (!map.getLayer(GLOW)) map.addLayer({ id: GLOW, type: "line", source: SOURCE, layout: { "line-cap": "round", "line-join": "round" } });
   if (!map.getLayer(RING)) map.addLayer({ id: RING, type: "line", source: SOURCE, layout: { "line-cap": "round", "line-join": "round" } });
 }
@@ -84,12 +96,13 @@ interface PaintOptions {
   palette: Palette;
   risk: boolean;
   boundaries: boolean;
+  construction: boolean;
   onLight: boolean;
   selected: string | null;
 }
 
 /** Colours and visibility, all from the design tokens (read into `palette`), never hard-coded here. */
-function applyPaint(map: maplibregl.Map, { palette, risk, boundaries, onLight, selected }: PaintOptions) {
+function applyPaint(map: maplibregl.Map, { palette, risk, boundaries, construction, onLight, selected }: PaintOptions) {
   if (!map.getLayer(FILL)) return;
   const hover: maplibregl.ExpressionSpecification = ["boolean", ["feature-state", "hover"], false];
   map.setPaintProperty(
@@ -105,6 +118,17 @@ function applyPaint(map: maplibregl.Map, { palette, risk, boundaries, onLight, s
   map.setPaintProperty(LINE, "line-opacity", 0.85);
   map.setLayoutProperty(LINE, "visibility", boundaries ? "visible" : "none");
 
+  // SIMULATED new buildings: their own colour (never a risk colour), a dashed outline, so they read as "not real"
+  if (map.getLayer(C_FILL)) {
+    map.setPaintProperty(C_FILL, "fill-color", palette.sim);
+    map.setPaintProperty(C_FILL, "fill-opacity", 0.8);
+    map.setLayoutProperty(C_FILL, "visibility", construction ? "visible" : "none");
+    map.setPaintProperty(C_LINE, "line-color", onLight ? palette.navy900 : palette.cream);
+    map.setPaintProperty(C_LINE, "line-width", 1.5);
+    map.setPaintProperty(C_LINE, "line-dasharray", [2, 1]);
+    map.setLayoutProperty(C_LINE, "visibility", construction ? "visible" : "none");
+  }
+
   const isSelected = ["==", ["get", "ulpin"], selected ?? ""] as maplibregl.FilterSpecification;
   map.setFilter(GLOW, isSelected);
   map.setFilter(RING, isSelected);
@@ -117,7 +141,7 @@ function applyPaint(map: maplibregl.Map, { palette, risk, boundaries, onLight, s
 }
 
 export default function MapView(props: MapViewProps) {
-  const { features, selected, basemap, layers, focus, drawerOpen } = props;
+  const { features, construction, selected, basemap, layers, focus, drawerOpen } = props;
   const container = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const [epoch, setEpoch] = useState(0); // goes up every time a style finishes loading
@@ -128,6 +152,7 @@ export default function MapView(props: MapViewProps) {
   const fitted = useRef(false);
   const hovered = useRef<string | null>(null);
   const markers = useRef(new Map<string, maplibregl.Marker>());
+  const simMarkers = useRef(new Map<string, maplibregl.Marker>());
   const watch = useRef({ failed: false, tileErrors: 0, tileLoaded: false, timer: 0 });
   const firstBasemap = useRef(basemap);
 
@@ -137,6 +162,9 @@ export default function MapView(props: MapViewProps) {
   const centroids = useMemo(() => new Map(features.map((f) => [f.properties.ulpin, centroidOf(f.geometry)] as const)), [features]);
   const centroidsRef = useRef(centroids);
   centroidsRef.current = centroids;
+  const constructionData = construction ?? EMPTY_CONSTRUCTION;
+  const constructionRef = useRef(constructionData);
+  constructionRef.current = constructionData;
 
   // 1. create the map once
   useEffect(() => {
@@ -166,7 +194,7 @@ export default function MapView(props: MapViewProps) {
 
     map.on("style.load", () => {
       window.clearTimeout(watch.current.timer);
-      addPlotLayers(map, dataRef.current);
+      addPlotLayers(map, dataRef.current, constructionRef.current);
       setEpoch((n) => n + 1);
     });
     map.on("error", (event) => {
@@ -200,10 +228,13 @@ export default function MapView(props: MapViewProps) {
     });
 
     const markerStore = markers.current;
+    const simStore = simMarkers.current;
     return () => {
       window.clearTimeout(watch.current.timer);
       markerStore.forEach((marker) => marker.remove());
       markerStore.clear();
+      simStore.forEach((marker) => marker.remove());
+      simStore.clear();
       map.remove();
       mapRef.current = null;
       fitted.current = false;
@@ -222,6 +253,8 @@ export default function MapView(props: MapViewProps) {
     window.clearTimeout(w.timer);
     markers.current.forEach((marker) => marker.remove());
     markers.current.clear();
+    simMarkers.current.forEach((marker) => marker.remove());
+    simMarkers.current.clear();
     map.setStyle(BASEMAPS[basemap].style);
     w.timer = window.setTimeout(() => {
       if (!map.isStyleLoaded() && !watch.current.failed) {
@@ -246,6 +279,13 @@ export default function MapView(props: MapViewProps) {
     }
   }, [epoch, data, features]);
 
+  // 3b. the simulated new buildings
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || epoch === 0) return;
+    (map.getSource(C_SOURCE) as maplibregl.GeoJSONSource | undefined)?.setData(asGeoJson(constructionData));
+  }, [epoch, constructionData]);
+
   // 4. colours, boundaries on/off, the selected ring
   useEffect(() => {
     const map = mapRef.current;
@@ -254,10 +294,11 @@ export default function MapView(props: MapViewProps) {
       palette: palette.current,
       risk: layers.risk,
       boundaries: layers.boundaries,
+      construction: layers.construction,
       onLight: BASEMAPS[basemap].onLight,
       selected,
     });
-  }, [epoch, layers.risk, layers.boundaries, basemap, selected]);
+  }, [epoch, layers.risk, layers.boundaries, layers.construction, basemap, selected]);
 
   // 5. the selected ring pulses softly (still when the visitor prefers reduced motion)
   useEffect(() => {
@@ -330,6 +371,42 @@ export default function MapView(props: MapViewProps) {
       map.off("moveend", update);
     };
   }, [epoch, features, layers.labels, basemap]);
+
+  // 8. labels on the simulated new buildings: "SIMULATED · 61 sq m", from zoom 16, one per building outline
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || epoch === 0) return;
+    const update = () => {
+      const wanted = new Map<string, { point: [number, number]; text: string }>();
+      if (live.current.layers.construction && map.getZoom() >= LABEL_MIN_ZOOM) {
+        const view = map.getBounds();
+        constructionRef.current.features.forEach((f, i) => {
+          const point = centroidOf(f.geometry);
+          if (view.contains(point) && wanted.size < LABEL_CAP) {
+            wanted.set(`${f.properties.ulpin}-${i}`, { point, text: `SIMULATED · ${Math.round(f.properties.piece_sqm)} sq m` });
+          }
+        });
+      }
+      simMarkers.current.forEach((marker, key) => {
+        if (!wanted.has(key)) {
+          marker.remove();
+          simMarkers.current.delete(key);
+        }
+      });
+      wanted.forEach(({ point, text }, key) => {
+        if (simMarkers.current.has(key)) return;
+        const element = document.createElement("div");
+        element.className = "sim-label";
+        element.textContent = text; // the visible word SIMULATED is part of the label text
+        simMarkers.current.set(key, new maplibregl.Marker({ element, anchor: "center" }).setLngLat(point).addTo(map));
+      });
+    };
+    update();
+    map.on("moveend", update);
+    return () => {
+      map.off("moveend", update);
+    };
+  }, [epoch, constructionData, layers.construction, basemap]);
 
   return (
     <div className={cn("absolute inset-0 z-map", drawerOpen && "drawer-open")}>

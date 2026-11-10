@@ -14,7 +14,12 @@ CHECK_FUNCS = [
     ("invalid_boundary", checks.check_invalid_boundary),
     ("tax_overdue", checks.check_tax_overdue),
     ("missing_record", checks.check_missing_record),
+    ("unrecorded_construction", checks.check_unrecorded_construction),     # Phase 10 (SIMULATED)
 ]
+
+
+def test_every_check_is_covered_by_the_planted_truth_test():
+    assert [c for c, _ in CHECK_FUNCS] == list(checks.ALL_CHECKS)
 
 
 def planted(truth, ctype):
@@ -37,7 +42,7 @@ def test_no_decoy_is_flagged_as_owner_mismatch(conn, truth):
     assert not (flagged & decoys)
 
 
-def test_clean_plots_score_zero(conn, truth):
+def test_plots_with_no_planted_problem_score_zero(conn, truth):      # renamed in Phase 10 (was test_clean_plots_score_zero)
     results = scoring.run_all(conn)
     clean = [u for u in results if u not in truth["conflicts"]]
     assert len(clean) == truth["plots"] - len(truth["conflicts"])
@@ -90,7 +95,7 @@ def test_the_cap_at_100_is_really_reached(conn, truth):
     capped = [u for u, t in truth["conflicts"].items() if sum(config.POINTS[x] for x in t) > config.SCORE_CAP]
     assert len(capped) == 2 and all(results[u]["score"] == 100 and results[u]["band"] == "red" for u in capped)
     bands = [r["band"] for r in results.values()]
-    assert (bands.count("green"), bands.count("amber"), bands.count("red")) == (60, 28, 12)
+    assert (bands.count("green"), bands.count("amber"), bands.count("red")) == (58, 29, 13)     # was 60/28/12 before Phase 10
 
 
 # ---- the overlap rules, on temporary plots (a transaction that is always rolled back) ----
