@@ -78,6 +78,7 @@
   --bento-width: 560px;
   --dock-bottom: var(--edge);
   --fab-bottom: var(--dock-bottom);      /* the floating Land Guide button sits at the bottom right */
+  --fab-bottom-drawer: calc(var(--dock-bottom) + 72px);   /* with the passport drawer open it sits ABOVE the dock, which reaches that far right */
 
   /* motion */
   --ease-out: cubic-bezier(0, 0, 0.2, 1);

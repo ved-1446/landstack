@@ -107,7 +107,13 @@ export interface ConstructionCollection {
 
 // POST /plots/{ulpin}/explain (Phase 11): plain words for the findings a plot already has.
 export type AiStatus = "on" | "off" | "busy" | "failed";
+export type Language = "en" | "hi" | "mr";
+// why English text is shown instead of a translation: the UI turns the code into a sentence in the user's language
+export type TranslationNote = "ai_off" | "ai_busy" | "check_failed";
 export interface Explanation {
+  language?: Exclude<Language, "en">; // only for a Hindi or Marathi request
+  translation?: "machine" | "unavailable";
+  translation_note?: TranslationNote | null;
   text: string;
   source: "ai" | "template"; // who wrote it: the AI, or a template written in code
   ai_status: AiStatus;
@@ -124,6 +130,9 @@ export interface GuideSource {
   retrieved: string | null; // YYYY-MM-DD
 }
 export interface GuideAnswer {
+  language?: Exclude<Language, "en">; // only for a Hindi or Marathi question
+  translation?: "fixed" | "machine" | "unavailable" | "none"; // fixed = a sentence written by a person; machine = machine-translated
+  translation_note?: TranslationNote | null;
   answer: string;
   status: GuideStatus;
   ai_status: AiStatus;

@@ -4,7 +4,7 @@ import { cn } from "../../lib/cn";
 interface GuideButtonProps {
   open: boolean;
   onToggle: () => void;
-  /** the passport drawer is open: the button moves left of it on wide screens and hides on phones (the sheet covers that spot).
+  /** the passport drawer is open: the button moves left of it (and above the dock) on wide screens and hides on phones (the sheet covers that spot).
    *  While the panel itself is open the button is also hidden on phones, because the panel is a bottom sheet over that spot. */
   drawerOpen: boolean;
 }
@@ -26,7 +26,7 @@ export function GuideButton({ open, onToggle, drawerOpen }: GuideButtonProps) {
       className={cn(
         "fixed bottom-(--fab-bottom) right-(--edge) z-panel flex h-11 items-center gap-2 rounded-pill border border-line-on-navy bg-navy-800 px-4 text-14 text-cream shadow-2 transition-colors duration-150 ease-out hover:bg-navy-900 max-md:w-11 max-md:justify-center max-md:px-0",
         open && "bg-navy-900 max-md:hidden",      // on a phone the open sheet would sit under it: the rail icon closes the panel there
-        drawerOpen && "md:right-[calc(var(--drawer-width)+var(--edge)*2)] max-md:hidden",
+        drawerOpen && "md:right-[calc(var(--drawer-width)+var(--edge)*2)] md:bottom-(--fab-bottom-drawer) max-md:hidden",
       )}
     >
       <MessageCircleQuestion className="size-5" aria-hidden="true" />

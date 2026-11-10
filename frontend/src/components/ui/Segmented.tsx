@@ -5,6 +5,8 @@ import { cn } from "../../lib/cn";
 export interface SegmentedOption<T extends string> {
   value: T;
   label: string;
+  /** the language of the label, when it is not the page's language (for example "hi") */
+  lang?: string;
   /** a small picture of the option (for example a basemap thumbnail) */
   preview?: ReactNode;
 }
@@ -14,10 +16,12 @@ interface SegmentedProps<T extends string> {
   onChange: (value: T) => void;
   options: SegmentedOption<T>[];
   label: string;
+  /** "cream" for use on the cream passport sheet (the default is navy) */
+  surface?: "navy" | "cream";
 }
 
 /** A one-of-many choice, built as a radio group (arrow keys move between options). The chosen one gets a cream ring. */
-export function Segmented<T extends string>({ value, onChange, options, label }: SegmentedProps<T>) {
+export function Segmented<T extends string>({ value, onChange, options, label, surface = "navy" }: SegmentedProps<T>) {
   function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     const step = event.key === "ArrowRight" || event.key === "ArrowDown" ? 1 : event.key === "ArrowLeft" || event.key === "ArrowUp" ? -1 : 0;
     if (!step) return;
@@ -40,11 +44,17 @@ export function Segmented<T extends string>({ value, onChange, options, label }:
             onClick={() => onChange(option.value)}
             className={cn(
               "relative flex flex-col gap-2 rounded-card border p-2 text-left text-12 transition-colors duration-150 ease-out",
-              selected ? "border-cream bg-navy-800 text-cream" : "border-line-on-navy text-muted-on-navy hover:bg-navy-800",
+              surface === "navy"
+                ? selected
+                  ? "border-cream bg-navy-800 text-cream"
+                  : "border-line-on-navy text-muted-on-navy hover:bg-navy-800"
+                : selected
+                  ? "border-ink bg-line-on-cream text-ink"
+                  : "border-line-on-cream text-muted-on-cream hover:bg-line-on-cream",
             )}
           >
             {option.preview}
-            <span className="flex items-center justify-between">
+            <span className="flex items-center justify-between" lang={option.lang}>
               {option.label}
               {selected && <Check className="size-4" aria-hidden="true" />}
             </span>

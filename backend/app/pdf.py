@@ -19,7 +19,7 @@ from reportlab.lib.utils import simpleSplit
 from reportlab.pdfgen import canvas
 from reportlab.platypus import Paragraph, Table, TableStyle
 
-from . import config, db
+from . import config, db, devanagari
 
 W, H = A4                      # 595 x 842 points (1 point = 1/72 inch)
 M = 36                         # page margin
@@ -70,6 +70,10 @@ def pretty(text):
 def _text(c, x, y, text, font="Helvetica", size=10, color=colors.black, align="left"):
     c.setFont(font, size)
     c.setFillColor(color)
+    if not text.isascii():
+        # Hindi/Marathi (shaped properly), or a letter Helvetica cannot draw (never an empty box): see devanagari.py
+        devanagari.draw(c, x, y, text, size, font, align=align)
+        return
     {"left": c.drawString, "right": c.drawRightString, "center": c.drawCentredString}[align](x, y, text)
 
 
@@ -184,7 +188,10 @@ def _findings_table(findings, size):
     rows = [[Paragraph("Type", head), Paragraph("Points", head), Paragraph("Evidence", head)]]
     for f in findings:
         rows.append([Paragraph(escape(pretty(f["type"])), ParagraphStyle("t", parent=cell, fontName="Helvetica-Bold")),
-                     Paragraph(f"+{f['points']}", cell), Paragraph(escape(f["evidence"]), cell)])
+                     Paragraph(f"+{f['points']}", cell),
+                     # an owner name in Devanagari must be shaped, which a ReportLab Paragraph cannot do
+                     devanagari.MixedParagraph(f["evidence"], size, "Helvetica", size + 2) if not f["evidence"].isascii()
+                     else Paragraph(escape(f["evidence"]), cell)])
     table = Table(rows, colWidths=[112, 38, CW - 150], repeatRows=1)
     table.setStyle(TableStyle([
         ("GRID", (0, 0), (-1, -1), 0.5, colors.Color(0.45, 0.45, 0.45)),
@@ -225,7 +232,8 @@ def _draw_findings(c, findings, y_label, y_floor):
 
 
 def _wrapped(c, x, y, text, font, size, width, max_lines=2):
-    lines = simpleSplit(text, font, size, width)[:max_lines]
+    lines = (devanagari.wrap(text, size, width, font) if not text.isascii()
+             else simpleSplit(text, font, size, width))[:max_lines]
     for i, line in enumerate(lines):
         _text(c, x, y - i * 11.5, line, font, size)
 

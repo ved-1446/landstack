@@ -15,3 +15,5 @@ pypdf>=4.0
 rank_bm25>=0.2.2    # Phase 11: the Land Guide's word-matching search
 beautifulsoup4>=4.12   # Phase 11: reading the saved web pages
 shap>=0.46      # Phase 9: plain-English reasons for the unusual-plot note (optional at run time)
+fonttools>=4.50      # Phase 11b: reading the Devanagari font file
+uharfbuzz>=0.40      # Phase 11b: shaping Hindi/Marathi text for the PDF (the same engine browsers use)

@@ -6,6 +6,7 @@ import { ErrorState } from "../components/ErrorState";
 import { Button, EmptyState, SearchPill, Skeleton, useToast } from "../components/ui";
 import { ALL_BANDS } from "../constants";
 import { GuideButton } from "../features/guide/GuideButton";
+import { LanguageProvider } from "../features/guide/language";
 import { GuidePanel } from "../features/guide/GuidePanel";
 import { AccountPopover } from "../features/map/AccountPopover";
 import { BASEMAPS, type BasemapId } from "../features/map/basemaps";
@@ -171,6 +172,7 @@ export default function MapScreen({ session, onLogout }: MapScreenProps) {
   const filtersActive = filters.village !== "" || filters.conflictType !== "";
 
   return (
+    <LanguageProvider>
     <div className="relative h-dvh overflow-hidden bg-navy-950">
       <MapView
         features={visible}
@@ -268,5 +270,6 @@ export default function MapScreen({ session, onLogout }: MapScreenProps) {
         )}
       </AnimatePresence>
     </div>
+    </LanguageProvider>
   );
 }

@@ -267,13 +267,16 @@ The real response has all nine entries (the rest: `area_mismatch` 25, `owner_mis
 | `label` | `AI-written summary of the findings above` when `source` is `ai`, otherwise the honest code-written label; the UI shows it |
 | `notice` | a friendly sentence when the AI was not used, else `null` |
 
-Errors: 401, 404, 422 (malformed ulpin; nothing is audited), 429, 503. The AI being down is never an error: you get the template with `200`.
+Errors: 401, 404, 422 (malformed ulpin or an unknown `lang`; nothing is audited), 429, 503. The AI being down is never an error: you get the template with `200`.
+
+### Hindi and Marathi (Phase 11b)
+An optional request body `{"lang": "hi"}` (`en` is the default and the same as sending nothing; also `mr`). It is chosen by the user, never guessed. The **English** explanation is built and validated first, exactly as before (only the same allowlisted facts go to the AI); only that validated text is then translated, and the translation must keep every number and the same lines and bullet points. The code-written template stays English. For `hi` or `mr` the response has three extra fields (English requests are unchanged): `language`, `translation` (`machine` or `unavailable`) and `translation_note` (`null`, `ai_off`, `ai_busy` or `check_failed`). `label` stays the English sentence; the UI shows its own Hindi or Marathi label for `source`. The score, band and findings are never touched, in any language.
 
 ## POST /guide/ask (Phase 11)
 
 **Who:** any logged-in user (401 otherwise). Shares the 60 per minute per-user allowance. Each call writes one `guide_ask` audit row with no ulpin and no question text.
 
-The Land Guide answers a **general** question about land records ONLY from a small set of public pages (Vikaspedia, C-DAC) and the original LandStack glossary. **It never sees any plot or personal data**: the only input is the question; plot ids, e-mail addresses and long digit runs are removed from it before anything is sent; do not type personal details. Request: `{"question": "What is a ULPIN?"}` (1 to 500 characters, else `422`).
+The Land Guide answers a **general** question about land records ONLY from a small set of public pages (Vikaspedia, C-DAC) and the original LandStack glossary. **It never sees any plot or personal data**: the only input is the question; plot ids, e-mail addresses and long digit runs are removed from it before anything is sent; do not type personal details. Request: `{"question": "What is a ULPIN?", "language": "en"}` (1 to 500 characters, else `422`). `language` is `en` (default), `hi` or `mr`: the language the question is written in and the answer should come back in. **It is chosen by the user and never guessed** (Hindi and Marathi share a script); anything else is `422`.
 
 ```json
 {"answer": "A ULPIN is a 14-character alphanumeric code that identifies one land parcel [1].",
@@ -290,7 +293,20 @@ The Land Guide answers a **general** question about land records ONLY from a sma
 | `no_sources` | **"I don't know from my sources."** Nothing covers the question (the AI is not even called), or its answer was not grounded (no valid `[n]`, a number that is in no source, or an obeyed injected instruction) |
 | `ai_off`, `ai_busy`, `ai_failed` | the AI could not write an answer. A friendly sentence is returned and `sources` lists the related pages (title and link only) |
 
-Source text is treated as **data, never instructions** (it is stripped of anything that could close a block, the prompt says to ignore instructions inside it, and the answer is checked afterwards); links are removed from the answer (the sources are listed separately). `url` is `null` for the "LandStack glossary", which has no web page. Every answer carries a `disclaimer`: general information, not legal advice. The language step is one swappable pair of functions in `chatbot/guide.py` (English only for now). Errors: 401, 422, 429.
+Source text is treated as **data, never instructions** (it is stripped of anything that could close a block, the prompt says to ignore instructions inside it, and the answer is checked afterwards); links are removed from the answer (the sources are listed separately). `url` is `null` for the "LandStack glossary", which has no web page. Every answer carries a `disclaimer`: general information, not legal advice. Errors: 401, 422, 429.
+
+### Hindi and Marathi (Phase 11b)
+Retrieval stays **English-only**: the corpus is not translated. For `hi` or `mr` the flow is: question translated to English (translate-only prompt, through the same LLM client) -> the usual retrieval and grounded answer **with all the checks run on the English answer** -> the checked answer is translated back. The translation must keep **every `[n]` marker (same order) and every number** (Devanagari digits ०-९ are read as 0-9 for the comparison) and be mostly in the target language; otherwise the English answer is returned with a note. The `disclaimer` and "I don't know from my sources." are sentences written by a person (`chatbot/strings.json`), not machine-translated.
+
+For `hi` or `mr` the response has three extra fields (English requests are unchanged):
+
+| Field | Values |
+|---|---|
+| `language` | `hi` or `mr` |
+| `translation` | `machine` (machine-translated: the UI shows "machine-translated, may contain errors"), `fixed` (a person-written sentence), `unavailable` (the English text is shown), `none` |
+| `translation_note` | `null`, or why English is shown: `ai_off`, `ai_busy` or `check_failed` (a marker, a number or the language changed). The UI turns the code into a sentence in the user's language |
+
+If the **question itself** cannot be translated (the AI is off or busy, or the translation fails its checks) there is nothing to retrieve with, so the answer is the English message (`status` `ai_off`, `ai_busy` or `ai_failed`), `sources` is empty and `translation` is `unavailable`. Sources are never translated (their titles are English). The audit row is the same `guide_ask` (no question, no language).
 
 ## POST /auth/login
 

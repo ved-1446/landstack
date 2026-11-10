@@ -2,8 +2,10 @@
 (Phase 11, Part B).
 
 How an answer is made:
-  question -> redact personal-looking bits -> (language step) -> BM25 search -> top passages
-           -> LLM told to answer ONLY from them and cite [n] -> checked -> answer + source links.
+  question -> redact personal-looking bits -> (Hindi/Marathi: translate to English) -> BM25 search -> top passages
+           -> LLM told to answer ONLY from them and cite [n] -> checked IN ENGLISH -> (Hindi/Marathi: translate back, then
+           check that every [n] marker and number survived) -> answer + source links.
+Retrieval stays English-only: the corpus is not translated. The user chooses the language in the panel; it is never guessed.
 
 Safety rules, each tested:
 - The Guide never sees a plot, an owner or any personal data: the endpoint takes only the question text, and ids and long
@@ -17,8 +19,9 @@ Safety rules, each tested:
 """
 import re
 
-from backend.app import config, llm
+from backend.app import config, llm, translate
 from chatbot import index as search
+from chatbot import strings
 
 IDK = "I don't know from my sources."
 DISCLAIMER = ("This is general information from the sources listed, not legal advice. It can be wrong or out of date. "
@@ -31,22 +34,28 @@ MESSAGES = {
 
 
 # ---------------------------------------------------------------- the language step: ONE swappable pair of functions
-# English only for now. A later step replaces these two (translate the question to English before searching, translate the
-# answer back afterwards) and nothing else in this file has to change.
+# English passes through untouched (no AI call). Hindi and Marathi use the LLM through backend/app/translate.py, with
+# translate-only prompts and checks that every [n] marker and number survives. The fixed sentences (the disclaimer and
+# "I don't know from my sources.") are written by a person in chatbot/strings.json and returned as they are.
 
 def translate_to_english(text, language="en"):
-    return text
+    return translate.to_english(text, language)
 
 
 def translate_from_english(text, language="en"):
-    return text
+    if language == "en":
+        return text
+    fixed = strings.fixed_translation(text, language)
+    if fixed is not None:
+        return fixed
+    return translate.from_english(text, language)
 
 
 # ---------------------------------------------------------------- guards
 
 _ULPIN = re.compile(r"\b(?=[A-Z0-9]*\d)[A-Z0-9]{14}\b")
 _EMAIL = re.compile(r"\b[\w.+-]+@[\w-]+(?:\.[\w-]+)+\b")
-_LONG_DIGITS = re.compile(r"(?<![\d.])\d[\d\s-]{5,}\d(?![\d.])")        # phone numbers, Aadhaar-like runs, account numbers
+_LONG_DIGITS = re.compile(r"(?<!\d)(?<!\d\.)\d[\d\s-]{5,}\d(?!\d)(?!\.\d)")        # phone numbers, Aadhaar-like runs, account numbers; not decimals like 1.5
 _URL = re.compile(r"(?:https?://|www\.)\S+", re.I)
 
 
@@ -104,10 +113,31 @@ def _related(hits):
     return out
 
 
-def _result(status, answer, sources, language):
+def _result(status, answer, sources, language, *, translated=True, note=None):
+    """The response. `answer` is ENGLISH. translated=True: translate it for `language` (a fixed sentence is looked up, anything
+    else is machine-translated and checked; if that fails the English text is kept and `translation_note` says why).
+    translated=False: keep the English (the caller already knows why, and passes `note`).
+    For English the response has exactly the original fields; for Hindi/Marathi it also says language, translation and note."""
     ai = {"answered": "on", "no_sources": "on", "ai_off": "off", "ai_busy": "busy", "ai_failed": "failed"}[status]
-    return {"answer": translate_from_english(answer, language), "status": status, "ai_status": ai,
-            "sources": sources, "disclaimer": translate_from_english(DISCLAIMER, language)}
+    text, kind = answer, "none"
+    if language != "en":
+        if translated:
+            try:
+                text = translate_from_english(answer, language)
+                kind = "fixed" if strings.fixed_translation(answer, language) is not None else "machine"
+                note = None
+            except (llm.LLMProblem, translate.TranslationFailed) as exc:
+                text, kind, note = answer, "unavailable", translate.note_for(exc)
+        else:
+            kind = "unavailable" if note else "none"
+    try:
+        disclaimer = translate_from_english(DISCLAIMER, language)
+    except (llm.LLMProblem, translate.TranslationFailed):
+        disclaimer = DISCLAIMER
+    out = {"answer": text, "status": status, "ai_status": ai, "sources": sources, "disclaimer": disclaimer}
+    if language != "en":
+        out.update(language=language, translation=kind, translation_note=note)
+    return out
 
 
 def check_answer(text, hits, question):
@@ -133,18 +163,26 @@ def ask(question, idx, *, language="en"):
     """Answer one question. Never raises. Returns {answer, status, ai_status, sources, disclaimer}.
     status: answered | no_sources | ai_off | ai_busy | ai_failed."""
     cleaned = redact(question)
-    english = translate_to_english(cleaned, language)
+    try:
+        english = translate_to_english(cleaned, language)
+    except (llm.LLMProblem, translate.TranslationFailed) as exc:
+        # the question could not be put into English, and retrieval is English-only: say so (in English, with a note code
+        # that the UI shows in the user's language) instead of guessing
+        status = {"off": "ai_off", "busy": "ai_busy"}.get(getattr(exc, "status", ""), "ai_failed")
+        return _result(status, MESSAGES[status], [], language, translated=False, note=translate.note_for(exc))
+    except Exception:  # noqa: BLE001
+        return _result("ai_failed", MESSAGES["ai_failed"], [], language, translated=False, note="check_failed")
     hits = idx.search(english, k=config.GUIDE_TOP_K, min_score=config.GUIDE_MIN_SCORE)
     if not hits:
         return _result("no_sources", IDK, [], language)                    # nothing covers it: the LLM is not called at all
     try:
         text = llm.complete(build_messages(english, hits), max_tokens=350)
     except llm.LLMOff:
-        return _result("ai_off", MESSAGES["ai_off"], _related(hits), language)
+        return _result("ai_off", MESSAGES["ai_off"], _related(hits), language, translated=False, note="ai_off")
     except llm.LLMBusy:
-        return _result("ai_busy", MESSAGES["ai_busy"], _related(hits), language)
+        return _result("ai_busy", MESSAGES["ai_busy"], _related(hits), language, translated=False, note="ai_busy")
     except Exception:  # noqa: BLE001  (LLMFailed or anything unexpected: the Guide must never crash a request)
-        return _result("ai_failed", MESSAGES["ai_failed"], _related(hits), language)
+        return _result("ai_failed", MESSAGES["ai_failed"], _related(hits), language, translated=False, note="check_failed")
     checked = check_answer(text, hits, english)
     if checked is None:
         return _result("no_sources", IDK, [], language)

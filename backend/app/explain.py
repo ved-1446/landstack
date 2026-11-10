@@ -14,7 +14,7 @@ import json
 import logging
 import re
 
-from . import config, llm
+from . import config, llm, translate
 
 log = logging.getLogger("landstack.explain")
 
@@ -212,8 +212,34 @@ def check_ai_text(text, facts):
     return all(n in allowed for n in _all_numbers(text))
 
 
-def explain(passport):
-    """Explain a passport. Returns {"text", "source": "ai"|"template", "ai_status", "label", "notice"}; never raises."""
+def localise(result, language):
+    """Hindi/Marathi (Phase 11b). The English explanation has ALREADY been built and checked; here it is only translated.
+    AI text is translated by the LLM (translate-only prompt) and must keep every number and the same lines and bullets.
+    The code-written template stays English. If the translation cannot be made or fails its checks, the English text is
+    kept and `translation_note` says why (the UI shows that in the user's language). For English the result is unchanged."""
+    if language == "en":
+        return result
+    out = dict(result, language=language)
+    if result["source"] == "ai":
+        try:
+            out.update(text=translate.from_english(result["text"], language, keep_lines=True), translation="machine", translation_note=None)
+        except (llm.LLMProblem, translate.TranslationFailed) as exc:
+            out.update(translation="unavailable", translation_note=translate.note_for(exc))
+        except Exception:  # noqa: BLE001  (nothing may break the request)
+            log.exception("explainer: unexpected error while translating; keeping the English text")
+            out.update(translation="unavailable", translation_note="check_failed")
+    else:
+        out.update(translation="unavailable", translation_note={"off": "ai_off", "busy": "ai_busy"}.get(result["ai_status"], "check_failed"))
+    return out
+
+
+def explain(passport, language="en"):
+    """Explain a passport. Returns {"text", "source": "ai"|"template", "ai_status", "label", "notice"} (plus language,
+    translation and translation_note for Hindi/Marathi); never raises."""
+    return localise(_explain_english(passport), language)
+
+
+def _explain_english(passport):
     facts = build_facts(passport)
     fallback = template_text(facts)
     try:

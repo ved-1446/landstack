@@ -1,0 +1,104 @@
+{
+  "_note": "EVERY fixed Hindi and Marathi sentence in LandStack lives in this one file (the Land Guide panel, the Explain section, and the two fixed server sentences). NOT YET REVIEWED by a native speaker: please review before real use. The key names do not matter to a reader; only the 'hi' and 'mr' texts do. {placeholders} must stay as they are. English ('en') is the reference.",
+  "languages": {
+    "en": "English",
+    "hi": "हिन्दी",
+    "mr": "मराठी"
+  },
+  "strings": {
+    "language": {"en": "Language", "hi": "भाषा", "mr": "भाषा"},
+
+    "guide_title": {"en": "Land Guide", "hi": "भूमि गाइड", "mr": "भूमी गाइड"},
+    "guide_intro": {
+      "en": "I answer only from a few public pages (Vikaspedia) and the LandStack glossary. I can be wrong, and I am not legal advice.",
+      "hi": "मैं केवल कुछ सार्वजनिक पन्नों (विकासपीडिया) और LandStack शब्दावली से उत्तर देता हूँ। मुझसे गलती हो सकती है, और यह कानूनी सलाह नहीं है।",
+      "mr": "मी फक्त काही सार्वजनिक पानांवरून (विकासपीडिया) आणि LandStack शब्दावलीवरून उत्तर देतो. माझी चूक होऊ शकते, आणि हा कायदेशीर सल्ला नाही."
+    },
+    "try_asking": {"en": "TRY ASKING", "hi": "ये पूछें", "mr": "हे विचारा"},
+    "suggestion_1": {"en": "What is a ULPIN?", "hi": "ULPIN क्या है?", "mr": "ULPIN म्हणजे काय?"},
+    "suggestion_2": {"en": "What does the amber band mean?", "hi": "एम्बर (पीले) बैंड का क्या मतलब है?", "mr": "अंबर (पिवळ्या) बँडचा अर्थ काय?"},
+    "suggestion_3": {"en": "How does mutation of land work?", "hi": "ज़मीन का नामांतरण कैसे होता है?", "mr": "जमिनीचे फेरफार कसे होतात?"},
+    "input_label": {"en": "Your question for the Land Guide", "hi": "भूमि गाइड के लिए आपका प्रश्न", "mr": "भूमी गाइडसाठी तुमचा प्रश्न"},
+    "input_placeholder": {"en": "Ask about land records in general…", "hi": "भूमि अभिलेख के बारे में सामान्य प्रश्न पूछें…", "mr": "जमीन अभिलेखांबद्दल सर्वसाधारण प्रश्न विचारा…"},
+    "ask": {"en": "Ask", "hi": "पूछें", "mr": "विचारा"},
+    "send_question": {"en": "Send question", "hi": "प्रश्न भेजें", "mr": "प्रश्न पाठवा"},
+    "guide_footer": {
+      "en": "AI can be wrong. Not legal advice. Do not type personal details.",
+      "hi": "AI से गलती हो सकती है। यह कानूनी सलाह नहीं है। अपनी निजी जानकारी न लिखें।",
+      "mr": "AI कडून चूक होऊ शकते. हा कायदेशीर सल्ला नाही. वैयक्तिक माहिती लिहू नका."
+    },
+    "you": {"en": "YOU", "hi": "आप", "mr": "तुम्ही"},
+    "status_answered": {"en": "AI answer, from the sources", "hi": "AI का उत्तर, स्रोतों से", "mr": "AI चे उत्तर, स्रोतांवरून"},
+    "status_no_sources": {"en": "Not in my sources", "hi": "मेरे स्रोतों में नहीं", "mr": "माझ्या स्रोतांमध्ये नाही"},
+    "status_ai_off": {"en": "AI is off", "hi": "AI बंद है", "mr": "AI बंद आहे"},
+    "status_ai_busy": {"en": "AI is busy", "hi": "AI व्यस्त है", "mr": "AI व्यस्त आहे"},
+    "status_ai_failed": {"en": "AI could not answer", "hi": "AI उत्तर नहीं दे सका", "mr": "AI उत्तर देऊ शकले नाही"},
+    "status_error": {"en": "Could not ask", "hi": "प्रश्न नहीं भेजा जा सका", "mr": "प्रश्न पाठवता आला नाही"},
+    "sources": {"en": "SOURCES", "hi": "स्रोत", "mr": "स्रोत"},
+    "related_pages": {"en": "RELATED PAGES", "hi": "संबंधित पन्ने", "mr": "संबंधित पाने"},
+    "read_on": {"en": "read", "hi": "पढ़ा गया", "mr": "वाचले"},
+    "opens_new_tab": {"en": "(opens in a new tab)", "hi": "(नए टैब में खुलता है)", "mr": "(नव्या टॅबमध्ये उघडते)"},
+    "looking": {"en": "Looking through the sources…", "hi": "स्रोतों में खोज रहा हूँ…", "mr": "स्रोतांमध्ये शोधत आहे…"},
+    "try_again": {"en": "Try again", "hi": "फिर कोशिश करें", "mr": "पुन्हा प्रयत्न करा"},
+
+    "machine_translated": {
+      "en": "Machine-translated, may contain errors",
+      "hi": "मशीन से अनुवादित, इसमें गलतियाँ हो सकती हैं",
+      "mr": "यंत्राद्वारे भाषांतरित, यात चुका असू शकतात"
+    },
+    "note_ai_off": {
+      "en": "Shown in English: AI is off, so it could not be translated.",
+      "hi": "अंग्रेज़ी में दिखाया गया: AI बंद है, इसलिए अनुवाद नहीं हो सका।",
+      "mr": "इंग्रजीत दाखवले आहे: AI बंद आहे, म्हणून भाषांतर होऊ शकले नाही."
+    },
+    "note_ai_busy": {
+      "en": "Shown in English: AI is busy, so it could not be translated.",
+      "hi": "अंग्रेज़ी में दिखाया गया: AI व्यस्त है, इसलिए अनुवाद नहीं हो सका।",
+      "mr": "इंग्रजीत दाखवले आहे: AI व्यस्त आहे, म्हणून भाषांतर होऊ शकले नाही."
+    },
+    "note_check_failed": {
+      "en": "Shown in English: the translation did not pass our checks.",
+      "hi": "अंग्रेज़ी में दिखाया गया: अनुवाद हमारी जाँच में सही नहीं निकला।",
+      "mr": "इंग्रजीत दाखवले आहे: भाषांतर आमच्या तपासणीत योग्य ठरले नाही."
+    },
+
+    "explain_button": {"en": "Explain in plain words", "hi": "सरल शब्दों में समझाएँ", "mr": "सोप्या शब्दांत समजावून सांगा"},
+    "explain_writing": {"en": "Writing…", "hi": "लिख रहा हूँ…", "mr": "लिहीत आहे…"},
+    "explain_section": {"en": "Plain-words explanation", "hi": "सरल शब्दों में स्पष्टीकरण", "mr": "सोप्या शब्दांतील स्पष्टीकरण"},
+    "label_ai": {
+      "en": "AI-written summary of the findings above",
+      "hi": "ऊपर दिए गए निष्कर्षों का AI द्वारा लिखा सारांश",
+      "mr": "वरील निष्कर्षांचा AI ने लिहिलेला सारांश"
+    },
+    "label_template": {
+      "en": "Plain-words summary of the findings above (written by code, not by AI)",
+      "hi": "ऊपर दिए गए निष्कर्षों का सरल सारांश (कोड द्वारा लिखा गया, AI द्वारा नहीं)",
+      "mr": "वरील निष्कर्षांचा सोपा सारांश (कोडने लिहिलेला, AI ने नाही)"
+    },
+    "chip_ai": {"en": "AI", "hi": "AI", "mr": "AI"},
+    "chip_code": {"en": "Written by code", "hi": "कोड द्वारा लिखा गया", "mr": "कोडने लिहिलेले"},
+    "explain_unchanged": {
+      "en": "The score, band and findings above are not changed by this summary.",
+      "hi": "इस सारांश से ऊपर का स्कोर, बैंड और निष्कर्ष नहीं बदलते।",
+      "mr": "या सारांशामुळे वरील गुण, बँड आणि निष्कर्ष बदलत नाहीत."
+    },
+    "explain_ai_wrong": {"en": "AI can be wrong.", "hi": "AI से गलती हो सकती है।", "mr": "AI कडून चूक होऊ शकते."},
+    "explain_again": {"en": "Explain again", "hi": "फिर से समझाएँ", "mr": "पुन्हा समजावून सांगा"},
+    "explain_error": {
+      "en": "The explanation could not be made. Please try again.",
+      "hi": "स्पष्टीकरण नहीं बन सका। कृपया फिर कोशिश करें।",
+      "mr": "स्पष्टीकरण तयार होऊ शकले नाही. कृपया पुन्हा प्रयत्न करा."
+    },
+
+    "disclaimer": {
+      "en": "This is general information from the sources listed, not legal advice. It can be wrong or out of date. For a real land matter, ask the official land-records office or a qualified professional.",
+      "hi": "यह दिए गए स्रोतों से सामान्य जानकारी है, कानूनी सलाह नहीं। इसमें गलती या पुरानी जानकारी हो सकती है। किसी वास्तविक भूमि मामले में सरकारी भूमि-अभिलेख कार्यालय या योग्य विशेषज्ञ से पूछें।",
+      "mr": "ही दिलेल्या स्रोतांवरून मिळालेली सर्वसाधारण माहिती आहे, कायदेशीर सल्ला नाही. यात चूक किंवा जुनी माहिती असू शकते. प्रत्यक्ष जमिनीच्या प्रकरणासाठी शासकीय भूमी-अभिलेख कार्यालयाला किंवा पात्र तज्ज्ञाला विचारा."
+    },
+    "idk": {
+      "en": "I don't know from my sources.",
+      "hi": "मुझे अपने स्रोतों से इसका उत्तर नहीं पता।",
+      "mr": "मला माझ्या स्रोतांवरून याचे उत्तर माहीत नाही."
+    }
+  }
+}

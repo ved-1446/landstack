@@ -133,6 +133,7 @@ class Explanation(BaseModel):
 class GuideQuestion(BaseModel):
     question: str = Field(min_length=1, max_length=config.GUIDE_QUESTION_MAX,
                           description="a question about land records in general. Do NOT include personal data or plot ids")
+    language: Literal["en", "hi", "mr"] = Field(default="en", description="the language the question is written in and the answer should come back in; chosen by the user, never guessed")
 
 
 class GuideSource(BaseModel):
@@ -148,6 +149,24 @@ class GuideAnswer(BaseModel):
     ai_status: Literal["on", "off", "busy", "failed"]
     sources: list[GuideSource]
     disclaimer: str = Field(description="a short 'not legal advice, can be wrong' note")
+
+
+class TranslatedGuideAnswer(GuideAnswer):
+    """A GuideAnswer for a Hindi or Marathi question (Phase 11b): the same fields plus how the text was translated."""
+    language: Literal["hi", "mr"]
+    translation: Literal["fixed", "machine", "unavailable", "none"] = Field(description="fixed = a human-written sentence; machine = machine-translated (the UI says it may contain errors); unavailable = the English text is shown; none = nothing to translate")
+    translation_note: Literal["ai_off", "ai_busy", "check_failed"] | None = Field(description="why the English text is shown instead")
+
+
+class TranslatedExplanation(Explanation):
+    """An Explanation for a Hindi or Marathi request (Phase 11b): the same fields plus how the text was translated."""
+    language: Literal["hi", "mr"]
+    translation: Literal["machine", "unavailable"] = Field(description="machine = machine-translated (the UI says it may contain errors); unavailable = the English text is shown")
+    translation_note: Literal["ai_off", "ai_busy", "check_failed"] | None = Field(description="why the English text is shown instead; the UI turns it into a sentence in the user's language")
+
+
+class ExplainRequest(BaseModel):
+    lang: Literal["en", "hi", "mr"] = Field(default="en", description="the language the user picked; never guessed")
 
 
 class Summary(BaseModel):
@@ -193,7 +212,7 @@ class Verification(BaseModel):
 
 app = FastAPI(
     title="LandStack API",
-    version="0.11.0",
+    version="0.11.1",
     description="Land records on a map. Plots, land passports, conflicts and risk scores "
                 "(fake demo data). Log in at POST /auth/login first; what you may see depends on your role.",
 )
@@ -317,16 +336,16 @@ def land_passport(request: Request, ulpin: Ulpin, conn: Conn, user: AnyUser):
     return shown
 
 
-@app.post("/plots/{ulpin}/explain", response_model=Explanation, tags=["plots"],
+@app.post("/plots/{ulpin}/explain", response_model=TranslatedExplanation | Explanation, tags=["plots"],
           responses={401: {"model": ErrorBody}, 404: {"model": ErrorBody}, 429: {"model": ErrorBody}, 503: {"model": ErrorBody}})
 @limits.per_user
-def explain_passport(request: Request, ulpin: Ulpin, conn: Conn, user: AnyUser):
+def explain_passport(request: Request, ulpin: Ulpin, conn: Conn, user: AnyUser, body: ExplainRequest | None = None):
     """Plain-words explanation of the plot's EXISTING findings. Same role rules, 404 behaviour, audit log and rate limit
     as the passport. The AI (if configured) only rewrites the findings: it never changes a finding, the score or the band.
     Only finding types, points, numbers and the band are sent to it, never names or ids. If the AI is off, busy or
     wrong, a template written in code is returned instead (see `source` and `ai_status`)."""
     shown, _full = fetch_for_user(conn, user, ulpin, audit.EXPLAIN)
-    return explainer.explain(shown)
+    return explainer.explain(shown, body.lang if body else "en")
 
 
 @app.get("/plots/{ulpin}/passport.pdf", tags=["plots"],
@@ -372,7 +391,7 @@ def verify_document(
             "status": "matches" if matches else CHANGED}
 
 
-@app.post("/guide/ask", response_model=GuideAnswer, tags=["guide"],
+@app.post("/guide/ask", response_model=TranslatedGuideAnswer | GuideAnswer, tags=["guide"],
           responses={401: {"model": ErrorBody}, 422: {"model": ErrorBody}, 429: {"model": ErrorBody}})
 @limits.per_user
 def guide_ask(request: Request, body: GuideQuestion, conn: Conn, user: AnyUser):
@@ -382,7 +401,7 @@ def guide_ask(request: Request, body: GuideQuestion, conn: Conn, user: AnyUser):
     as `guide_ask`; the question itself is NOT stored. If nothing in the sources covers the question the answer is
     "I don't know from my sources." If the AI is off or busy the answer says so and lists the related pages."""
     audit.write(conn, user, None, audit.GUIDE_ASKED)
-    return land_guide.ask(body.question, land_guide.get_index())
+    return land_guide.ask(body.question, land_guide.get_index(), language=body.language)
 
 
 @app.get("/summary", response_model=Summary, tags=["summary"],

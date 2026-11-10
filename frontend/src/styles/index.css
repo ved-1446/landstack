@@ -5,6 +5,9 @@
 @import "@fontsource/geist-mono/500.css";
 @import "@fontsource/instrument-serif/400.css";
 @import "@fontsource/instrument-serif/400-italic.css";
+@import "@fontsource/noto-sans-devanagari/devanagari-400.css";
+@import "@fontsource/noto-sans-devanagari/devanagari-500.css";
+@import "@fontsource/noto-sans-devanagari/devanagari-600.css";
 @import "tailwindcss";
 @import "./tokens.css";
 
@@ -38,9 +41,9 @@
   --color-line-on-cream: var(--line-on-cream);
   --color-glass: var(--glass);
 
-  --font-sans: "Geist", system-ui, sans-serif;
-  --font-mono: "Geist Mono", ui-monospace, monospace;
-  --font-serif: "Instrument Serif", Georgia, serif;
+  --font-sans: "Geist", "Noto Sans Devanagari", system-ui, sans-serif;
+  --font-mono: "Geist Mono", "Noto Sans Devanagari", ui-monospace, monospace;
+  --font-serif: "Instrument Serif", "Noto Sans Devanagari", Georgia, serif;
 
   --text-*: initial;
   --text-11: 11px;
@@ -185,6 +188,12 @@
   .maplibregl-ctrl-bottom-right {
     bottom: calc(var(--tabbar-height) + 8px);
   }
+}
+
+/* ---- Hindi and Marathi (Phase 11b): Devanagari has tall signs above and below the line, so it needs more line height ---- */
+:lang(hi),
+:lang(mr) {
+  line-height: 1.6;
 }
 
 /* ---- simulated new-building labels (zoom 16 and closer): the word SIMULATED is always in the label ---- */
