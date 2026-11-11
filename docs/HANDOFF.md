@@ -1,7 +1,7 @@
 # Handoff
 
 ## Current phase
-Phase 11b (Hindi and Marathi for the Land Guide, the Explainer and Unicode/Devanagari text in the UI and the PDF) is finished and waiting for the user's commit, together with Phase 11 (the LLM explainer and the "Land Guide" RAG chatbot, English first), Phase 10 (SIMULATED construction alert), Phase 9 (ML), Phase 5 (design pass) and Phases 8/8b if those are not committed yet. Phase 12 has NOT been started.
+**Phase 12 (hardening, naming, README, demo) is finished.** Checkpoint 1 (12a: naming, hardening, the three small features) is committed; 12b (LICENSE, THIRD_PARTY.md, CI, setup scripts, screenshots, samples, DEMO.md, the final README, `docs/REFERENCE.md`) waits for the user's commit. The fresh-clone test passed (see the Phase 12 section at the end). 659 backend tests pass, `check:design` and the build pass. There is no next phase planned; what is left is the README's Future work. Phases 5 to 11b are described below.
 
 **ORDER (from the user):** 5 (done), 9 (done), 10 (done), 11 English (done), 11b Hindi/Marathi (done), then 12. Phase 9 did not change the checks, points, bands or `NAME_MATCH_THRESHOLD` (still 0.60). Phase 10 added a ninth check and changed the demo numbers (below).
 
@@ -84,11 +84,11 @@ Also: the schema changed, so re-run `db/schema.sql`, then `python db/seed.py` an
 - Plot labels are HTML markers (cap about 150 plots in view); the "Restricted zones" and "Unrecorded construction" switches are disabled on purpose (no data yet).
 - Test note: the API allows 5 logins a minute per IP, so repeated test logins (my browser tests) have to be spaced out.
 
-## API backlog (found in Phase 5, NOT built, by instruction)
+## API backlog (found in Phase 5; items 2 and 4 were built in Phase 12a, the rest are in the README's Future work)
 1. `GET /zones` (so the Restricted zones layer can be drawn).
-2. `X-Document-Id` header on the passport PDF response (so the UI can show the id and link to Verify straight after a download).
+2. DONE (12a): `X-Document-Id` header on the passport PDF response (the download toast shows the id).
 3. A `source` field on each evidence item (which table or record the finding came from).
-4. A `capped` flag on the passport (the UI currently infers "Score is capped at 100." from the sum of points).
+4. DONE (12a): a `capped` flag on the passport (API, drawer and PDF note).
 5. `GET /villages` (from Phase 4), plus taluka and district on plots.
 6. (Phase 9 DONE: the `unusual` field exists. Phase 10 DONE: the construction layer and `/construction-alerts` exist.) Phase 10 (old note): construction-alert data and the layer behind the disabled switch.
 
@@ -174,6 +174,8 @@ API notes: every request recomputes all scores (fine for 100 plots; cache spot i
 Phase 2: `backend/__init__.py`, `backend/app/__init__.py`, `backend/app/config.py`, `backend/app/db.py`, `backend/app/names.py`, `backend/app/checks.py`, `backend/app/scoring.py`, `backend/requirements.txt` (added scikit-learn), `db/seed.py` (imports REFERENCE_DATE), `backend/tests/conftest.py`, `test_checks.py`, `test_scoring.py`, `test_names.py`, `test_config.py`, `README.md`, `docs/HANDOFF.md`, `docs/PROJECT_BRIEF.md`.
 Test note: the tests re-seed the live database from `db/planted_truth.json`'s own settings, and use an autocommit connection so no open transaction blocks the seed's TRUNCATE.
 
-## Phase 12, checkpoint 1 (A, B, C done; D, E, F not started)
-Done: LandStack naming sweep (infrastructure names `landstack-db`/db/user kept on purpose, user's choice A); CORS_ORIGINS; exact pins in `backend/requirements.txt` and `ml/requirements.txt` (tested on Python 3.14.7); demo login row only when `VITE_DEMO_ACCOUNTS=true`; compose container name is `${LANDSTACK_DB_CONTAINER:-landstack-db}`; HTML `/verify` page; `capped` flag (API, drawer, PDF); `X-Document-Id` header (and in the download toast); `backend/tests/test_phase12.py` (54 tests incl. an every-endpoint citizen matrix). 659 backend tests pass.
-Still to do (after the user commits and says continue): D (LICENSE as "Ved LandStack authors", THIRD_PARTY.md, CI workflow, setup scripts, regenerated samples and screenshots, DEMO.md, delete old docs/design/screens matrix set but keep phase11/phase11b and any linked), E (README), F (fresh-clone test). Compose port is already `${POSTGRES_PORT:-5432}`.
+## Phase 12 summary (done)
+- **12a (committed):** LandStack naming (the container `landstack-db`, database `landstack` and user stay as legacy infrastructure names, explained in the README); `CORS_ORIGINS`; exact pins; demo login row only when `VITE_DEMO_ACCOUNTS=true`; HTML `/verify`; `capped` flag; `X-Document-Id`; `backend/tests/test_phase12.py` (54 tests).
+- **12b (uncommitted):** `LICENSE` (MIT, Ved LandStack authors), `THIRD_PARTY.md`, `.github/workflows/ci.yml`, `scripts/setup.ps1` and `scripts/setup.sh`, `docs/DEMO.md`, `docs/screenshots/` (9 images), regenerated `docs/samples/`, the final `README.md`, the old long README moved to `docs/REFERENCE.md`, 61 old numbered screenshots deleted from `docs/design/screens/` (phase9/10/11/11b ones kept).
+- **Fresh-clone test:** a real `git clone` of the 12a commit plus the uncommitted files, in a temp folder, own container (`landstack-fresh-db`) and port (5543). `scripts/setup.ps1` ran clean in 120 s; same seed output (identical `planted_truth.json`, 58/29/13); 659 tests, `check:design` and the build pass; browser smoke test 8/8. Not tested: `setup.sh` on Linux/macOS (only `bash -n`), the GitHub Actions workflow (never run on GitHub).
+- **Open items for the user:** (1) paste the new `.env.example` (HEAD still has the old three-section one); (2) decide about `.agents/skills/design-taste-frontend/` (1,631 tracked files, a third-party agent skill, no licence file); (3) check <https://gsap.com/standard-license> (the full text could not be read); (4) native-speaker review of `chatbot/strings.json`; (5) `pip-audit` was installed into `.venv` (not in requirements).

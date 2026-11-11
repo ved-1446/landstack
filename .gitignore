@@ -23,3 +23,5 @@ ml/models/
 # Phase 11: the Land Guide's raw pages and chunks are other people's text: local only, rebuilt by `python -m chatbot.build`
 chatbot/raw/
 chatbot/chunks.jsonl
+.agents/
+skills-lock.json

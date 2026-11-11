@@ -1,316 +1,187 @@
 # LandStack
 
-*Credit: the LandStack SIH 2026 team. (The Docker container `landstack-db`, the database `landstack` and its user keep that legacy name on purpose.)*
+**Land records on a map: it finds conflicts between a plot's boundary, its land record, its registration and its tax record, gives each plot a risk score from fixed rules, and prints a one-page "land passport" that anyone can verify by scanning its QR code.**
 
-Land records on a map (fake data, demo project). Work in progress.
+A student portfolio project, built on **fake data** near Pune. It is a demo, not an official or legal tool.
+Credit: the **LandStack SIH 2026 team** (the project started under that name).
 
-See `docs/PROJECT_BRIEF.md` for the plan and `docs/HANDOFF.md` for current status.
+![The map: 100 demo plots coloured green, amber and red by risk](docs/screenshots/02-map.jpg)
 
-## Setup (Phase 0-1)
+## Screenshots
 
-Needs Docker and Python 3.11+. Copy `.env.example` to `.env` and set `POSTGRES_PASSWORD`.
+| | |
+|---|---|
+| ![A land passport for a red plot, score capped at 100](docs/screenshots/03-passport.jpg) **Land passport.** Score, findings with evidence and rules. | ![A citizen sees only their own plot](docs/screenshots/05-citizen.jpg) **Citizen view.** A citizen sees only their own plots; the plot they overlap is neither named nor drawn. |
+| ![The simulated unrecorded-construction layer](docs/screenshots/04-construction.jpg) **Construction switch.** New-building outlines, labelled SIMULATED (there is no real imagery). | ![The Land Guide chat panel](docs/screenshots/07-land-guide.jpg) **Land Guide.** Answers only from a few public pages, with links. *(Made with a local stand-in model, so the wording is not a real model's.)* |
+| ![The Land Guide in Hindi](docs/screenshots/08-hindi.jpg) **हिन्दी.** Machine-translated, and labelled so. | ![The Land Guide in Marathi](docs/screenshots/09-marathi.jpg) **मराठी.** Same. |
 
-**1. Start the database**
-```
-docker compose up -d
+More: [login screen](docs/screenshots/01-login.jpg), [phone passport](docs/screenshots/06-phone-passport.jpg), [sample PDFs](docs/samples/), and the guided tour in [docs/DEMO.md](docs/DEMO.md).
+
+## What it does
+- **Shows 100 demo plots on a map**, coloured by risk band, with filters, search by ULPIN (a plot's 14-character id) and light, dark and satellite basemaps.
+- **Runs nine conflict checks** in PostGIS (overlaps, restricted zones, area, owner name, duplicate survey number, invalid shape, overdue tax, missing record, and a *simulated* unrecorded-construction check). The SQL is visible in `backend/app/checks.py`: no ORM.
+- **Scores each plot** with fixed points (below) and shows a **land passport**: every finding with its evidence and the rule that raised it.
+- **Prints a one-page PDF passport** with a QR code and a short document id. **`/verify`** tells anyone, on a phone or through the API, whether the records still match what was printed.
+- **Has roles**: admin, officer (see every plot) and citizen (see only their own; anything else is "not found"). Logins and downloads are audit-logged; there are rate limits.
+- **Optional AI helpers** (off unless you add a key): "Explain in plain words" rewrites a plot's findings in words; the **Land Guide** answers general questions from a small set of public pages. Both can work in हिन्दी and मराठी. **The AI never changes a score.**
+- **A statistical "unusual plot" note** from an Isolation Forest model: a hint for a human, never part of the score.
+- **State adapters** turn three made-up state formats into one standard format (square metres, ISO dates, "Given Family" names).
+
+## How the risk score works
+**The score is computed by code only.** Models and LLMs never add, remove or change a point, a finding or a band. The points are in `backend/app/config.py`:
+
+| Finding | Points | Raised when |
+|---|---|---|
+| Boundary overlap | 40 | the plot overlaps another plot, lies inside one, or holds one (at least 5 sq m shared) |
+| Restricted zone clash | 30 | more than 20% of the plot is inside a restricted zone |
+| Area mismatch | 25 | the recorded area is more than 10% away from the mapped area (measured in square metres with a geography cast) |
+| Owner mismatch | 25 | the land-record owner and the registration owner are not the same person (name match below 0.60) |
+| Duplicate survey number | 20 | another plot in the same village has the same survey number |
+| Invalid boundary | 15 | the shape is invalid (for example it crosses itself) |
+| Tax overdue | 15 | tax was last paid more than 2 years before 1 Jan 2026 |
+| Unrecorded construction (**simulated**) | 15 | at least 30 sq m of building appears in the later generated snapshot (T1) that is not in the earlier one (T0) |
+| Missing record | 10 each | no land record, registration or tax record |
+
+The points add up and **stop at 100** (the passport says "Capped at 100" when they would have gone over). **Green 0 to 24, amber 25 to 59, red 60 and above.**
+Invalid shapes are skipped by the overlap and zone checks (they get their own finding). Every check has a pytest test that compares the result with `db/planted_truth.json`, the list of problems the seed planted on purpose.
+
+## Architecture
+```mermaid
+flowchart LR
+  user([Officer or citizen]) --> web[Web app<br/>React + MapLibre]
+  phone([Phone scanning a QR code]) -->|GET /verify| api
+  web -->|JSON + login token| api[FastAPI<br/>backend/app]
+  api -->|raw SQL| db[(PostgreSQL + PostGIS<br/>Docker)]
+  api --> pdf[PDF + QR<br/>ReportLab, HarfBuzz]
+  api -->|search| guide[Land Guide corpus<br/>BM25, local files]
+  api -.->|optional, no personal data| llm[OpenRouter LLM]
+  api -.->|optional note only| ml[Isolation Forest<br/>ml/models]
+  seed[db/seed.py<br/>fixed seed] --> db
 ```
 
-**2. Python environment** (Windows; on Mac/Linux use `source .venv/bin/activate`)
-```
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r backend/requirements.txt
-```
+## Tech stack
+- **Backend:** Python 3.14, FastAPI, psycopg 3 with hand-written SQL, PostgreSQL 16 + PostGIS 3.4 (Docker), argon2 and JWT for login, slowapi for rate limits, ReportLab, qrcode, pypdf, HarfBuzz (`uharfbuzz`) and fontTools for Devanagari in the PDF.
+- **ML and AI:** scikit-learn (Isolation Forest), SHAP, rank_bm25 + BeautifulSoup (Land Guide), OpenRouter (optional).
+- **Frontend:** React 19, TypeScript, Vite 8, Tailwind CSS 4, MapLibre GL, framer-motion, GSAP (one number animation), self-hosted fonts.
+- **Tests and CI:** pytest, a design-rule checker (`npm run check:design`), GitHub Actions.
 
-**3. Create the schema** (safe to re-run; it drops and recreates the tables)
+## Quick start
+You need **Docker** (running), **Python 3.14** (what the exact pinned versions were tested on; 3.11 to 3.13 may work if every pinned package has a wheel for it) and **Node 20.19 or newer** (24 was tested). About 10 minutes.
 
-Git Bash / Mac / Linux:
-```
-docker exec -i landstack-db psql -U landstack -d landstack -v ON_ERROR_STOP=1 < db/schema.sql
-```
-PowerShell:
-```
-Get-Content db/schema.sql | docker exec -i landstack-db psql -U landstack -d landstack -v ON_ERROR_STOP=1
-```
+**1. Clone and run the setup script.** It writes a `.env` with random secrets (only if you have none), starts the database, installs the packages, creates the schema, seeds the fake data and the demo users, builds the Land Guide corpus (6 public pages, downloaded politely, about 30 seconds) and runs the checks.
 
-**4. Seed the fake data** (same flags = same data; also writes `db/planted_truth.json`)
+Windows PowerShell:
+```powershell
+git clone https://github.com/ved-1446/landstack.git
+cd landstack
+powershell -ExecutionPolicy Bypass -File scripts\setup.ps1
 ```
-python db/seed.py
-python db/seed.py --plots 100 --problem-rate 0.48 --seed 42
+Linux or macOS:
+```bash
+git clone https://github.com/ved-1446/landstack.git
+cd landstack
+bash scripts/setup.sh
 ```
+Useful options: `-Yes` / `--yes` (do not ask before re-creating tables), `-SkipCorpus` / `--skip-corpus` (no download), `-SkipFrontend` / `--skip-frontend`.
 
-**5. Run the tests** (the last test needs the database running and seeded schema)
-```
-python -m pytest backend/tests -q
-```
+> **The schema step deletes data.** `db/schema.sql` drops and recreates every table. On a fresh clone there is nothing to lose. If the database already has LandStack tables, the script says so and asks you to type `YES` first.
 
-## Run the checks (Phase 2)
-
-Run from the repo root with the virtual environment active and the database seeded:
+**2. Start the API** (terminal 1, from the repo root):
+```powershell
+.venv\Scripts\python.exe -m uvicorn backend.app.main:app --reload     # Windows
 ```
-python -m backend.app.checks
+```bash
+.venv/bin/python -m uvicorn backend.app.main:app --reload             # Linux / macOS
 ```
-This prints flagged vs planted counts per conflict type, the band counts and the top 3 plots.
+API docs: <http://localhost:8000/docs>.
 
-## Start the API (Phase 3)
-
-Run from the repo root with the virtual environment active and the database seeded:
-```
-uvicorn backend.app.main:app --reload
-```
-Then open http://localhost:8000/docs for the interactive docs. The full contract is in `docs/api-contract.md`.
-
-## Run the frontend (Phase 4)
-
-Needs Node 20+. The API must be running first (see "Start the API" above).
+**3. Start the web app** (terminal 2):
 ```
 cd frontend
-npm install
 npm run dev
 ```
-Open http://localhost:5173 (the port is fixed, because the API only allows requests from it).
-The API address defaults to `http://localhost:8000`. To change it, create `frontend/.env` containing `VITE_API_URL=http://localhost:8000`.
+Open <http://localhost:5173> (the port is fixed because the API only accepts requests from the origins in `CORS_ORIGINS`, default `http://localhost:5173`).
 
-Other commands (run inside `frontend/`):
-```
-npm run typecheck    # TypeScript check
-npm run build        # typecheck + production build into frontend/dist
-npm run preview      # serve the production build on port 5173
-```
+Then follow the 8-click tour in [docs/DEMO.md](docs/DEMO.md).
 
-## State adapters (Phase 6)
+**Doing it by hand** (what the script does): copy `.env.example` to `.env` and fill it in; `docker compose up -d`; `python -m venv .venv`, activate it, `pip install -r backend/requirements.txt`; apply `db/schema.sql` (`Get-Content db/schema.sql | docker exec -i landstack-db psql -U landstack -d landstack -v ON_ERROR_STOP=1`; on Linux/macOS use `< db/schema.sql`); `python db/seed.py`; `python db/seed_users.py`; `python -m chatbot.build`; `python -m backend.app.checks`; `cd frontend && npm ci`. Details for every part are in [docs/REFERENCE.md](docs/REFERENCE.md).
 
-Every state keeps land records in its own format. An **adapter** turns one state's raw file into our one standard format (square metres, `YYYY-MM-DD` dates, "Given Family" names), so the checks never need to know where a record came from. Adapters live in `db/adapters/`: `maharashtra` (CSV), `karnataka` (JSON), `uttar_pradesh` (nested JSON).
+### The legacy names: `landstack-db`, `landstack`, `landstack`
+The project began as **LandStack**. The Docker container is named `landstack-db`, and the PostgreSQL database and its user are both `landstack`. These **legacy infrastructure names were kept on purpose**: Postgres reads its user and database name only when a data volume is first created, so renaming them in `docker-compose.yml` would not rename an existing database and would break any machine that already has one. Everything a reader sees (the app, the PDF, the API docs, this file) says LandStack. Two variables let a second copy run beside the first: `LANDSTACK_DB_CONTAINER` (container name) and `POSTGRES_PORT`. Set them in your shell before the setup script (or in `.env`) if `5432` or the container name is already taken. `backend/app/db.py` and `db/seed.py` carry a comment pointing here.
 
-Run from the repo root with the virtual environment active and the database running:
+### Settings (`.env`, never committed)
+`.env.example` lists every variable with no real values. The important ones:
 
-**Make the demo files** (the first 20 plots in the database, shown in the three state styles).
-This is a *format demo*: the same 20 plots in three made-up styles, so you can compare them. It is deterministic: the same database always gives identical files. The files are in `db/adapters/samples/`.
-```
-python -m db.adapters.make_samples
-```
-
-**Load a raw file.** Always look first with `--dry-run`, which changes nothing:
-```
-python -m db.adapters.ingest --state maharashtra --file db/adapters/samples/maharashtra_sample.csv --dry-run
-python -m db.adapters.ingest --state maharashtra --file db/adapters/samples/maharashtra_sample.csv
-```
-States: `maharashtra`, `karnataka`, `uttar_pradesh`. Only ulpins that already exist in `plots` are loaded. Rejected rows and unknown ulpins are listed, and the good rows still load. Running it twice changes nothing. A record the file does not mention is never deleted.
-
-**Tests** (adapter tests change the database only inside a transaction that is rolled back):
-```
-python -m pytest backend/tests -q
-```
-
-## Login, roles and rate limits (Phase 7)
-
-**1. Add the secrets to `.env`.** The API will not start without a real `JWT_SECRET` (it refuses the placeholder). Generate a value and add these lines to your `.env` (and, as a template without the real value, to `.env.example`):
-```
-python -c "import secrets; print(secrets.token_urlsafe(48))"
-```
-```
-JWT_SECRET=paste-the-generated-value-here
-JWT_EXPIRE_MINUTES=60
-```
-In `.env.example` use `JWT_SECRET=change-me-generate-a-long-random-string`. Never commit the real value (`.env` is git-ignored).
-
-**2. Recreate the tables and seed.** Phase 7 changed `db/schema.sql` (`users`, new `user_plots`, new `audit_log` columns). Re-running the schema drops and recreates every table, so seed again afterwards:
-```
-docker exec -i landstack-db psql -U landstack -d landstack -v ON_ERROR_STOP=1 < db/schema.sql
-python db/seed.py
-python db/seed_users.py
-```
-(PowerShell: `Get-Content db/schema.sql | docker exec -i landstack-db psql -U landstack -d landstack -v ON_ERROR_STOP=1`.) `db/seed_users.py` is safe to run again. Only argon2 hashes go into the database.
-
-**3. Start the API and the frontend** as before, then open http://localhost:5173 and log in.
-
-**Demo logins. DEMO ONLY: these passwords are public, never use them anywhere real.**
-
-| Username | Password | Role | What it sees |
-|---|---|---|---|
-| `admin` | `AdminDemo#2026` | admin | everything an officer sees, plus the audit log (`GET /audit`) |
-| `officer` | `OfficerDemo#2026` | officer | all plots, all passports, the summary |
-| `citizen1` | `Citizen1Demo#2026` | citizen | only its 3 plots (a RED plot that overlaps another plot, a missing-record plot, a clean plot) |
-| `citizen2` | `Citizen2Demo#2026` | citizen | only its 3 plots (a restricted-zone plot and 2 clean plots) |
-
-A citizen who asks for someone else's plot gets "not found" (404), the same answer as for a plot that does not exist. The full role table is in `docs/api-contract.md`.
-
-**Limits.** Logins: 5 per minute per IP address. Everything else: 60 per minute per user. Both are in `backend/app/config.py`. Too many requests gives a `429` with a `Retry-After` header.
-
-**Tests** create their own `test_*` users with random passwords and delete them (and their audit rows) at the end. They use a throw-away JWT secret, so they work even before you set up `.env`:
-```
-python -m pytest backend/tests -q
-```
-
-## Printable land passport (Phase 8)
-
-A one-page A4 PDF of a plot's passport: header with a clear "DEMO DATA, NOT AN OFFICIAL RECORD" notice, plot facts, the boundary drawn as vector lines, the risk score as a coloured badge **with the band written in words** (so it works in black and white), the findings table, the three records ("Missing" if absent), a QR code, a short document id, who generated it and when.
-
-**Samples** (made with the demo admin account, demo data only; open them to see the layout):
-- [docs/samples/passport_clean.pdf](docs/samples/passport_clean.pdf): a clean plot, "No conflicts found".
-- [docs/samples/passport_red.pdf](docs/samples/passport_red.pdf): a red plot with four problems (overlap, area mismatch, owner mismatch, duplicate survey number: the points add up to 110 and the score is capped at 100).
-- [docs/samples/passport_construction.pdf](docs/samples/passport_construction.pdf) (Phase 10): a plot with an overlap, a missing record and the **SIMULATED** unrecorded-construction finding (50 + 15 = 65, red).
-
-Their QR codes point at `http://localhost:8000/verify/<document id>` and work on a machine whose database still holds those three issue rows (a re-run of `db/schema.sql` removes them).
-
-**Download one.** In the app, open a plot and press **Download PDF**. Or with the API (replace the token; see "Login" above):
-```
-curl -H "Authorization: Bearer <token>" -o passport.pdf http://localhost:8000/plots/MH000100000012/passport.pdf
-```
-The same role rules as the JSON passport apply: a citizen can download only their own plots (anything else is a 404), and other plots' ids are hidden in their copy. Every download is written to the audit log and to the `passport_issues` table.
-
-**Verify one.** Anyone can open `http://localhost:8000/verify/<document id>` (no login). It says only whether the records still match what was printed, the ulpin and the issue time. No names, no evidence, no score. It is limited to 10 requests per minute per IP address.
-
-**Setup.** The schema changed again (new `passport_issues` table), so re-run it and re-seed (see "Login, roles and rate limits" above: `schema.sql`, then `db/seed.py`, then `db/seed_users.py`). The QR code needs to know the public web address of your API. Add this line to `.env` (the default is already `http://localhost:8000`, so it is optional locally):
-```
-PUBLIC_BASE_URL=http://localhost:8000
-```
-and the same line to `.env.example`. New packages (`reportlab`, `qrcode`, `pypdf`) are in `backend/requirements.txt`: run `pip install -r backend/requirements.txt`.
-
-The PDF uses the built-in Helvetica and Courier fonts, which cover English. Hindi or Marathi names would need a Unicode font added in `backend/app/pdf.py` first.
-
-## The demo data (Phase 8b)
-
-`python db/seed.py` (defaults: 100 plots, problem rate 0.48, seed 42) always makes the same data:
-
-| | Count |
+| Variable | What it does |
 |---|---|
-| Plots with no planted problem | **47** (was 52 before Phase 10; 6 of them are the "same person, different spelling" decoys; 2 touch each other along an edge and must stay clean) |
-| Plots with 1 / 2 / 3 / 4 planted problems | **36 / 6 / 8 / 3** (was 33 / 6 / 7 / 2) |
-| **Risk bands** | **58 green, 29 amber, 13 red** (was 60 / 28 / 12: the +15 alert tips two plots from green to amber and one from amber to red; two red plots reach the cap at 100) |
-| Plots per problem type | overlap 14, zone 12, area 12, owner 14, duplicate survey number 8, invalid boundary 4, tax overdue 6, missing record 4, **unrecorded construction 10 (SIMULATED)** |
+| `POSTGRES_PASSWORD` (and `POSTGRES_USER`, `POSTGRES_DB`, `POSTGRES_HOST`, `POSTGRES_PORT`) | the database |
+| `JWT_SECRET` | login-token key. **The server refuses to start without a long random one** and rejects the placeholder |
+| `CORS_ORIGINS` | web addresses allowed to call the API (comma separated, **no wildcards**; a bad value stops the server) |
+| `PUBLIC_BASE_URL` | where the QR code on a printed passport points |
+| `OPENROUTER_API_KEY`, `OPENROUTER_MODEL` | optional: turn on the AI helpers (a free model is fine) |
+| `VITE_API_URL`, `VITE_DEMO_ACCOUNTS`, `VITE_CARTO_KEY`, `VITE_ESRI_KEY` | web app (`frontend/.env`): see below |
 
-A single problem scores at most 40, so every red plot (60 or more) carries several problems. `db/planted_truth.json` lists every problem on every plot. The boundary-overlap check now finds a partial overlap, one plot inside another, and two identical plots, but not two plots that only touch along an edge (they must share at least `MIN_OVERLAP_SQM`, 5 square metres, set in `backend/app/config.py`).
+Optional **free basemap keys**: the Light and Dark maps use a keyless CARTO address that works today but may stop; a free CARTO key in `VITE_CARTO_KEY` and an Esri API key in `VITE_ESRI_KEY` (satellite) make them dependable. Without keys the app still runs.
 
-After changing the seed, load it and rebuild what depends on it:
-```
-python db/seed.py
-python db/seed_users.py
-python -m db.adapters.make_samples
-```
+## Demo accounts
+**These passwords are public. Never use them anywhere real.**
 
-## Unrecorded-construction alert (Phase 10) — SIMULATED
-
-**Everything about this feature is simulated.** There is no real satellite or aerial imagery in this project. `db/seed.py` *generates* two snapshots of building outlines for every plot, **T0** (earlier) and **T1** (later), in the table `building_snapshots` (with `ulpin`, `snapshot`, `footprint`; no foreign key to `plots`). The words "SIMULATED" appear in the passport evidence text, the filter label, the PDF, the map labels and the API docs, on purpose.
-
-- **How it works (change detection with two snapshots):** per plot, take the T1 buildings and subtract the T0 buildings (`ST_Difference`, raw SQL visible in `backend/app/checks.py`). What is left is new building that is not in the records. It is measured in square metres (geography cast).
-- **Threshold:** a plot is flagged when the new area is at least `MIN_NEW_BUILT_SQM` = **30 sq m** (`backend/app/config.py`). Small survey noise (a building shifted 1 to 2 m, or wobbly edges) leaves only a sliver of up to about 20 sq m, so it is not flagged.
-- **Points:** `CONSTRUCTION_ALERT_POINTS` = **15**, fixed, added to the score like every other finding (the cap at 100 still holds). No model or LLM changes it.
-- **Demo data:** 10 planted alerts (5 on plots that had no other problem, 5 on plots that already had problems, chosen so the +15 visibly moves some plots up a band) and 8 jitter plots that must NOT be flagged. Invalid-shape plots, the decoy-owner plots and the touching pair never get an alert. The earlier eight problem types are unchanged. `db/planted_truth.json` lists the alerts (under `conflicts`, with `details[ulpin].new_built_sqm`) and the jitter plots (`construction_decoys`).
-- **In the app:** Map layers, switch **Unrecorded construction (simulated)** draws the new-building outlines in a light blue (the `sim` colour, used only for simulated data) with a dashed edge, labelled "SIMULATED · 61 sq m" from zoom 16, and a "Simulated new buildings" chip in the dock. The Filters popover lists the type with its count, and the passport drawer shows the finding with a "Simulated" chip. The map gets the outlines from `GET /construction-alerts` (see `docs/api-contract.md`).
-- **PDF:** the finding is in the findings table with "SIMULATED" in its evidence text.
-
-To load the new data (the schema changed: `building_snapshots` has a `ulpin` column, so re-run it, which also drops the users table):
-```
-docker exec -i landstack-db psql -U landstack -d landstack -v ON_ERROR_STOP=1 < db/schema.sql
-python db/seed.py
-python db/seed_users.py
-```
-`python -m backend.app.checks` prints flagged against planted per type (all equal, 10 and 10 for the new one) and the band counts.
-
-## Frontend settings (Phase 5)
-Optional variables in `frontend/.env`: `VITE_API_URL` (default `http://localhost:8000`), `VITE_DEMO_ACCOUNTS` (default `true`; shows the demo-login row, set `false` for any real deployment), `VITE_CARTO_KEY` and `VITE_ESRI_KEY` (optional basemap keys). `npm run check:design` checks the design rules. Design notes: `docs/DESIGN_SYSTEM.md`; screenshots: `docs/design/screens/`.
-
-## Machine learning (Phase 9)
-
-Two things, both **advice for a human, never part of the risk score**. The score comes only from the nine checks in `backend/app/checks.py`. Models never add or remove points, change a band or change which conflicts are flagged.
-
-### An honest caveat first
-Everything here is trained and measured on **generated** data (`db/seed.py`). A model trained on generated data mostly relearns the generator: the problems are planted by simple rules, so the rules show up as odd numbers, and a model finds odd numbers easily. Good numbers below do **not** show it would work on real land records. That needs real records and a person checking the answers.
-
-### Part A: the "unusual plot" note (unsupervised)
-Commands (from the repo root, venv active; `pip install -r backend/requirements.txt`, and `pip install -r ml/requirements.txt` for the notebook):
-```
-python -m ml.make_dataset        # 5,000 generated plots, ~8% with a planted problem -> ml/data/ (git-ignored)
-python -m ml.train_unusual       # Isolation Forest, no labels -> ml/models/unusual.joblib + unusual.json (git-ignored)
-python -m ml.evaluate            # honest report on 2,000 NEW plots (labels used only here)
-python -m nbconvert --to notebook --execute ml/explore.ipynb --output-dir ml/data   # or just open ml/explore.ipynb
-```
-- `ml/features.py` has ONE function, `plot_features`, that turns a plot into 12 numbers (area, perimeter, compactness, aspect ratio, corners, recorded/mapped area, years since tax paid, years since registration, how many plots overlap or touch it, distance to the nearest zone, area compared with its village median, an invalid-shape flag). Training and the API both use it, so they cannot drift apart. Invalid or empty shapes get safe fallback numbers plus a flag.
-- The "unusual" badge goes to the top 5% of training scores (`UNUSUAL_PERCENTILE = 95` in `backend/app/config.py`). `python -m ml.evaluate` shows what other cut-offs would do.
-- The API loads the model once at start-up. **No model file = `"unusual": null` and everything else works as before.** Field description: `docs/api-contract.md`. The field is not part of the tamper-evidence hash. The PDF gets one footer line only when a plot is flagged. The passport drawer shows a quiet "Unusual" chip with a tooltip.
-- Reasons ("why unusual") come from SHAP (`TreeExplainer`) when `shap` is installed, otherwise from z-scores against the training median. They name numbers, never other plots.
-- **Only load model files you trained yourself.** `.joblib` is Python's pickle format; loading a file runs code. Model files are git-ignored and only read from `ml/models/` (or the folder in `UNUSUAL_MODEL_DIR`). The tests set that variable to an empty folder, so no test ever loads a real model.
-- Cost: each passport request builds the features for all plots (neighbours, village medians), like the scoring engine already recomputes every check per request. Fine for 100 plots; cache it if the data grows.
-
-Results on 2,000 new generated plots (160 with a planted problem = 8.0%). The model was trained on 5,000 others (different seed):
-
-| Cut-off | Flagged | Problem plots flagged | Clean plots flagged | Precision | vs luck |
-|---|---|---|---|---|---|
-| p90 | 194 | 71 of 160 (44.4%) | 123 (6.7%) | 36.6% | 4.6x |
-| **p95 (used)** | 104 | 51 of 160 (31.9%) | 53 (2.9%) | 49.0% | 6.1x |
-| p97 | 63 | 41 of 160 (25.6%) | 22 (1.2%) | 65.1% | 8.1x |
-| p99 | 22 | 22 of 160 (13.8%) | 0 (0.0%) | 100% | 12.5x |
-
-What it catches at p95 (plots where it is the **only** planted problem): overlap 28 of 28, tax overdue 3 of 11, area mismatch 5 of 18, invalid boundary 4 of 15, restricted zone 1 of 18, **owner mismatch 0 of 18, duplicate survey number 0 of 25, missing record 0 of 12**. The overlap result is flattering: in the generated map no two plots touch unless an overlap was planted, so "number of neighbours" gives it away. The model cannot see names, survey numbers or missing records at all.
-
-### Part B: tuning the name matcher
-```
-python -m ml.make_name_pairs     # 600 labelled pairs -> ml/data/name_pairs.csv (committed: a small test asset)
-python -m ml.tune_names          # train/test split, baselines, mistakes, and a decision
-```
-The 600 pairs (300 same person, 300 different, fixed seed) come from rules, not from real records: reordered names, initials, dropped middle names, spelling variants (Kulkarni/Kulkarny), case and punctuation noise, honorifics (Shri, Smt), and hard negatives (same surname, similar-looking names such as Patil/Patel or Anita/Sunita, different middle names). **Real-world names will behave differently.** Thresholds are picked on the 360 train pairs (best F1; ties: the middle of the tied range) and every number is measured on the 240 test pairs.
-
-| Method (test pairs) | Threshold | Precision | Recall | F1 | TP FP FN TN |
-|---|---|---|---|---|---|
-| **current matcher, as shipped** | 0.60 | 0.851 | 0.858 | 0.855 | 103 18 17 102 |
-| current matcher, tuned on train | 0.57 | 0.836 | 0.892 | 0.863 | 107 21 13 99 |
-| exact match | n/a | 1.000 | 0.067 | 0.125 | 8 0 112 120 |
-| difflib ratio | 0.37 | 0.545 | 1.000 | 0.706 | 120 100 0 20 |
-| token-sorted difflib ratio | 0.73 | 0.738 | 0.917 | 0.818 | 110 39 10 81 |
-
-Decision: **`NAME_MATCH_THRESHOLD` stays at 0.60.** Tuning gains only +0.008 F1 on the test pairs (the rule asks for at least +0.02, plus all 6 decoy pairs still matching and none of the 14 genuinely different demo pairs matching). The current matcher misses names written as only an initial plus a spelling variant plus an honorific (`Anita Joshi` vs `Mrs Joshee A.`, score 0.20) and wrongly matches near-identical different names (`Vijay Lokhande` vs `Vinay Lokhande`, 0.70).
-
-Tests: `backend/tests/test_ml_features.py`, `test_ml_model.py`, `test_unusual_api.py`, `test_ml_names.py`.
-
-## AI features: "Explain in plain words" and the Land Guide (Phase 11)
-
-Two optional AI features. **The server starts and works without them** (the AI shows a friendly "AI is off" message); the risk score never depends on them.
-
-**Turn the AI on.** Put these in `.env` (never commit it; `.env.example` has the names without values):
-```
-OPENROUTER_API_KEY=your-key
-OPENROUTER_MODEL=the-model-id-you-chose        # a free model is fine
-# OPENROUTER_BASE_URL=https://openrouter.ai/api/v1   (optional)
-```
-Free models often answer 429 (busy) or time out. That is treated as a normal case: one retry after a short wait, then a friendly "AI is busy, try again". Whatever you send goes to a third-party service, so the app sends as little as it can (below).
-
-### "Explain in plain words" (passport drawer, `POST /plots/{ulpin}/explain`)
-It rewrites the findings a plot **already has** into plain words. It never changes, adds or removes a finding and never touches the score or the band. Only finding types, points, a few numbers and the band are sent to the AI: **no owner names, no ULPINs, no survey numbers, no villages**. If the AI is off, busy or wrong (for example it mentions a number we did not send), a template written in code is shown instead, honestly labelled "written by code, not by AI". Same role rules, 404 behaviour, audit log and rate limit as the passport.
-
-### The Land Guide (chat panel, `POST /guide/ask`)
-A chatbot that answers general questions about land records **only from a small set of public pages and the LandStack glossary**, with the source links. It uses plain word-matching search (BM25), then asks the AI to answer only from the best passages and cite them. If nothing matches it says "I don't know from my sources." (without calling the AI). It never sees plot or personal data, treats page text as data (never as instructions), and adds a "not legal advice" note. It can be wrong.
-
-**Build its corpus (a fresh clone has none; one command):**
-```
-python -m chatbot.build                # scrape the listed pages (politely, cached), then rebuild the chunks
-python -m chatbot.build --index-only   # no network: rebuild the chunks from what is already saved
-```
-Until you run it, the Guide still works from the original glossary alone (`chatbot/glossary.md`, written for LandStack, safe to commit). `pip install -r backend/requirements.txt` adds `rank_bm25` and `beautifulsoup4`. To start from scratch, delete `chatbot/raw/` and `chatbot/chunks.jsonl`.
-
-**Sources and what they allow (checked 11 November 2026):**
-
-| Site | robots.txt | Terms | Used? |
+| Username | Password | Role | Sees |
 |---|---|---|---|
-| en.vikaspedia.in (C-DAC, MeitY) | allows everything except a few named bots | reproduction allowed with clear credit to the source; third-party material excluded; the agriculture subdomain asks for permission | **Yes**, 6 `en.` land-record pages only, every answer links the page |
-| dolr.gov.in (Dept. of Land Resources) | allows everything | terms could not be read (a JavaScript site) | **No, on hold.** A future source if its terms or permission are confirmed |
-| igrmaharashtra.gov.in | no real rules | copyright policy: no reproduction without the department's permission | **No** |
-| bhulekh.mahabhumi.gov.in | no robots.txt | no terms page found; a transactional portal with personal land records | **No** |
+| `admin` | `AdminDemo#2026` | admin | everything an officer sees, plus the audit log |
+| `officer` | `OfficerDemo#2026` | officer | all plots and passports |
+| `citizen1` | `Citizen1Demo#2026` | citizen | only its 3 plots |
+| `citizen2` | `Citizen2Demo#2026` | citizen | only its 3 plots |
 
-**Credit:** the Land Guide's answers draw on pages from **Vikaspedia (C-DAC Hyderabad, Ministry of Electronics and Information Technology, Government of India)**. The pages used are listed, with the date each was read, in `chatbot/sources.json` (committed). The raw pages and the chunks are other people's text, so they stay on your machine (`chatbot/raw/`, `chatbot/chunks.jsonl`, both git-ignored).
+The login screen shows these as one-click buttons **only when `VITE_DEMO_ACCOUNTS` is exactly `true`** in `frontend/.env` (the setup script writes that for local demos). **Warning: the row shows usernames and passwords on the login screen. It is off by default; never set it to `true` in a real deployment**, and build a production copy with it unset (`npm run build`).
 
-**The scraper is polite:** it reads only the URLs in `sources.json` (it never crawls), sends a descriptive User-Agent, waits at least 4 seconds between requests (or the site's Crawl-delay if larger), checks robots.txt, caches every page (a re-run fetches nothing new), reads at most 30 pages per run, and **stops at once on any 403 or 429**.
+## Tests
+```
+python -m pytest backend/tests -q        # 659 tests; needs the database running and seeded
+cd frontend && npm run check:design      # design rules: no stray colours, sizes, emoji or old product name
+cd frontend && npm run build             # design check + TypeScript + production build
+```
+The tests use a throw-away JWT secret, switch the AI **off** and block the network, so they never call OpenRouter or any website. GitHub Actions runs the same three things on every push (`.github/workflows/ci.yml`, Python 3.14, a PostGIS service container, no secrets).
 
-**Limits:** the corpus is small (6 pages and the glossary), so many questions get "I don't know from my sources". The pages are a snapshot (the DILRMP page says it is several years old). Answers can be wrong or out of date, and nothing here is legal advice. English only for now: the language step is one swappable pair of functions (`translate_to_english` and `translate_from_english` in `chatbot/guide.py`); Hindi and Marathi, with a Unicode font for the UI and the PDF, come in a later step.
+## Honesty: what this is not
+- **The data is fake.** 100 generated plots near Pune, with problems planted on purpose by `db/seed.py` (same seed, same data). Every number in the demo is demo data. PDFs say so.
+- **The three state formats are made up.** The Maharashtra (CSV), Karnataka (JSON) and Uttar Pradesh (nested JSON) formats were invented for the demo. They are not the real formats of those states' systems.
+- **Change detection is simulated.** There is no satellite or aerial imagery. The two building "snapshots" are generated by the seed script. The words SIMULATED appear on purpose in the app, API docs and PDF.
+- **The ML model mostly relearns the generator.** It is an Isolation Forest trained on 5,000 *generated* plots and measured on 2,000 other generated plots (160 with a planted problem, 8.0%). Flagging the top 5% (the cut-off in use) catches 51 of those 160 problem plots (31.9%) and wrongly flags 53 of 1,840 clean ones (2.9%): precision 49.0%, about 6.1 times better than flagging at random. It catches **every** overlap, but only because in the generated map plots never touch unless an overlap was planted; it catches **none** of the plots whose only problem is an owner mismatch (0 of 18), a duplicate survey number (0 of 25) or a missing record (0 of 12). These figures are from a re-run of `python -m ml.evaluate`. They say nothing about real land records, and the note is advice for a person, never part of the score.
+- **The name matcher barely improved.** On 600 rule-made name pairs (240 held out for testing), tuning the matcher's threshold raised F1 by only **+0.008** (0.855 to 0.863), below the +0.02 the project asked for, so **the threshold stays at 0.60**. It still misses names written as an initial, a spelling variant and an honorific (`Anita Joshi` vs `Mrs Joshee A.`) and wrongly matches near-identical different names (`Vijay Lokhande` vs `Vinay Lokhande`).
+- **The Land Guide's corpus is small:** 53 passages from 6 public Vikaspedia pages plus a glossary written for this project. Many questions get "I don't know from my sources." The pages are a snapshot and can be old. It can be wrong and it is not legal advice.
+- **Translations are machine-made.** Hindi and Marathi answers come from translating the checked English answer with a free model and are labelled "machine-translated, may contain errors". The fixed Hindi and Marathi sentences in `chatbot/strings.json` were written by a person (not by an AI each time) but **have not been reviewed by a native speaker**. Only the Land Guide panel and the Explain section are translated, not the whole app.
+- **Login tokens cannot be revoked.** They are standard JWTs that last 60 minutes by default. Logging out only forgets the token in the browser; a stolen token works until it expires. The rate-limit counters live in the server's memory (they reset on restart and are not shared between workers).
+- **Whatever you send to the AI leaves your machine.** The app sends as little as it can (finding types, numbers, the question; no names, no ULPINs). Do not type personal details into the Land Guide.
+- **No security audit.** The dependency audits (`pip-audit`, `npm audit`) were clean when run, secrets are not in the repository or its history, and citizens cannot reach other people's plots on any endpoint (a test walks every endpoint). That is not a substitute for a real review before any real use.
 
-## Hindi and Marathi (Phase 11b)
+### Plan: how a real deployment would train and ship the ML model
+Nothing below is built; it is the plan.
+1. **Train on real, approved records, not generated ones**, and re-measure with a person labelling a sample. If it does no better than luck on real data, drop the note.
+2. **Keep the feature code in one place** (`ml/features.py`, already shared by training and the API) and refuse a model whose feature list or scikit-learn version differs (already enforced: the API then starts without the note).
+3. **Train in a controlled job** (for example a scheduled CI job), not on a laptop, and store the model file outside the repository (it is git-ignored) in private storage.
+4. **Treat the model file as code.** `.joblib` is Python pickle and runs code when loaded: only load files your own job produced, from a read-only location, ideally checked against a stored hash, or switch to a data-only format.
+5. **Retrain on a schedule and watch for drift** (the share of plots flagged, compared with the training share of 5%).
+6. **Cache the features.** Today each passport request rebuilds the features for every plot, which is fine for 100 plots but not for a state.
 
-The Land Guide and "Explain in plain words" also work in **हिन्दी** and **मराठी**, and the printable passport can show Devanagari text correctly. English is still the default.
+## Credits
+- The **LandStack SIH 2026 team**, where this project began.
+- **ThreeUI** (Meng To): the *Flow Field* login background, MIT licence (<https://github.com/MengTo/threeui>). Notice in [THIRD_PARTY.md](THIRD_PARTY.md).
+- **Vikaspedia**, C-DAC Hyderabad, Ministry of Electronics and Information Technology, Government of India: the public pages the Land Guide answers from (credited with a link in every answer; listed in `chatbot/sources.json`).
+- **Noto Sans Devanagari** (The Noto Project Authors), **Geist** (The Geist Project Authors) and **Instrument Serif** (The Instrument Serif Project Authors), all SIL Open Font License 1.1.
+- Map data © OpenStreetMap contributors, © CARTO; satellite imagery by Esri, Maxar, Earthstar Geographics and the GIS User Community.
+- All other libraries and their licences are in [THIRD_PARTY.md](THIRD_PARTY.md). LandStack itself is MIT-licensed ([LICENSE](LICENSE)).
 
-- **How:** you pick the language in the Land Guide panel (EN / हिन्दी / मराठी; it is never guessed, because Hindi and Marathi share a script). A Hindi or Marathi question is translated to English by the same AI, answered from the English sources with all the usual checks, and the checked answer is translated back. **Retrieval stays English-only: the corpus is not translated.** Translation is told to translate only (never answer or add anything) and must keep every `[n]` source marker and every number; if it does not, you get the English answer with a short note. Explanations work the same way (only the validated English explanation is translated; the code-written fallback stays English). The score and findings never change.
-- **Quality depends on the free model you choose.** Free models can be weak at Hindi and especially Marathi, and can be busy. Translated AI text is always labelled "machine-translated, may contain errors" in the user's language. If the AI is off or busy you get the English text and a note in your language.
-- **Fixed sentences are not machine-translated.** Every fixed Hindi and Marathi sentence (the panel's labels, notes, the "not legal advice" note and "I don't know from my sources") is in one file, `chatbot/strings.json`, written by a person (not by an AI each time). **It has not been reviewed by a native speaker yet: please have it reviewed before real use.**
-- **Scope:** only the Land Guide panel and the Explain section are translated. **Full-app translation is out of scope**; the rest of LandStack stays English.
-- **Fonts (all SIL Open Font License 1.1):** *Noto Sans Devanagari*, Copyright The Noto Project Authors. In the web app it is self-hosted from the `@fontsource/noto-sans-devanagari` npm package (Devanagari subset only, no CDN). In the PDF, `backend/app/fonts/` holds two small static files (Regular and Bold, about 170 KB each, cut from the upstream variable font) with `OFL.txt` and a README on how they were made.
-- **The PDF stays English otherwise.** Plain ReportLab cannot shape Devanagari (it would print हिन्दी as हन्िदी), so `backend/app/devanagari.py` shapes with HarfBuzz (`uharfbuzz`, plus `fonttools`) and draws each letter's outline as a vector path with the non-zero fill rule. Used for any text that contains Devanagari: an owner name, a village, evidence that quotes a name. If the font or the shaper is missing, or the font lacks a letter, the Devanagari part is replaced by "(Devanagari text: see the digital passport)": never an empty box. Sample: [docs/samples/passport_marathi_owner.pdf](docs/samples/passport_marathi_owner.pdf) (Marathi owner names and village on a real plot's layout). It is a layout sample made from the code, not through the API, so its QR code will not verify.
-- **Setup:** `pip install -r backend/requirements.txt` (adds `uharfbuzz` and `fonttools`) and `cd frontend && npm install` (adds the font package).
+## More documentation
+[docs/DEMO.md](docs/DEMO.md) (tour) · [docs/REFERENCE.md](docs/REFERENCE.md) (every phase in detail: adapters, login, PDF, ML tables, AI features) · [docs/api-contract.md](docs/api-contract.md) · [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) · [docs/PROJECT_BRIEF.md](docs/PROJECT_BRIEF.md) · [docs/HANDOFF.md](docs/HANDOFF.md)
+
+## Future work
+Not built (by design, to keep each phase small):
+- **Login-token revocation** (a logout that really ends a token; short-lived tokens plus refresh).
+- **Frontend bundle size:** the production build is over 500 kB after minification; split the map and the Land Guide into separate chunks (and consider dropping GSAP, which does one animation).
+- **API backlog:** `GET /zones` (so the restricted-zones layer can be drawn), a `source` field on each evidence item (which table the finding came from), and `GET /villages` plus taluka and district on plots.
+- A **native-speaker review** of `chatbot/strings.json`, and translating the rest of the app.
+- Real **state adapters** against real file formats, wired to the API (today they load files by command).
+- **Real imagery** for change detection, instead of generated snapshots.
+- The **ML plan above** (real data, controlled training, a safe model format, a feature cache).
+- **More Land Guide sources** beyond Vikaspedia, only where terms or permission allow (DOLR is on hold).

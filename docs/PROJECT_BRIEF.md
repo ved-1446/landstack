@@ -139,3 +139,10 @@ Claude Code and Antigravity are both used, one at a time, in this same folder. T
 - Every fixed Hindi and Marathi sentence is in one file, `chatbot/strings.json`, **not yet reviewed by a native speaker**. Only the Guide panel and the Explain section are translated; the rest of the app stays English.
 - Devanagari renders correctly in the UI (self-hosted Noto Sans Devanagari) and in the printable passport (HarfBuzz shaping, vector glyphs, never boxes; the PDF stays English otherwise). A sample with Marathi names: `docs/samples/passport_marathi_owner.pdf`. Font licences (SIL OFL 1.1) are credited in the README and `backend/app/fonts/`.
 - 605 backend tests pass (the earlier 511 untouched). Next: Phase 12.
+
+## Status update after Phase 12 (hardening, naming, README, demo)
+- **Naming:** LandStack everywhere a reader sees it; the LandStack SIH 2026 team is credited in the README. The container `landstack-db`, the database `landstack` and its user are legacy infrastructure names kept on purpose (the owner chose to keep them; the README explains why).
+- **Hardening:** CORS from `CORS_ORIGINS` (no wildcards), exact version pins (tested on Python 3.14.7), the demo login row only when `VITE_DEMO_ACCOUNTS=true`, a test that walks every endpoint as a citizen and as a visitor, error responses that leak nothing. `pip-audit` and `npm audit` were clean. Scoring, bands, checks and planted data were not changed.
+- **Small features:** friendly HTML `/verify` page (JSON still available), a `capped` flag (API, drawer, PDF; not in the tamper-evidence hash), an `X-Document-Id` header on the PDF.
+- **Repo polish:** MIT `LICENSE`, `THIRD_PARTY.md` (Flow Field MIT notice, OFL fonts, GSAP's non-open licence noted), GitHub Actions CI (PostGIS service, pytest, `check:design`, build; Python 3.14; no secrets; AI mocked), `scripts/setup.ps1` and `scripts/setup.sh`, `docs/DEMO.md`, curated `docs/screenshots/`, regenerated `docs/samples/`, the final README (the long phase-by-phase notes moved to `docs/REFERENCE.md`).
+- 659 backend tests pass. The project is feature-complete for the portfolio goal; what is left is in the README's Future work.
