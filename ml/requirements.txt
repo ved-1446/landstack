@@ -1,6 +1,6 @@
 # Extra tools for exploring and evaluating the ML (not needed to run the API)
 -r ../backend/requirements.txt
-matplotlib>=3.8
-nbformat>=5.10
-nbconvert>=7.16
-ipykernel>=6.29
+matplotlib==3.11.2
+nbformat==5.11.1
+nbconvert==7.17.2
+ipykernel==7.4.0

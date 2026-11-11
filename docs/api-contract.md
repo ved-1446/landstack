@@ -388,3 +388,9 @@ The printable land passport: one A4 page. It shows the demo-data notice, plot fa
 `valid` is true only when `status` is `"matches"`. The answer deliberately contains nothing else: no owner names, no evidence, no score, no band. Anyone holding the paper (or finding the id) learns only that the document is genuine and whether it is still current.
 
 - Errors: 404 `{"detail": "No document found with that id"}` (an id that was never issued), 422 (not shaped like an id), 429 `Retry-After` header, 503.
+
+## Phase 12 (checkpoint 1) changes
+- `GET /verify/{doc_id}`: same URL. Programs (no `Accept`, `*/*`, `application/json`) still get the JSON. A browser (`Accept: text/html`) gets a small page: MATCHES / HAS CHANGED / NOT FOUND, the plot id, issue time and document id only. No scripts, strict `Content-Security-Policy`, `nosniff`, `no-store`. A browser asking for an unknown id gets the page with status 404.
+- `GET /plots/{ulpin}` (and the explain/passport data): new field `capped` (bool): the findings' points add up to more than 100, so the score is held at 100. It is NOT part of the tamper-evidence hash.
+- `GET /plots/{ulpin}/passport.pdf`: new response header `X-Document-Id` (the id printed on the page and in its QR code). Exposed to browsers through CORS. The PDF shows "Capped at 100: findings add up to N" when `capped` is true.
+- CORS: allowed origins come from `CORS_ORIGINS` (comma separated, default `http://localhost:5173`). A wildcard or malformed value stops the server from starting.

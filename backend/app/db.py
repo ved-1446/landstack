@@ -21,6 +21,8 @@ def read_env():
     return env
 
 
+# "landstack" is the LEGACY infrastructure name of the database and its user (the project was called LandStack at the start).
+# It is kept on purpose: renaming a Postgres database or user does not change an existing data volume. See the README.
 def connect():
     env = read_env()
     return psycopg.connect(

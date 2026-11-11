@@ -15,11 +15,11 @@ from typing import Annotated, Literal
 import psycopg
 from fastapi import Depends, FastAPI, HTTPException, Path, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import HTMLResponse, JSONResponse, Response
 from pydantic import BaseModel, Field
 from slowapi.errors import RateLimitExceeded
 
-from . import audit, auth, checks, config, limits, passport, pdf, unusual
+from . import audit, auth, checks, config, limits, passport, pdf, security, unusual, verify_page
 from . import explain as explainer
 from chatbot import guide as land_guide
 from .auth import ErrorBody, User, current_user, require_roles
@@ -120,6 +120,7 @@ class Passport(BaseModel):
     band: Band
     findings: list[Finding]
     unusual: Unusual | None = Field(default=None, description="null when no model file is installed")
+    capped: bool = Field(default=False, description="true when the findings' points add up to more than 100, so the score is held at 100")
 
 
 class Explanation(BaseModel):
@@ -220,10 +221,10 @@ app = FastAPI(
 # Only the Vite dev server may call this API from a browser. Retry-After is exposed so the page can read it.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=security.cors_origins(),        # CORS_ORIGINS in .env, default http://localhost:5173 only
     allow_methods=["GET", "POST"],
     allow_headers=["Authorization", "Content-Type"],
-    expose_headers=["Retry-After"],
+    expose_headers=["Retry-After", "X-Document-Id"],
 )
 app.state.limiter = limits.limiter
 PUBLIC_BASE_URL = pdf.get_public_base_url()   # checked at start-up; the QR codes point here
@@ -365,11 +366,13 @@ def passport_pdf(request: Request, ulpin: Ulpin, conn: Conn, user: AnyUser):
     conn.commit()    # only now is the issue row kept: no PDF, no row
     return Response(content=content, media_type="application/pdf", headers={
         "Content-Disposition": f'attachment; filename="landpassport_{ulpin}.pdf"',
+        "X-Document-Id": doc_id,                  # the id printed on the page and in its QR code; exposed to browsers by CORS
         "Cache-Control": "no-store"})
 
 
 @app.get("/verify/{doc_id}", response_model=Verification, tags=["verify"],
-         responses={404: {"model": ErrorBody}, 429: {"model": ErrorBody}, 503: {"model": ErrorBody}})
+         responses={200: {"content": {"text/html": {}}, "description": "JSON for programs; a small web page when the Accept header asks for text/html (a phone scanning the QR code)"},
+                    404: {"model": ErrorBody}, 429: {"model": ErrorBody}, 503: {"model": ErrorBody}})
 @limits.per_ip_verify
 def verify_document(
     request: Request,
@@ -379,14 +382,20 @@ def verify_document(
 ):
     """Public (no login), strictly rate limited. Does this printed passport still match the records?
     Says only: valid or not, the ulpin, when it was issued, and whether the records still match.
-    No names, no evidence, no score."""
+    No names, no evidence, no score. Programs get JSON; a browser (Accept: text/html) gets a small friendly page with the
+    same facts."""
+    as_page = verify_page.wants_html(request.headers.get("accept"))
     row = conn.execute("SELECT ulpin, issued_at, content_hash FROM passport_issues WHERE doc_id = %s",
                        (doc_id.upper(),)).fetchone()
     if row is None:
+        if as_page:
+            return HTMLResponse(verify_page.not_found_page(), status_code=404, headers=verify_page.HEADERS)
         raise HTTPException(status_code=404, detail="No document found with that id")
     ulpin, issued_at, printed_hash = row
     now = passport.load_passport(conn, ulpin)
     matches = now is not None and hmac.compare_digest(passport.content_hash(now), printed_hash)
+    if as_page:
+        return HTMLResponse(verify_page.found_page(doc_id.upper(), ulpin, issued_at, matches), headers=verify_page.HEADERS)
     return {"valid": matches, "ulpin": ulpin, "issued_at": issued_at,
             "status": "matches" if matches else CHANGED}
 

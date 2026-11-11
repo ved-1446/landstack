@@ -12,7 +12,7 @@ from decimal import Decimal
 
 from fastapi import HTTPException
 
-from . import audit, scoring, unusual
+from . import audit, config, scoring, unusual
 
 NOT_FOUND = "No plot found with ulpin {}"
 
@@ -34,6 +34,11 @@ def owned_ulpins(conn, username):
 
 # A ULPIN written inside evidence text (with the word "plot" in front, if there is one).
 _ULPIN_IN_TEXT = re.compile(r"(?:\bplot )?\b(?=[A-Z0-9]*\d)([A-Z0-9]{14})\b")
+
+
+def is_capped(findings):
+    """True if the findings' points add up to MORE than the cap, so the score stops at 100 (exactly 100 is not capped)."""
+    return sum(f["points"] for f in findings) > config.SCORE_CAP
 
 
 def hide_other_plots(findings, owned):
@@ -103,7 +108,7 @@ def fetch_for_user(conn, user, ulpin, actions):
     shown = full if owned is None else {**full, "findings": hide_other_plots(full["findings"], set(owned))}
     # The statistical note is added to what is SHOWN only. `full` (what gets hashed for tamper evidence) never has it,
     # so retraining or removing the model cannot make an old printed passport say "records have changed".
-    shown = {**shown, "unusual": unusual.assess(conn, ulpin)}
+    shown = {**shown, "unusual": unusual.assess(conn, ulpin), "capped": is_capped(full["findings"])}
     return shown, full
 
 

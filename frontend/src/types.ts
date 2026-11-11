@@ -79,6 +79,7 @@ export interface Passport {
   band: Band;
   findings: Finding[];
   unusual: Unusual | null;
+  capped: boolean; // the findings' points add up to more than 100, so the score is held at 100
 }
 
 export interface Summary {

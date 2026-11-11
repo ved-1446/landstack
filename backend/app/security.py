@@ -4,6 +4,7 @@ Rules: a plain password is never stored, logged or returned; the JWT secret come
 environment / .env and the app refuses to start without a real one.
 """
 import functools
+import re
 import secrets
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
@@ -17,6 +18,22 @@ from . import config, db
 _hasher = PasswordHasher()
 # Used when the username does not exist, so "unknown user" takes as long as "wrong password".
 _DUMMY_HASH = _hasher.hash(secrets.token_urlsafe(16))
+
+
+DEFAULT_CORS_ORIGINS = "http://localhost:5173"
+
+
+def cors_origins(env=None):
+    """The web addresses allowed to call this API from a browser: CORS_ORIGINS (comma separated) or the Vite dev server.
+    A wildcard or anything that is not a plain http(s) origin is refused at start-up, so a typo cannot open the API to everyone."""
+    env = db.read_env() if env is None else env
+    raw = (env.get("CORS_ORIGINS") or "").strip() or DEFAULT_CORS_ORIGINS
+    origins = [part.strip().rstrip("/") for part in raw.split(",") if part.strip()]
+    for origin in origins:
+        if not re.fullmatch(r"https?://[A-Za-z0-9.-]+(:\d{1,5})?", origin):
+            raise RuntimeError(f"CORS_ORIGINS must be a comma-separated list of origins like http://localhost:5173 (got {origin!r}); "
+                               "no wildcards, paths or spaces")
+    return origins
 
 
 def hash_password(password: str) -> str:

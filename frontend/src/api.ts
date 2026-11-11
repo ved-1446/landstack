@@ -189,10 +189,13 @@ export function getConstructionAlerts(signal?: AbortSignal) {
   return request<ConstructionCollection>("/construction-alerts", { signal });
 }
 
-/** The printable passport as a PDF file (the login token is sent, so the same role rules apply). */
-export async function downloadPassportPdf(ulpin: string, signal?: AbortSignal): Promise<Blob> {
+/**
+ * The printable passport as a PDF file (the login token is sent, so the same role rules apply), together with its document id
+ * (the X-Document-Id response header: the id printed on the page and in its QR code; null if the server did not send it).
+ */
+export async function downloadPassportPdf(ulpin: string, signal?: AbortSignal): Promise<{ blob: Blob; documentId: string | null }> {
   const response = await send(`/plots/${encodeURIComponent(ulpin)}/passport.pdf`, { signal });
-  return response.blob();
+  return { blob: await response.blob(), documentId: response.headers.get("X-Document-Id") };
 }
 
 /** Does a printed passport still match the records? Public endpoint: no login needed. */

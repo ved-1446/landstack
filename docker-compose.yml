@@ -1,7 +1,7 @@
 services:
   db:
     image: postgis/postgis:16-3.4
-    container_name: landstack-db
+    container_name: ${LANDSTACK_DB_CONTAINER:-landstack-db}   # legacy name kept as the default; a variable so a second copy can run beside it
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-landstack}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}

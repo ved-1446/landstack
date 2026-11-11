@@ -1,5 +1,7 @@
 # LandStack
 
+*Credit: the LandStack SIH 2026 team. (The Docker container `landstack-db`, the database `landstack` and its user keep that legacy name on purpose.)*
+
 Land records on a map (fake data, demo project). Work in progress.
 
 See `docs/PROJECT_BRIEF.md` for the plan and `docs/HANDOFF.md` for current status.

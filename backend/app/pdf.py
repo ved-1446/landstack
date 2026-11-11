@@ -107,6 +107,9 @@ def _draw_facts_and_badge(c, p, y_top):
     _text(c, M + 14, top - 44, str(p["score"]), "Helvetica-Bold", 34, BAND_TEXT[band])
     _text(c, M + 90, top - 26, f"{band.upper()} RISK BAND", "Helvetica-Bold", 14, BAND_TEXT[band])   # the band, in words
     _text(c, M + 90, top - 43, "Risk score out of 100", "Helvetica", 9, BAND_TEXT[band])
+    total = sum(f["points"] for f in p["findings"])
+    if p.get("capped", total > config.SCORE_CAP):
+        _text(c, M + 90, top - 55, f"Capped at {config.SCORE_CAP}: findings add up to {total}", "Helvetica-Bold", 7.5, BAND_TEXT[band])
 
 
 def _to_metres(ring):

@@ -1,5 +1,7 @@
 # LandStack: Project Brief
 
+*(The project was called LandStack in its first phases. The Docker container `landstack-db`, the database `landstack` and the database user `landstack` keep that legacy name on purpose.)*
+
 ## What it is
 A map app on fake land data. It shows plots, gathers each plot's records into one "land passport", finds eight kinds of conflicts with evidence, and gives a risk score from 0 to 100.
 

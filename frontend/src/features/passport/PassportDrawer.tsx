@@ -88,7 +88,7 @@ export function PassportDrawer({ ulpin, role, rules, simulatedTypes, prefetched,
   async function download() {
     setDownloading(true);
     try {
-      const blob = await downloadPassportPdf(ulpin);
+      const { blob, documentId } = await downloadPassportPdf(ulpin);
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -97,7 +97,11 @@ export function PassportDrawer({ ulpin, role, rules, simulatedTypes, prefetched,
       link.click();
       link.remove();
       URL.revokeObjectURL(url);
-      toast.push({ title: "PDF passport downloaded", description: `landpassport_${ulpin}.pdf`, tone: "success" });
+      toast.push({
+        title: "PDF passport downloaded",
+        description: `landpassport_${ulpin}.pdf${documentId ? ` · Document ${documentId}` : ""}`,
+        tone: "success",
+      });
     } catch (err) {
       toast.push({
         title: "Could not download the PDF",
@@ -117,8 +121,7 @@ export function PassportDrawer({ ulpin, role, rules, simulatedTypes, prefetched,
     }
   }
 
-  const total = passport ? passport.findings.reduce((sum, f) => sum + f.points, 0) : 0;
-  const capped = passport ? total > passport.score : false;
+  const capped = passport ? passport.capped : false; // the server says so (it was inferred from the points before)
 
   return (
     <>
