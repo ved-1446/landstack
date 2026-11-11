@@ -1,63 +1,150 @@
 /* LandStack design tokens (Phase 13a). The ONLY place colours, sizes and layers are written down.
    See docs/DESIGN_SYSTEM.md. Components use the Tailwind names mapped in index.css.
    Colour split: about 60% deep navy (the Flow Field colours), 30% glass and cream, 10% coral. */
-:root {
-  /* 60%: the dark base. (The old names navy-950/900/800 are kept so every earlier component adopts the new look.) */
-  --navy-950: #08101f;                  /* "ink": page background */
-  --navy-900: #0b1530;                  /* "navy": panels */
-  --navy-800: #16275a;                  /* "navy-2": raised surfaces */
-  --forest-line: #2f7a66;                 /* forest-teal: flow lines and patterns only, never text */
-  --cream: #f3ecdd;
+/* THEMES (Phase 13e). Every colour that changes between the dark and the light theme is written twice below, under the SAME names, so
+   components never know which theme is on. `:root` and `.force-dark` are the dark values (the default, and the always-dark hero);
+   `:root[data-theme="light"]` is the light set. Names to keep in mind:
+     cream / muted-on-navy / faint-on-navy / line-on-navy / glass*  = text, hairlines and glass ON THE PAGE
+     paper / ink / muted-on-cream / faint-on-cream / line-on-cream  = a CARD SURFACE and the text and hairlines ON it
+     risk-*-tint = risk text on the page; risk-*-ink = risk text on a card (both are pale in dark and deep in light)
+     coral = buttons and glows (never text on light); coral-text = coral used as TEXT; on-coral = the label on a coral button */
+:root,
+:root[data-theme="dark"],
+.force-dark {
+  color-scheme: dark;
 
-  /* text */
+  /* 60%: the dark base */
+  --navy-950: #08101f;                  /* page background */
+  --navy-900: #0b1530;                  /* panels */
+  --navy-800: #16275a;                  /* raised surfaces */
+  --forest-line: #2f7a66;                 /* forest-teal: flow lines and patterns only, never text */
+
+  /* text on the page (softer than before: 12.6:1 on the page) */
+  --cream: #e6dfcf;
   --muted-on-navy: #a9b3c7;
   --faint-on-navy: #97a2ba;
-  --ink: #0b1530;
-  --muted-on-cream: #4b5670;
-  --faint-on-cream: #566178;
 
-  /* 10%: coral = buttons, the active nav pill, the italic emphasis word, key highlights. Text on coral is navy. NEVER risk. */
+  /* cards: a deep navy surface that sits inside the palette, with soft cream text */
+  --paper: #172544;
+  --ink: #e6dfcf;
+  --muted-on-cream: #aab4c9;
+  --faint-on-cream: #9aa5bd;
+
+  /* 10%: coral = buttons, the active nav pill, key highlights. NEVER risk. */
   --coral: #ff6b4e;
   --coral-hover: #ff8468;
   --coral-pressed: #e8553a;
+  --coral-text: #ff6b4e;
+  --on-coral: #08101f;
 
   /* soft blue-grey (flow-field particles) */
   --mist: #8fa3c4;
 
-  /* risk: only for risk. The "tint" versions are for risk TEXT on dark; the "ink" versions are for risk on cream. */
+  /* risk: only for risk */
   --risk-green: #2f9e6e;
   --risk-amber: #d9970f;
   --risk-red: #d23b41;
   --risk-green-tint: #5fd3a0;
   --risk-amber-tint: #f2bc4b;
   --risk-red-tint: #ff8f93;
+  --risk-green-ink: #5fd3a0;
+  --risk-amber-ink: #f2bc4b;
+  --risk-red-ink: #ff8f93;
+  --gauge-red: #ff8f93;
+
+  /* simulated data ONLY: lavender, always with a dashed border and the word SIMULATED */
+  --sim: #b9a7ff;
+  --sim-ink: #b9a7ff;
+  --on-sim: #08101f;
+
+  /* hairlines */
+  --line-on-navy: rgb(230 223 207 / 0.14);
+  --line-on-cream: rgb(230 223 207 / 0.16);
+
+  /* glass surfaces: translucent, a fine border, a blur */
+  --glass-fill: rgb(255 255 255 / 0.06);
+  --glass-fill-strong: rgb(255 255 255 / 0.09);
+  --glass-border: rgb(255 255 255 / 0.14);
+  --glass-blur: 18px;
+  --glass-blur-scrolled: 24px;
+  --glass: rgb(11 21 48 / 0.78);        /* the denser glass used over the map (search pill, popovers, dock) */
+
+  /* role glows: ONLY soft background glows (halved in 13e) */
+  --indigo: #5b6cff;
+  --glow-citizen: rgb(255 107 78 / 0.11);
+  --glow-officer: rgb(47 122 102 / 0.2);
+  --glow-admin: rgb(91 108 255 / 0.15);
+  --glow-visitor: rgb(255 107 78 / 0.12);
+
+  /* shadows, three levels (softer than before) */
+  --sh-1: 0 1px 2px rgb(5 10 24 / 0.22);
+  --sh-2: 0 6px 18px rgb(5 10 24 / 0.26);
+  --sh-3: 0 18px 48px rgb(5 10 24 / 0.4);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --navy-950: #f3eee2;                  /* page: a pale warm wash */
+  --navy-900: #ebe5d6;
+  --navy-800: #ddd5c1;
+  --forest-line: #2f7a66;
+
+  --cream: #0b1530;
+  --muted-on-navy: #3b4760;
+  --faint-on-navy: #465169;
+
+  --paper: #fbf8f0;
+  --ink: #0b1530;
+  --muted-on-cream: #4b5670;
+  --faint-on-cream: #566178;
+
+  --coral: #ff6b4e;
+  --coral-hover: #ff8468;
+  --coral-pressed: #e8553a;
+  --coral-text: #a93418;                /* deeper coral, ONLY for text on light surfaces */
+  --on-coral: #08101f;
+
+  --mist: #8fa3c4;
+
+  --risk-green: #2f9e6e;
+  --risk-amber: #d9970f;
+  --risk-red: #d23b41;
+  --risk-green-tint: #17653c;
+  --risk-amber-tint: #7a4b00;
+  --risk-red-tint: #a31e32;
   --risk-green-ink: #17653c;
   --risk-amber-ink: #7a4b00;
   --risk-red-ink: #a31e32;
   --gauge-red: #d23b41;
 
-  /* simulated data ONLY: lavender, always with a dashed border and the word SIMULATED. sim-ink is the version for cream. */
-  --sim: #b9a7ff;
+  --sim: #5b46c4;
   --sim-ink: #4d3aa8;
+  --on-sim: #ffffff;
 
-  /* hairlines */
-  --line-on-navy: rgb(243 236 221 / 0.14);
+  --line-on-navy: rgb(11 21 48 / 0.16);
   --line-on-cream: rgb(11 21 48 / 0.14);
 
-  /* glass surfaces (30%): translucent white, a fine border, a blur */
-  --glass-fill: rgb(255 255 255 / 0.07);
-  --glass-fill-strong: rgb(255 255 255 / 0.1);
-  --glass-border: rgb(255 255 255 / 0.16);
-  --glass-blur: 18px;
-  --glass-blur-scrolled: 24px;
-  --glass: rgb(11 21 48 / 0.78);        /* the denser glass used over the map (search pill, popovers, dock) */
+  --glass-fill: rgb(11 21 48 / 0.045);
+  --glass-fill-strong: rgb(11 21 48 / 0.08);
+  --glass-border: rgb(11 21 48 / 0.15);
+  --glass: rgb(251 248 240 / 0.9);
 
-  /* role glows: ONLY soft background glows, never text or borders */
-  --indigo: #5b6cff;
-  --glow-citizen: rgb(255 107 78 / 0.2);
-  --glow-officer: rgb(47 122 102 / 0.34);
-  --glow-admin: rgb(91 108 255 / 0.26);
-  --glow-visitor: rgb(255 107 78 / 0.22);
+  --glow-citizen: rgb(255 107 78 / 0.13);
+  --glow-officer: rgb(47 122 102 / 0.14);
+  --glow-admin: rgb(91 108 255 / 0.13);
+  --glow-visitor: rgb(255 107 78 / 0.13);
+
+  --sh-1: 0 1px 2px rgb(60 48 20 / 0.1);
+  --sh-2: 0 6px 18px rgb(60 48 20 / 0.12);
+  --sh-3: 0 18px 48px rgb(60 48 20 / 0.18);
+}
+
+:root {
+  /* the map draws on its own basemap, not on the page, so its colours do NOT change with the theme */
+  --map-dark: #08101f;
+  --map-light: #f3ecdd;
+  --sim-map: #b9a7ff;
 
   /* radius */
   --r-control: 8px;
@@ -89,6 +176,8 @@
   --map-card-height: calc(100dvh - var(--nav-height) - 220px);
   --drawer-width: 430px;
   --popover-width: 360px;
+  --guide-max-height: min(576px, calc(100dvh - 144px));
+  --guide-popup-width: min(400px, calc(100vw - 2 * var(--edge)));
   --guide-width: 400px;                 /* the Land Guide chat panel is a little wider than other popovers */
   --popover-top: 80px;
   --popover-bottom: 96px;

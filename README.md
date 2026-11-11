@@ -29,11 +29,11 @@ More: [sample PDFs](docs/samples/) and the guided tour in [docs/DEMO.md](docs/DE
 - **State adapters** turn three made-up state formats into one standard format (square metres, ISO dates, "Given Family" names).
 
 ## The three views
-Everything after signing in sits in one app with a top navigation. A page that belongs to another role shows a friendly "not for your role" page (and the server checks again).
+Everything after signing in sits in one app with a top navigation, a **sun/moon button** for the light or dark theme (your choice is remembered; the first visit follows your system), and a **Land Guide button** fixed at the bottom right (a small chat panel; it has an "Open full page" link). A page that belongs to another role shows a friendly "not for your role" page (and the server checks again).
 
 | Role | Pages |
 |---|---|
-| **Citizen** ("MY LAND") | **Home** (a short story about your plots, written by code, and what to do next), **My plots** (cards), a **passport page** per plot (checks, a plain-words explanation in English, Hindi or Marathi, the PDF), **Verify** (paste a document id, a QR address or a plot id), **Activity** (your own recent actions) and the **Land Guide**. |
+| **Citizen** ("MY LAND") | **Home** (a short story about your plots, written by code, a small map picture and what to do next), **My plots** (cards), **Map** (only your own plots, with the passport opening inside the card), a **passport page** per plot (checks, a plain-words explanation in English, Hindi or Marathi, the PDF), **Verify** (paste a document id, a QR address or a plot id), **Activity** (your own recent actions). |
 | **Officer** ("OFFICER WORK DESK") | **Dashboard** (counts, problems by type, the ten riskiest plots, a map preview), **Plots** (a table with search, a filter for any mix of bands, a village filter, sorting and pages), **Map**, **Conflicts**, **Construction** (simulated), **Zones**, the **Land Guide**, and your own activity in the account menu. |
 | **Admin** ("CONTROL ROOM") | **Overview** (system health, people, activity), the **audit log** (a timeline with filters and pages), **Users** (roles, linked plots, last activity; never a password), **System** (API, database, PostGIS, the AI explainer, the model, versions) and **Insights** (what the unusual-plot model pays attention to, labelled "explanation only"). The officer pages are in a second strip. |
 

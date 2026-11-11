@@ -4,6 +4,7 @@ import { useAuth } from "../auth";
 import { StaticLayer } from "../components/Backdrop";
 import { RouteLoading } from "../components/RouteLoading";
 import { GlassNav, RoleBadge } from "../components/ui";
+import { GuideLauncher } from "../features/guide/GuideLauncher";
 import { LanguageProvider } from "../features/guide/language";
 import { AppDataProvider } from "../lib/appData";
 import { cn } from "../lib/cn";
@@ -36,7 +37,7 @@ export default function AppShell() {
         <StaticLayer identity={session.role}>
           <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-modal focus:rounded-control focus:bg-coral focus:px-4 focus:py-2 focus:text-14 focus:font-medium focus:text-navy-950"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-modal focus:rounded-control focus:bg-coral focus:px-4 focus:py-2 focus:text-14 focus:font-medium focus:text-on-coral"
       >
         Skip to content
       </a>
@@ -75,6 +76,7 @@ export default function AppShell() {
               <Suspense fallback={<RouteLoading />}>{allowed ? <Outlet /> : <NotForRole />}</Suspense>
             </main>
           </div>
+          <GuideLauncher />
         </StaticLayer>
       </AppDataProvider>
     </LanguageProvider>

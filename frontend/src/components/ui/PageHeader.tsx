@@ -30,7 +30,7 @@ export function PageHeader({ eyebrow, title, emphasis, subtitle, actions, classN
           {emphasis && (
             <>
               {" "}
-              <em className="text-coral">{emphasis}</em>
+              <em className="text-coral-text">{emphasis}</em>
             </>
           )}
         </Heading>

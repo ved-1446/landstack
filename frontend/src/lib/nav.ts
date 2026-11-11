@@ -19,15 +19,14 @@ const WORK_DESK: NavLinkItem[] = [
   { to: "/app/conflicts", label: "Conflicts" },
   { to: "/app/construction", label: "Construction" },
   { to: "/app/zones", label: "Zones" },
-  { to: "/app/guide", label: "Land Guide" },
 ];
 
 const CITIZEN: NavLinkItem[] = [
   { to: "/app/home", label: "Home" },
   { to: "/app/plots", label: "My plots" },
+  { to: "/app/map", label: "Map" },
   { to: "/app/verify", label: "Verify" },
   { to: "/app/activity", label: "Activity" },
-  { to: "/app/guide", label: "Land Guide" },
 ];
 
 const OFFICER: NavLinkItem[] = [{ to: "/app/dashboard", label: "Dashboard" }, ...WORK_DESK];
@@ -56,8 +55,8 @@ export function navFor(role: Role): RoleNav {
   return { links: ADMIN, workDesk: ADMIN_DESK };
 }
 
-/** Pages a role may open that are not tabs: the map for a citizen (their own plots only), and "My activity" in the staff account menu. */
-const EXTRA: Record<Role, string[]> = { citizen: ["/app/map"], officer: ["/app/activity"], admin: ["/app/activity"] };
+/** Pages a role may open that are not tabs: the Land Guide full page (its button is bottom-right), and "My activity" in the staff account menu. */
+const EXTRA: Record<Role, string[]> = { citizen: ["/app/guide"], officer: ["/app/activity", "/app/guide"], admin: ["/app/activity", "/app/guide"] };
 
 /** Every /app path this role may open. The server still decides what data it gets; this only decides which page is shown. */
 export function allowedPaths(role: Role): string[] {

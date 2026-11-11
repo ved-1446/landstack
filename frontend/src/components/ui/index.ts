@@ -25,3 +25,4 @@ export type { SegmentedOption } from "./Segmented";
 export { Skeleton } from "./Skeleton";
 export { Switch } from "./Switch";
 export { ToastProvider, useToast } from "./Toast";
+export { ThemeToggle } from "./ThemeToggle";

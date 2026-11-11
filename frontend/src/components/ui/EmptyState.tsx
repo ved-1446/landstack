@@ -17,7 +17,7 @@ export function EmptyState({ icon: Icon, title, description, action, on = "navy"
   const cream = on === "cream";
   return (
     <div className={cn("flex flex-col items-center gap-3 px-4 py-8 text-center", className)}>
-      <span className={cn("flex size-12 items-center justify-center rounded-pill", cream ? "bg-ink text-cream" : "bg-navy-800 text-cream")}>
+      <span className={cn("flex size-12 items-center justify-center rounded-pill", cream ? "bg-ink text-paper" : "bg-navy-800 text-cream")}>
         <Icon className="size-6" aria-hidden="true" />
       </span>
       <h3 className={cn("font-serif text-26", cream ? "text-ink" : "text-cream")}>{title}</h3>

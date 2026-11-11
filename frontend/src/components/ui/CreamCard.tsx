@@ -2,7 +2,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import type { HTMLAttributes } from "react";
 import { cn } from "../../lib/cn";
 
-const creamCard = cva("rounded-glass border border-line-on-cream bg-cream text-ink shadow-2", {
+const creamCard = cva("rounded-glass border border-line-on-cream bg-paper text-ink shadow-2", {
   variants: {
     padding: { none: "", sm: "p-4", md: "p-6" },
     lift: { true: "lift", false: "" },

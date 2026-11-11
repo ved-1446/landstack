@@ -38,7 +38,7 @@ export function CheckCard() {
     <GlassCard strong id="check" className="scroll-mt-32" aria-labelledby="check-title">
       <p className="font-mono text-12 tracking-widest text-muted-on-navy">CHECK A PLOT</p>
       <h2 id="check-title" className="mt-2 font-serif text-34 text-cream">
-        Is this plot <em className="text-coral">safe</em> to trust?
+        Is this plot <em className="text-coral-text">safe</em> to trust?
       </h2>
       <p className="mt-2 text-14 text-muted-on-navy">Type a plot id (14 letters and digits). You get the village and the risk band. Nothing else is shown to the public.</p>
       <form onSubmit={submit} className="mt-4 flex flex-wrap gap-3">

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, NavLink, useLocation } from "react-router";
+import { ThemeToggle } from "./ThemeToggle";
 import { cn } from "../../lib/cn";
 
 export interface NavLinkItem {
@@ -18,13 +19,15 @@ interface GlassNavProps {
   /** the right-hand side: a sign-in button, or the role badge and account menu */
   right?: ReactNode;
   label?: string;
+  /** the nav floats over a dark hero (the Flow Field): keep it dark until the page scrolls, whatever the theme */
+  onDark?: boolean;
 }
 
 /**
  * The top navigation: a floating translucent pill that blurs more once the page has scrolled.
  * The active tab is a coral pill with navy text. Under 768px the tabs sit on a second, sideways-scrolling row inside the pill.
  */
-export function GlassNav({ home, links, right, label = "Main" }: GlassNavProps) {
+export function GlassNav({ home, links, right, label = "Main", onDark = false }: GlassNavProps) {
   const [scrolled, setScrolled] = useState(false);
   const tabs = useRef<HTMLElement>(null);
   const { pathname } = useLocation();
@@ -40,7 +43,7 @@ export function GlassNav({ home, links, right, label = "Main" }: GlassNavProps) 
   }, []);
 
   return (
-    <header className="fixed inset-x-0 top-0 z-nav px-(--edge) pt-3">
+    <header className={cn("fixed inset-x-0 top-0 z-nav px-(--edge) pt-3", onDark && !scrolled && "force-dark")}>
       <div
         data-scrolled={scrolled}
         className={cn(
@@ -64,7 +67,7 @@ export function GlassNav({ home, links, right, label = "Main" }: GlassNavProps) 
               className={({ isActive }) =>
                 cn(
                   "shrink-0 whitespace-nowrap rounded-pill px-4 py-2 text-14 font-medium transition-colors duration-150 ease-out",
-                  isActive ? "bg-coral text-navy-950" : "text-muted-on-navy hover:bg-glass-fill-strong hover:text-cream",
+                  isActive ? "bg-coral text-on-coral" : "text-muted-on-navy hover:bg-glass-fill-strong hover:text-cream",
                 )
               }
             >
@@ -72,7 +75,10 @@ export function GlassNav({ home, links, right, label = "Main" }: GlassNavProps) 
             </NavLink>
           ))}
         </nav>
-        <div className="flex items-center gap-2">{right}</div>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          {right}
+        </div>
       </div>
     </header>
   );

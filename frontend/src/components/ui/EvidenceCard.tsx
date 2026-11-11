@@ -33,9 +33,9 @@ interface EvidenceCardProps {
 export function EvidenceCard({ type, points, evidence, rule, simulated = false, className }: EvidenceCardProps) {
   const Icon = ICONS[type];
   return (
-    <article className={cn("rounded-card border border-line-on-cream bg-cream p-3", className)}>
+    <article className={cn("rounded-card border border-line-on-cream bg-paper p-3", className)}>
       <header className="flex items-center gap-3">
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-control bg-ink text-cream">
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-control bg-ink text-paper">
           <Icon className="size-4" aria-hidden="true" />
         </span>
         <h3 className="min-w-0 flex-1 text-14 font-semibold text-ink">{prettyType(type)}</h3>

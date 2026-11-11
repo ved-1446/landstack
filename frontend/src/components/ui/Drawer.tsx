@@ -54,6 +54,15 @@ export function Drawer({ open, onClose, label, viewingAs, children }: DrawerProp
     };
   }, [open]);
 
+  // let the rest of the page know a drawer is open (the Land Guide button steps aside on a phone)
+  useEffect(() => {
+    if (!open) return;
+    document.documentElement.dataset.drawer = "open";
+    return () => {
+      delete document.documentElement.dataset.drawer;
+    };
+  }, [open]);
+
   // opening: remember where focus was, move it into the drawer; closing gives it back
   useEffect(() => {
     if (!open) return;

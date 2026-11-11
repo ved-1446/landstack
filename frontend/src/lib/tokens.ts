@@ -26,14 +26,15 @@ export interface Palette {
 
 export function readPalette(): Palette {
   return {
-    navy950: cssVar("--navy-950"),
-    navy900: cssVar("--navy-900"),
-    cream: cssVar("--cream"),
+    // the Flow Field and the map draw on their own dark or light surface, not on the page, so they use the theme-free map colours
+    navy950: cssVar("--map-dark"),
+    navy900: cssVar("--map-dark"),
+    cream: cssVar("--map-light"),
     coral: cssVar("--coral"),
     mist: cssVar("--mist"),
     riskGreen: cssVar("--risk-green"),
     riskAmber: cssVar("--risk-amber"),
     riskRed: cssVar("--risk-red"),
-    sim: cssVar("--sim"),
+    sim: cssVar("--sim-map"),
   };
 }

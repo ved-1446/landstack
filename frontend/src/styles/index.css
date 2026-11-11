@@ -22,6 +22,12 @@
   --color-muted-on-navy: var(--muted-on-navy);
   --color-faint-on-navy: var(--faint-on-navy);
   --color-ink: var(--ink);
+  --color-paper: var(--paper);
+  --color-map-dark: var(--map-dark);
+  --color-map-light: var(--map-light);
+  --color-coral-text: var(--coral-text);
+  --color-on-coral: var(--on-coral);
+  --color-on-sim: var(--on-sim);
   --color-muted-on-cream: var(--muted-on-cream);
   --color-faint-on-cream: var(--faint-on-cream);
   --color-coral: var(--coral);
@@ -199,7 +205,6 @@
     font-family: var(--font-sans);
     font-size: 14px;
     line-height: 20px;
-    color-scheme: dark;
     -webkit-font-smoothing: antialiased;
   }
   /* one visible focus ring, everywhere */
@@ -209,7 +214,7 @@
   }
   ::selection {
     background: var(--coral);
-    color: var(--navy-950);
+    color: var(--on-coral);
   }
   :where(button) {
     cursor: pointer;
@@ -297,9 +302,9 @@
   user-select: none;
   padding: 0 6px;
   border-radius: var(--r-control);
-  color: var(--navy-950);
-  background: var(--sim);
-  border: 1px solid var(--navy-950);
+  color: var(--map-dark);
+  background: var(--sim-map);
+  border: 1px solid var(--map-dark);
 }
 
 /* ---- plot ULPIN labels on the map (small HTML labels, zoom 16 and closer) ---- */
@@ -311,10 +316,18 @@
   white-space: nowrap;
   pointer-events: none;
   user-select: none;
-  color: var(--cream);
-  text-shadow: 0 1px 2px var(--navy-950), 0 0 6px var(--navy-950);
+  color: var(--map-light);
+  text-shadow: 0 1px 2px var(--map-dark), 0 0 6px var(--map-dark);
 }
 .plot-label--on-light {
-  color: var(--ink);
-  text-shadow: 0 0 4px var(--cream);
+  color: var(--map-dark);
+  text-shadow: 0 0 4px var(--map-light);
+}
+
+/* ---- the Land Guide launcher (bottom-right of every signed-in page) ---- */
+@media (max-width: 767px) {
+  /* a phone: the bottom sheet needs the whole bottom edge, so the button steps aside while a passport is open */
+  html[data-drawer="open"] .guide-launcher { display: none; }
+  /* on the map page the dock sits along the bottom edge: lift the button above it */
+  html[data-map="open"] .guide-launcher { bottom: calc(var(--edge) + 176px); }
 }

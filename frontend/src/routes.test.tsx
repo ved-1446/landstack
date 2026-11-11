@@ -74,23 +74,23 @@ describe("a visitor", () => {
 });
 
 describe("each role gets its own tabs", () => {
-  it("citizen: Home, My plots, Verify, Activity, Land Guide", async () => {
+  it("citizen: Home, My plots, Map, Verify, Activity", async () => {
     renderAt("/app/plots", "citizen");
     await heading1(/my\s+plots/i);
-    expect(tabs("citizen pages")).toEqual(["Home", "My plots", "Verify", "Activity", "Land Guide"]);
+    expect(tabs("citizen pages")).toEqual(["Home", "My plots", "Map", "Verify", "Activity"]);
   });
 
-  it("officer: Dashboard, Plots, Map, Conflicts, Construction, Zones, Land Guide", async () => {
+  it("officer: Dashboard, Plots, Map, Conflicts, Construction, Zones", async () => {
     renderAt("/app/dashboard", "officer");
     await heading1(/attention/i);
-    expect(tabs("officer pages")).toEqual(["Dashboard", "Plots", "Map", "Conflicts", "Construction", "Zones", "Land Guide"]);
+    expect(tabs("officer pages")).toEqual(["Dashboard", "Plots", "Map", "Conflicts", "Construction", "Zones"]);
   });
 
   it("admin: Overview, Audit log, Users, System, Insights, plus a Work desk strip with the officer pages", async () => {
     renderAt("/app/dashboard", "admin");
     await heading1(/running/i);
     expect(tabs("admin pages")).toEqual(["Overview", "Audit log", "Users", "System", "Insights"]);
-    expect(tabs("Work desk pages")).toEqual(["Dashboard", "Plots", "Map", "Conflicts", "Construction", "Zones", "Land Guide"]);
+    expect(tabs("Work desk pages")).toEqual(["Dashboard", "Plots", "Map", "Conflicts", "Construction", "Zones"]);
   });
 
   it("only an admin has a second tab strip", async () => {
@@ -99,12 +99,12 @@ describe("each role gets its own tabs", () => {
     expect(screen.queryByRole("navigation", { name: "Work desk pages" })).toBeNull();
   });
 
-  it("there is no side rail and no floating Land Guide button; the Guide is one nav tab", async () => {
+  it("there is no side rail and no 'Land Guide' tab; the Guide is the floating button at the bottom right", async () => {
     renderAt("/app/dashboard", "officer");
     await heading1(/attention/i);
     expect(document.querySelector("[data-rail]")).toBeNull();
-    expect(screen.queryByRole("button", { name: /ask the land guide/i })).toBeNull();
-    expect(screen.getAllByRole("link", { name: "Land Guide" })).toHaveLength(1);
+    expect(screen.queryByRole("link", { name: "Land Guide" })).toBeNull();
+    expect(screen.getAllByRole("button", { name: /ask the land guide/i })).toHaveLength(1);
   });
 });
 

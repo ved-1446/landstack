@@ -15,6 +15,7 @@ import { MapToolbar, type PanelId } from "../features/map/MapToolbar";
 import { MyPlots } from "../features/myplots/MyPlots";
 import { PassportDrawer } from "../features/passport/PassportDrawer";
 import { useFetch } from "../hooks";
+import { useTheme } from "../lib/theme";
 import type { Band, ConflictType, Passport, PlotFeature, Summary } from "../types";
 import type { Session } from "../types";
 
@@ -33,7 +34,10 @@ export default function MapScreen({ session }: MapScreenProps) {
   const [panel, setPanel] = useState<PanelId | null>(() => (!staff && window.innerWidth >= 1200 ? "plots" : null));
   const [filters, setFilters] = useState<MapFilters>({ village: "", conflictType: "" });
   const [bands, setBands] = useState<Set<Band>>(new Set(ALL_BANDS));
-  const [basemap, setBasemap] = useState<BasemapId>("dark");
+  // the basemap follows the theme (Light for the light theme, Dark for the dark one) until the person picks one in Layers
+  const { theme } = useTheme();
+  const [pickedBasemap, setBasemap] = useState<BasemapId | null>(null);
+  const basemap: BasemapId = pickedBasemap ?? (theme === "light" ? "light" : "dark");
   const [layers, setLayers] = useState<MapLayerSwitches>({ boundaries: true, labels: true, risk: true, construction: false });
   const [selected, setSelected] = useState<string | null>(null);
   const [focus, setFocus] = useState<FocusRequest | null>(null);
@@ -77,6 +81,14 @@ export default function MapScreen({ session }: MapScreenProps) {
   );
 
   // if the simulated layer cannot load, say so (and switch it off) instead of drawing nothing in silence
+  // tells the Land Guide button it is on the map page (on a phone it lifts above the dock)
+  useEffect(() => {
+    document.documentElement.dataset.map = "open";
+    return () => {
+      delete document.documentElement.dataset.map;
+    };
+  }, []);
+
   useEffect(() => {
     if (!layers.construction || !construction.error) return;
     toast.push({ title: "Simulated buildings could not load", description: construction.error, tone: "error" });

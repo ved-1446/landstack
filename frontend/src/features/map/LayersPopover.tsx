@@ -14,7 +14,7 @@ interface LayersPopoverProps {
 
 /** A tiny drawn picture of each basemap (no images are loaded, so it works offline). */
 function Thumb({ id }: { id: BasemapId }) {
-  const sky = { light: "bg-cream", dark: "bg-navy-950", satellite: "bg-navy-800" }[id];
+  const sky = { light: "bg-map-light", dark: "bg-map-dark", satellite: "bg-navy-800" }[id];
   const line = { light: "bg-faint-on-cream", dark: "bg-faint-on-navy", satellite: "bg-mist" }[id];
   return (
     <span aria-hidden="true" className={cn("relative block h-12 overflow-hidden rounded-control border border-line-on-navy", sky)}>

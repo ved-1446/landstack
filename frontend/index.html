@@ -3,9 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="color-scheme" content="dark" />
+    <meta name="color-scheme" content="dark light" />
     <meta name="theme-color" content="#0a1429" />
     <meta name="description" content="LandStack: land records on a map, with conflicts, evidence and a risk score for every plot. Demo data." />
+    <script>
+      /* set the theme before the first paint, so there is no flash: the saved choice, else the system preference */
+      (function () {
+        var t = "dark";
+        try {
+          var v = localStorage.getItem("landstack-theme");
+          if (v === "light" || v === "dark") t = v;
+          else if (window.matchMedia("(prefers-color-scheme: light)").matches) t = "light";
+        } catch (e) {}
+        document.documentElement.setAttribute("data-theme", t);
+      })();
+    </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <title>LandStack</title>

@@ -1,6 +1,13 @@
 # Handoff
 
 ## Current phase
+### PHASE 13e STATUS: three UI changes DONE in the working tree (not committed)
+- **Softer cards + light/dark theme.** Tokens now exist twice under the same names (`:root`/`.force-dark` dark, `:root[data-theme="light"]` light) in `frontend/src/styles/tokens.css`; new names `paper` (card), `coral-text` (deeper coral for text on light), `on-coral`, `on-sim`, and theme-free `map-dark`/`map-light`/`sim-map`. Dark cards are deep navy with soft cream text (no more bright cream); light uses a pale warm wash. `lib/theme.ts` + `ThemeToggle` (in `GlassNav`), no-flash inline script in `index.html`, choice saved in `localStorage` (try/catch), default = system. The basemap follows the theme until picked in Layers. The landing hero and login stay dark in both themes (`.force-dark`; the nav stays dark over the hero until the page scrolls). Token tables and contrast values are in `docs/DESIGN_SYSTEM.md`.
+- **Land Guide popup.** The nav tab is gone. `features/guide/GuideLauncher.tsx` (mounted in `AppShell` only): bottom-right button, `role="dialog"` panel, Escape/close, focus returns, conversation kept, "Open full page" to `/app/guide` (route still works, button hidden there). The chat code loads on first open. On a phone it lifts above the map dock and hides while a passport sheet is open.
+- **Citizen map.** Nav is Home, My plots, Map, Verify, Activity. `/app/map` shows only the citizen's own plots (no new endpoint; `backend/tests/test_citizen_map.py` proves `/plots` with every filter, `/construction-alerts` and the passport leak nothing). Home has a static outline preview (`MiniMap`, ring markers) linking to the map.
+- **Tests.** Frontend 120 (new `theme.test.tsx`, `launcher.test.tsx`, `citizenmap.test.tsx`; route and nav tests updated). Browser: every page in both themes at 1440 px and 390 px (`docs/design/screens/phase13e-*.jpg`), console clean, lowest contrast 4.77:1.
+- **User still has to:** commit, and reseed the database (the browser passes added audit rows) before re-running the audit-order backend test.
+
 ### PHASE 13d STATUS: small cleanup DONE in the working tree (not committed)
 - The old container-name warning is gone from `scripts/setup.ps1` and `scripts/setup.sh`. The old name now appears only in `.env.example` (user pastes the new one) and the user's local `.env`.
 - `docs/design/screens/`: 64 older screenshots untracked (still on disk, git-ignored); tracked are `phase13c-*` and the four files a doc links by name. Older docs that say `phase13b-*`, `phase11*-*`, `phase13a2-*` refer to local-only files.

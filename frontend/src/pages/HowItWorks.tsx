@@ -35,7 +35,7 @@ export default function HowItWorks() {
         <div className="relative">
           <p className="font-mono text-12 tracking-widest text-muted-on-navy">THE NINE CHECKS</p>
           <h2 id="checks-title" className="mt-2 font-serif text-34 text-cream md:text-58">
-            What gets <em className="text-coral">checked</em>
+            What gets <em className="text-coral-text">checked</em>
           </h2>
           <p className="mt-3 max-w-2xl text-16 text-muted-on-navy">Each check is a fixed question. If the answer is a problem, the plot gets that many points. The points never change from plot to plot.</p>
           <ul className="mt-8 grid gap-4 md:grid-cols-2">
@@ -60,7 +60,7 @@ export default function HowItWorks() {
       <section aria-labelledby="bands-title" className="mt-20">
         <p className="font-mono text-12 tracking-widest text-muted-on-navy">THE THREE BANDS</p>
         <h2 id="bands-title" className="mt-2 font-serif text-34 text-cream md:text-58">
-          From the total, a <em className="text-coral">band</em>
+          From the total, a <em className="text-coral-text">band</em>
         </h2>
         <p className="mt-3 max-w-2xl text-16 text-muted-on-navy">The points are added up, and the total never goes above 100. The total decides the band. The band is always written in words, never just a colour.</p>
         <ul className="mt-8 grid gap-4 md:grid-cols-3">
@@ -79,7 +79,7 @@ export default function HowItWorks() {
       <section aria-labelledby="rules-title" className="mt-20 grid gap-6 md:grid-cols-2">
         <GlassCard strong>
           <h2 id="rules-title" className="font-serif text-34 text-cream">
-            Only code sets the <em className="text-coral">score</em>
+            Only code sets the <em className="text-coral-text">score</em>
           </h2>
           <p className="mt-3 text-14 text-muted-on-navy">
             The score is added up by ordinary code from the nine checks. An AI never changes it. When an AI is switched on, its only job is to

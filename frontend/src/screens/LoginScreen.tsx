@@ -85,17 +85,19 @@ export default function LoginScreen() {
   const slide = { duration: DURATION.base, ease: EASE_OUT };
 
   return (
-    <main className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-navy-950 p-4">
+    <main className="force-dark relative flex min-h-dvh items-center justify-center overflow-hidden bg-navy-950 p-4 text-cream">
       <Suspense fallback={null}>
         <FlowField />
       </Suspense>
 
       <div className="glass-card-strong relative z-panel w-full max-w-md rounded-glass p-8 shadow-3">
+        {/* a dark backing, so the heading stays readable on any frame of the moving background */}
+        <div aria-hidden="true" className="hero-card-backing pointer-events-none absolute inset-0 -z-10 rounded-glass" />
         <Link to="/" className="mb-6 inline-flex items-center gap-2 rounded-control text-13 text-muted-on-navy hover:text-cream">
           <ArrowLeft className="size-4" aria-hidden="true" />
           Back to home
         </Link>
-        <h1 className="font-serif text-58 text-cream">Sign <em className="text-coral">in</em></h1>
+        <h1 className="font-serif text-58 text-cream">Sign <em className="text-coral-text">in</em></h1>
         <p className="mt-2 text-14 text-muted-on-navy">Sign in to see land records. All data here is demo data.</p>
 
         {notice && (
@@ -217,7 +219,7 @@ export default function LoginScreen() {
                       onClick={() => fillDemo(account)}
                       className="lift glass-card flex h-full w-full flex-col gap-1 rounded-card p-3 text-left hover:bg-glass-fill-strong"
                     >
-                      <card.icon className="size-5 text-coral" aria-hidden="true" />
+                      <card.icon className="size-5 text-coral-text" aria-hidden="true" />
                       <span className="text-14 font-medium text-cream">{card.label}</span>
                       <span className="font-mono text-11 text-muted-on-navy">{account.username}</span>
                       <span className="text-12 text-muted-on-navy">{card.note}</span>

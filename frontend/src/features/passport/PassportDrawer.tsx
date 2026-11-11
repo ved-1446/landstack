@@ -57,7 +57,7 @@ function Missing() {
 
 function SheetSkeleton() {
   return (
-    <div aria-label="Loading passport" role="status" className="rounded-card bg-cream p-4">
+    <div aria-label="Loading passport" role="status" className="rounded-card bg-paper p-4">
       <Skeleton on="cream" className="h-4 w-24" />
       <Skeleton on="cream" className="mt-3 h-10 w-48" />
       <Skeleton on="cream" className="mx-auto mt-6 h-32 w-56 rounded-pill" />
@@ -144,7 +144,7 @@ export function PassportDrawer({ ulpin, role, rules, simulatedTypes, prefetched,
           <ErrorState message={error ?? "The passport could not be loaded."} onRetry={retry} />
         ) : (
           <>
-            <article className="rounded-card bg-cream p-4 text-ink" aria-label={`Land passport for survey ${passport.survey_no}`}>
+            <article className="rounded-card bg-paper p-4 text-ink" aria-label={`Land passport for survey ${passport.survey_no}`}>
               <p className="font-mono text-11 tracking-wider text-faint-on-cream">LAND PASSPORT</p>
               <h2 className="mt-1 font-serif text-34 text-ink">Survey {passport.survey_no}</h2>
               <div className="mt-2 flex items-center gap-2">

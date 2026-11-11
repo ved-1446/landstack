@@ -20,7 +20,7 @@ export default function PublicShell() {
     <StaticLayer identity="visitor">
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-modal focus:rounded-control focus:bg-coral focus:px-4 focus:py-2 focus:text-14 focus:font-medium focus:text-navy-950"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-modal focus:rounded-control focus:bg-coral focus:px-4 focus:py-2 focus:text-14 focus:font-medium focus:text-on-coral"
       >
         Skip to content
       </a>
@@ -28,10 +28,11 @@ export default function PublicShell() {
         home="/"
         links={VISITOR_LINKS}
         label="Public pages"
+        onDark={pathname === "/"}
         right={
           <Link
             to={session ? HOME[session.role] : "/login"}
-            className="rounded-pill bg-coral px-4 py-2 text-14 font-medium text-navy-950 transition-colors duration-150 hover:bg-coral-hover active:bg-coral-pressed"
+            className="rounded-pill bg-coral px-4 py-2 text-14 font-medium text-on-coral transition-colors duration-150 hover:bg-coral-hover active:bg-coral-pressed"
           >
             {session ? "Open the app" : "Sign in"}
           </Link>

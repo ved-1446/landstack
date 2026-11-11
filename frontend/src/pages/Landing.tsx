@@ -32,7 +32,7 @@ export default function Landing() {
   return (
     <div>
       {/* ---------- hero: the live Flow Field, the headline and the public check card ---------- */}
-      <section aria-labelledby="hero-title" className="relative -mt-(--nav-height) overflow-hidden pt-(--nav-height)">
+      <section aria-labelledby="hero-title" className="force-dark relative -mt-(--nav-height) overflow-hidden bg-navy-950 pt-(--nav-height) text-cream">
         <Suspense fallback={null}>
           <FlowField />
         </Suspense>
@@ -49,14 +49,14 @@ export default function Landing() {
               <br />
               One passport.
               <br />
-              <em className="text-coral">No surprises.</em>
+              <em className="text-coral-text">No surprises.</em>
             </h1>
             <p className="rise relative mt-6 max-w-xl text-16 text-muted-on-navy" style={rise(2)}>
               LandStack puts every plot on a map, checks its papers against its shape, and gives it a risk score from fixed rules, with a printable
               passport anyone can verify.
             </p>
             <div className="rise relative mt-8 flex flex-wrap gap-3" style={rise(3)}>
-              <Link to="/login" className={`${cta} bg-coral text-navy-950 hover:bg-coral-hover`}>
+              <Link to="/login" className={`${cta} bg-coral text-on-coral hover:bg-coral-hover`}>
                 Sign in
                 <ArrowRight className="size-4" aria-hidden="true" />
               </Link>
@@ -77,7 +77,7 @@ export default function Landing() {
         <div className="relative">
           <p className="font-mono text-12 tracking-widest text-muted-on-navy">SEE WHAT YOU GET</p>
           <h2 id="proof-title" className="mt-2 max-w-2xl font-serif text-34 text-cream md:text-58">
-            A score, the proof, and <em className="text-coral">no guessing</em>
+            A score, the proof, and <em className="text-coral-text">no guessing</em>
           </h2>
           <div className="mt-10">
             <Proof stats={stats.data} failed={Boolean(stats.error)} />
@@ -98,7 +98,7 @@ export default function Landing() {
         <div className="relative mx-auto max-w-(--content-width) px-(--edge)">
           <p className="font-mono text-12 tracking-widest text-muted-on-navy">HOW IT WORKS</p>
           <h2 id="how-title" className="mt-2 font-serif text-34 text-cream md:text-58">
-            Four steps, <em className="text-coral">nothing hidden</em>
+            Four steps, <em className="text-coral-text">nothing hidden</em>
           </h2>
           <ol className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {STEPS.map((step, i) => (
@@ -125,7 +125,7 @@ export default function Landing() {
         <div className="relative">
           <p className="font-mono text-12 tracking-widest text-muted-on-navy">AFTER YOU SIGN IN</p>
           <h2 id="roles-title" className="mt-2 font-serif text-34 text-cream md:text-58">
-            One app, <em className="text-coral">three views</em>
+            One app, <em className="text-coral-text">three views</em>
           </h2>
           <ul className="mt-10 grid gap-4 md:grid-cols-3">
             {ROLES.map((role) => {
@@ -133,7 +133,7 @@ export default function Landing() {
               return (
                 <li key={role.key}>
                   <GlassCard lift className="flex h-full flex-col">
-                    <Icon className="size-8 text-coral" aria-hidden="true" />
+                    <Icon className="size-8 text-coral-text" aria-hidden="true" />
                     <p className="mt-4 font-mono text-12 tracking-widest text-muted-on-navy">{role.area}</p>
                     <h3 className="mt-1 font-serif text-34 text-cream">{role.title}</h3>
                     <p className="mt-2 flex-1 text-14 text-muted-on-navy">{role.text}</p>
@@ -150,11 +150,11 @@ export default function Landing() {
       <section aria-labelledby="cta-title" className="mx-auto max-w-(--content-width) px-(--edge) py-16">
         <GlassCard strong className="text-center">
           <h2 id="cta-title" className="font-serif text-34 text-cream md:text-58">
-            Ready to look at the <em className="text-coral">map</em>?
+            Ready to look at the <em className="text-coral-text">map</em>?
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-16 text-muted-on-navy">Sign in with a demo account and open a red plot to see its passport.</p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Link to="/login" className={`${cta} bg-coral text-navy-950 hover:bg-coral-hover`}>
+            <Link to="/login" className={`${cta} bg-coral text-on-coral hover:bg-coral-hover`}>
               Sign in
               <ArrowRight className="size-4" aria-hidden="true" />
             </Link>

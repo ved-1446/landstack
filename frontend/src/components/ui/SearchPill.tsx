@@ -55,7 +55,7 @@ export const SearchPill = forwardRef<HTMLInputElement, SearchPillProps>(function
           type="submit"
           aria-label="Search"
           disabled={busy}
-          className="flex size-10 shrink-0 items-center justify-center rounded-pill bg-coral text-navy-950 transition-colors duration-150 ease-out hover:bg-coral-hover active:bg-coral-pressed disabled:opacity-60"
+          className="flex size-10 shrink-0 items-center justify-center rounded-pill bg-coral text-on-coral transition-colors duration-150 ease-out hover:bg-coral-hover active:bg-coral-pressed disabled:opacity-60"
         >
           {busy ? <LoaderCircle className="size-4 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <ArrowRight className="size-4" aria-hidden="true" />}
         </button>

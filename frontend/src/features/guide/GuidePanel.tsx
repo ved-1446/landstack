@@ -1,7 +1,8 @@
-import { AlertTriangle, CircleHelp, Clock, ExternalLink, Info, Languages, PowerOff, SendHorizontal, Sparkles } from "lucide-react";
+import { AlertTriangle, CircleHelp, Clock, ExternalLink, Info, Languages, PowerOff, SendHorizontal, Sparkles, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { Link } from "react-router";
 import { askGuide } from "../../api";
-import { Button, Chip, GlassCard, Popover } from "../../components/ui";
+import { Button, Chip, GlassCard } from "../../components/ui";
 import type { GuideAnswer, GuideStatus } from "../../types";
 import type { StringKey } from "./i18n";
 import { LanguageSelector, useLanguage } from "./language";
@@ -24,8 +25,9 @@ const STATUS: Record<GuideStatus, { icon: typeof Sparkles; label: StringKey }> =
 };
 
 interface GuidePanelProps {
-  /** "page" renders the conversation as a full page card (the /app/guide route); "popover" is the older floating panel */
-  variant?: "popover" | "page";
+  /** "page" renders the conversation as a full page card (the /app/guide route); "popup" is the compact panel of the bottom-right launcher */
+  variant?: "popup" | "page";
+  /** popup only: whether the panel is showing. The conversation is kept when it is not. */
   open?: boolean;
   onClose?: () => void;
 }
@@ -36,7 +38,7 @@ interface GuidePanelProps {
  * The visitor picks English, हिन्दी or मराठी; it is never guessed. Questions in Hindi or Marathi are translated to English on
  * the server, answered from the English sources, and translated back (retrieval is English-only).
  */
-export function GuidePanel({ variant = "popover", open = true, onClose = () => undefined }: GuidePanelProps) {
+export function GuidePanel({ variant = "page", open = true, onClose = () => undefined }: GuidePanelProps) {
   const { language, t } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState("");
@@ -46,8 +48,12 @@ export function GuidePanel({ variant = "popover", open = true, onClose = () => u
   const end = useRef<HTMLDivElement>(null);
 
   useEffect(() => () => abort.current?.abort(), []);
+  // the popup: when it opens (or finishes loading while open), the keyboard focus goes to the question box
   useEffect(() => {
-    if (open && variant !== "page") end.current?.scrollIntoView({ block: "end" });
+    if (open && variant === "popup") document.getElementById("guide-input")?.focus();
+  }, [open, variant]);
+  useEffect(() => {
+    if (open && variant === "popup") end.current?.scrollIntoView?.({ block: "end" });
   }, [open, messages, loading]);
 
   const ask = useCallback(
@@ -191,9 +197,31 @@ export function GuidePanel({ variant = "popover", open = true, onClose = () => u
     );
   }
   return (
-    <Popover open={open} onClose={onClose} title={t("guide_title")} footer={footer} className="md:w-(--guide-width)">
-      {body}
-    </Popover>
+    <div
+      role="dialog"
+      aria-label={t("guide_title")}
+      hidden={!open}
+      className="glass route-in flex max-h-(--guide-max-height) w-(--guide-popup-width) flex-col overflow-hidden rounded-panel shadow-2"
+    >
+      <div className="flex shrink-0 items-center justify-between gap-2 px-4 pt-3">
+        <h2 className="font-serif text-26 text-cream">{t("guide_title")}</h2>
+        <div className="flex items-center gap-1">
+          <Link
+            to="/app/guide"
+            onClick={onClose}
+            className="inline-flex h-8 items-center gap-1 rounded-pill px-3 text-13 text-muted-on-navy hover:bg-glass-fill-strong hover:text-cream"
+          >
+            Open full page
+            <ExternalLink className="size-3" aria-hidden="true" />
+          </Link>
+          <Button variant="ghost" size="icon" aria-label={`Close ${t("guide_title")}`} onClick={onClose}>
+            <X className="size-5" aria-hidden="true" />
+          </Button>
+        </div>
+      </div>
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">{body}</div>
+      <div className="shrink-0 border-t border-line-on-navy px-4 py-3">{footer}</div>
+    </div>
   );
 }
 

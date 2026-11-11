@@ -2,7 +2,8 @@ import { ArrowRight, BadgeCheck, FileDown, MessageCircleQuestion, Search, Sprout
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { Async } from "../../components/Async";
-import { BandChip, CreamCard, PageHeader, StatCard } from "../../components/ui";
+import { MiniMap } from "../../components/MiniMap";
+import { BandChip, CreamCard, GlassCard, PageHeader, StatCard } from "../../components/ui";
 import { useAppData } from "../../lib/appData";
 import type { PlotCollection } from "../../types";
 
@@ -91,6 +92,22 @@ export default function CitizenHome() {
                     ))}
                   </ul>
                 </CreamCard>
+                <GlassCard className="lg:col-span-2" lift>
+                  <Link to="/app/map" aria-label="Open the map of my plots" className="flex flex-wrap items-center gap-6 rounded-control">
+                    <MiniMap features={data.features} markers className="size-36 shrink-0 rounded-card" />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-mono text-12 tracking-widest text-muted-on-navy">ON THE MAP</p>
+                      <h2 className="mt-1 font-serif text-26 text-cream">Your plots, outlined by risk</h2>
+                      <p className="mt-2 text-14 text-muted-on-navy">
+                        A small picture of where your {props.length === 1 ? "plot is" : `${props.length} plots are`}. Each outline is marked green, amber or red, and the
+                        counts are written above. Open the map to see them on real streets.
+                      </p>
+                      <span className="mt-3 inline-flex items-center gap-2 text-14 text-cream underline underline-offset-4">
+                        Open the map <ArrowRight className="size-4" aria-hidden="true" />
+                      </span>
+                    </div>
+                  </Link>
+                </GlassCard>
               </div>
             );
           }}

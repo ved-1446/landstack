@@ -9,7 +9,7 @@ const button = cva(
     variants: {
       variant: {
         // coral: primary actions only. The label is navy-950 (6.7:1); cream on coral would fail.
-        primary: "bg-coral text-navy-950 hover:bg-coral-hover active:bg-coral-pressed",
+        primary: "bg-coral text-on-coral hover:bg-coral-hover active:bg-coral-pressed",
         // the glass button: translucent with a fine border
         secondary: "glass-card text-cream hover:bg-glass-fill-strong",
         ghost: "text-cream hover:bg-glass-fill",

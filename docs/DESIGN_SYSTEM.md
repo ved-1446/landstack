@@ -115,3 +115,51 @@ CONTROL ROOM in indigo, the same components. *Overview* is about the system and 
 
 ## Basemaps and attribution
 Light = CARTO Positron, Dark (default) = CARTO Dark Matter, Satellite = Esri World Imagery. The keyless endpoints are used unless `VITE_CARTO_KEY` / `VITE_ESRI_KEY` are set. Attribution is always visible on the map. If a basemap fails to load, a toast says so and the map falls back to Dark. See `docs/HANDOFF.md` for the terms risk.
+
+
+## Themes: dark and light (Phase 13e)
+Every colour that changes between the themes is written twice in `tokens.css` under the **same name**: `:root` / `.force-dark` hold the dark values (the default), `:root[data-theme="light"]` the light ones. Components never know which theme is on. The theme is set on `<html data-theme>` by a tiny inline script in `index.html` **before the first paint** (the saved choice in `localStorage` key `landstack-theme`, else the system preference, else dark), and the sun/moon button in the nav (`ThemeToggle`, `aria-label` "Switch to light theme" / "Switch to dark theme") changes it. Storage is read and written inside try/catch. Reduced motion is respected (nothing animates because of the switch).
+
+**Names to know.** `cream`, `muted-on-navy`, `faint-on-navy`, `line-on-navy`, `glass*` = text, hairlines and glass **on the page**. `paper`, `ink`, `muted-on-cream`, `faint-on-cream`, `line-on-cream` = a **card surface** and the text on it (the old "cream card", now `bg-paper`). `risk-*-tint` = risk text on the page; `risk-*-ink` = risk text on a card. `coral` = buttons, active tab, glows (never text on light); `coral-text` = coral as **text**; `on-coral` = the label on a coral button.
+
+**Softer cards.** In the dark theme the card is a deep navy surface (`#172544`) with soft cream text (`#e6dfcf`), a hairline of cream at 16% and half the old shadow and glow, so it sits inside the palette instead of glowing against it. In the light theme the page is a pale warm wash (`#f3eee2`) and cards are paper (`#fbf8f0`).
+
+| Token | Dark | Light |
+|---|---|---|
+| `navy-950` (page) / `navy-900` / `navy-800` | #08101F / #0B1530 / #16275A | #F3EEE2 / #EBE5D6 / #DDD5C1 |
+| `cream` (text on the page) | #E6DFCF | #0B1530 |
+| `muted-on-navy` / `faint-on-navy` | #A9B3C7 / #97A2BA | #3B4760 / #465169 |
+| `paper` (card) / `ink` (text on it) | #172544 / #E6DFCF | #FBF8F0 / #0B1530 |
+| `muted-on-cream` / `faint-on-cream` | #AAB4C9 / #9AA5BD | #4B5670 / #566178 |
+| `coral` (buttons, glows) | #FF6B4E | #FF6B4E |
+| `coral-text` (coral as text) | #FF6B4E | #A93418 (deeper, text on light only) |
+| `on-coral` (label on coral) | #08101F | #08101F |
+| `risk-*-tint` and `risk-*-ink` (green / amber / red) | #5FD3A0 / #F2BC4B / #FF8F93 | #17653C / #7A4B00 / #A31E32 |
+| `gauge-red` | #FF8F93 | #D23B41 |
+| `sim` / `sim-ink` (simulated data only) | #B9A7FF | #5B46C4 / #4D3AA8 |
+| `glass-fill` / `glass-border` / `glass` | white 6% / white 14% / navy 78% | navy 4.5% / navy 15% / paper 90% |
+| role glows citizen / officer / admin | coral 11% / teal 20% / indigo 15% | coral 13% / teal 14% / indigo 13% |
+| shadows `sh-2` | 0 6px 18px black 26% | 0 6px 18px warm brown 12% |
+
+The map does not follow the page: its outlines and labels use theme-free `--map-dark`, `--map-light`, `--sim-map`, so they stay readable on whichever basemap is showing. The basemap itself follows the theme (Light = CARTO Positron, Dark = CARTO Dark Matter) until someone picks one in Layers. The Flow Field (landing hero and login) is **always dark**: those sections carry `.force-dark`, and the top nav stays dark over the hero until the page scrolls.
+
+**Token-pair contrast (WCAG, computed from the values above).**
+
+| Pair | Dark | Light |
+|---|---|---|
+| `cream` on page | 14.3 | 15.6 |
+| `cream` on raised (`navy-800`) | 10.8 | 12.3 |
+| `muted-on-navy` on page / panel | 9.0 / 8.6 | 8.0 / 7.4 |
+| `faint-on-navy` on page / raised | 7.4 / 5.6 | 6.9 / 5.4 |
+| `ink` on `paper` | 11.4 | 17.0 |
+| `muted-on-cream` / `faint-on-cream` on `paper` | 7.3 / 6.1 | 6.9 / 5.9 |
+| `coral-text` on page / paper | 6.8 / 5.4 | 5.7 / 6.2 |
+| `on-coral` on `coral` | 6.8 | 6.8 |
+| risk green / amber / red text on page | 10.2 / 10.9 / 8.7 | 6.1 / 6.4 / 6.5 |
+| risk green / amber / red ink on paper | 8.2 / 8.7 / 6.9 | 6.7 / 7.0 / 7.1 |
+| `sim` on page | 9.1 | 7.3 |
+
+Rendered pages are measured as in 13a: a script hides each text, samples the pixels behind it from a screenshot and compares with the real colour. The results for both themes are in `docs/HANDOFF.md`.
+
+## Land Guide launcher (Phase 13e)
+The Land Guide is no longer a nav tab. A coral button ("Land Guide", icon only on phones) is fixed at the bottom right of every **signed-in** page (never on the public pages or the login page, and hidden on the full page `/app/guide`). It opens a compact `role="dialog"` panel above it with the existing chat (language choice, disclaimers, sources), an "Open full page" link and a close button. Escape or the close button closes it and the focus returns to the button. The panel stays mounted while closed, so the conversation is kept until the page is reloaded. On a phone the button lifts above the map dock and hides while a passport sheet is open.

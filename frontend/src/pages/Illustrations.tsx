@@ -41,7 +41,7 @@ function Count() {
 function Passport() {
   return (
     <svg viewBox="0 0 120 90" className={base} fill="none" aria-hidden="true">
-      <rect x="26" y="8" width="68" height="74" rx="8" className="fill-cream" />
+      <rect x="26" y="8" width="68" height="74" rx="8" className="fill-paper" />
       <path d="M36 24 H72 M36 34 H84 M36 44 H64" className="stroke-muted-on-cream" strokeWidth="3" strokeLinecap="round" />
       <rect x="68" y="56" width="18" height="18" rx="3" className="stroke-ink" strokeWidth="2" />
       <path d="M72 62 H76 V66 M82 62 V70 M72 70 H78" className="stroke-ink" strokeWidth="2" strokeLinecap="round" />
