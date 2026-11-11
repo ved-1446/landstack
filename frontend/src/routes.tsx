@@ -1,17 +1,30 @@
+import { lazy, type ReactNode } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router";
-import type { ReactNode } from "react";
 import { useAuth } from "./auth";
 import { allowedPaths, HOME } from "./lib/nav";
-import GuidePage from "./pages/GuidePage";
-import Landing from "./pages/Landing";
-import About from "./pages/About";
-import HowItWorks from "./pages/HowItWorks";
-import MapPage from "./pages/MapPage";
-import Placeholder from "./pages/Placeholder";
-import VerifyPage from "./pages/VerifyPage";
-import LoginScreen from "./screens/LoginScreen";
 import AppShell from "./shells/AppShell";
 import PublicShell from "./shells/PublicShell";
+
+// Route-level code splitting: each page is its own file that is downloaded only when it is opened. The map (MapLibre, about a
+// megabyte) therefore loads only on /app/map, and the Land Guide text only on /app/guide.
+const Landing = lazy(() => import("./pages/Landing"));
+const HowItWorks = lazy(() => import("./pages/HowItWorks"));
+const About = lazy(() => import("./pages/About"));
+const VerifyPage = lazy(() => import("./pages/VerifyPage"));
+const LoginScreen = lazy(() => import("./screens/LoginScreen"));
+const MapPage = lazy(() => import("./pages/MapPage"));
+const GuidePage = lazy(() => import("./pages/GuidePage"));
+const ActivityPage = lazy(() => import("./pages/ActivityPage"));
+const PassportPage = lazy(() => import("./pages/PassportPage"));
+const Placeholder = lazy(() => import("./pages/Placeholder"));
+const CitizenHome = lazy(() => import("./pages/citizen/CitizenHome"));
+const CitizenPlots = lazy(() => import("./pages/citizen/CitizenPlots"));
+const CitizenVerify = lazy(() => import("./pages/citizen/CitizenVerify"));
+const Dashboard = lazy(() => import("./pages/officer/Dashboard"));
+const PlotsTable = lazy(() => import("./pages/officer/PlotsTable"));
+const Conflicts = lazy(() => import("./pages/officer/Conflicts"));
+const Construction = lazy(() => import("./pages/officer/Construction"));
+const Zones = lazy(() => import("./pages/officer/Zones"));
 
 /** Only a signed-in person gets past this; a visitor is sent to /login (and brought back afterwards). */
 export function RequireAuth({ children }: { children: ReactNode }) {
@@ -21,39 +34,23 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   return children;
 }
 
-/** A page that exists only for some roles: anyone else is sent to their own home page. (The server checks the data again.) */
-function RoleGuard({ path, children }: { path: string; children: ReactNode }) {
-  const { session } = useAuth();
-  if (!session) return null;
-  if (!allowedPaths(session.role).includes(path)) return <Navigate to={HOME[session.role]} replace />;
-  return children;
-}
-
 function RoleHome() {
   const { session } = useAuth();
   return <Navigate to={session ? HOME[session.role] : "/login"} replace />;
 }
 
-/** The page behind /app/plots depends on who is signed in (officers: all plots; citizens: their own). Both are built in 13b. */
+/** /app/plots shows cards for a citizen and a table for staff. */
 function PlotsPage() {
   const { session } = useAuth();
-  return session?.role === "citizen" ? (
-    <Placeholder title="My" emphasis="plots" showMapLink />
-  ) : (
-    <Placeholder title="All" emphasis="plots" showMapLink />
-  );
+  return session?.role === "citizen" ? <CitizenPlots /> : <PlotsTable />;
 }
 
-const PLACEHOLDERS: Record<string, { title: string; emphasis: string }> = {
-  "/app/home": { title: "Welcome", emphasis: "home" },
-  "/app/dashboard": { title: "Your", emphasis: "dashboard" },
-  "/app/activity": { title: "Your", emphasis: "activity" },
-  "/app/conflicts": { title: "Open", emphasis: "conflicts" },
-  "/app/construction": { title: "New", emphasis: "construction" },
-  "/app/audit": { title: "Audit", emphasis: "log" },
-  "/app/users": { title: "People and", emphasis: "access" },
-  "/app/system": { title: "System", emphasis: "health" },
-  "/app/insights": { title: "Model", emphasis: "insights" },
+// Admin pages: built in 13c
+const ADMIN_PLACEHOLDERS: Record<string, { title: string; emphasis: string }> = {
+  audit: { title: "Audit", emphasis: "log" },
+  users: { title: "People and", emphasis: "access" },
+  system: { title: "System", emphasis: "health" },
+  insights: { title: "Model", emphasis: "insights" },
 };
 
 function RoleLogin() {
@@ -66,7 +63,10 @@ function RoleLogin() {
   return <LoginScreen />;
 }
 
-/** Every URL of the app. Kept separate from the router so the tests can mount it in a memory router. */
+/**
+ * Every URL of the app. Kept separate from the router so the tests can mount it in a memory router.
+ * Which /app page a ROLE may open is decided once, in AppShell (a page for another role shows "not for your role").
+ */
 export function AppRoutes() {
   return (
     <Routes>
@@ -86,11 +86,19 @@ export function AppRoutes() {
         }
       >
         <Route index element={<RoleHome />} />
-        <Route path="plots" element={<RoleGuard path="/app/plots"><PlotsPage /></RoleGuard>} />
-        <Route path="map" element={<RoleGuard path="/app/map"><MapPage /></RoleGuard>} />
-        <Route path="guide" element={<RoleGuard path="/app/guide"><GuidePage /></RoleGuard>} />
-        {Object.entries(PLACEHOLDERS).map(([path, props]) => (
-          <Route key={path} path={path.replace("/app/", "")} element={<RoleGuard path={path}><Placeholder {...props} /></RoleGuard>} />
+        <Route path="home" element={<CitizenHome />} />
+        <Route path="plots" element={<PlotsPage />} />
+        <Route path="plots/:ulpin" element={<PassportPage />} />
+        <Route path="verify" element={<CitizenVerify />} />
+        <Route path="activity" element={<ActivityPage />} />
+        <Route path="guide" element={<GuidePage />} />
+        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="map" element={<MapPage />} />
+        <Route path="conflicts" element={<Conflicts />} />
+        <Route path="construction" element={<Construction />} />
+        <Route path="zones" element={<Zones />} />
+        {Object.entries(ADMIN_PLACEHOLDERS).map(([path, props]) => (
+          <Route key={path} path={path} element={<Placeholder {...props} />} />
         ))}
         <Route path="*" element={<RoleHome />} />
       </Route>

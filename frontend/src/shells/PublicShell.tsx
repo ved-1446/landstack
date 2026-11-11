@@ -1,6 +1,8 @@
+import { Suspense } from "react";
 import { Link, Outlet, useLocation } from "react-router";
 import { useAuth } from "../auth";
 import { StaticLayer } from "../components/Backdrop";
+import { RouteLoading } from "../components/RouteLoading";
 import { GlassNav } from "../components/ui";
 import { HOME, VISITOR_LINKS } from "../lib/nav";
 
@@ -25,7 +27,9 @@ export default function PublicShell() {
       />
       <div className="relative pt-(--nav-height)">
         <div key={pathname} className="route-in">
-          <Outlet />
+          <Suspense fallback={<RouteLoading />}>
+            <Outlet />
+          </Suspense>
         </div>
         <footer className="relative mx-auto mt-16 max-w-(--content-width) px-(--edge) pb-10 text-13 text-muted-on-navy">
           <p>

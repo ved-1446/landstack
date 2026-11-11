@@ -31,6 +31,8 @@ export interface PlotProperties {
   survey_no: string;
   score: number;
   band: Band;
+  /** square metres (geography cast); null when the outline is invalid */
+  area_sqm: number | null;
 }
 
 export interface PlotFeature {
@@ -185,4 +187,31 @@ export interface PublicPlot {
   ulpin: string;
   village: string;
   band: Band;
+}
+
+// ---- Phase 13b: role pages ----
+/** One of my own recent actions (GET /me/activity). The plot id is null for a refused or not-found request. */
+export interface ActivityEntry {
+  id: number;
+  action: string;
+  ulpin: string | null;
+  looked_at: string;
+}
+
+/** One plot with findings (GET /conflicts, staff only): types and points only, never evidence text. */
+export interface ConflictRow {
+  ulpin: string;
+  village: string;
+  score: number;
+  band: Band;
+  findings: { type: ConflictType; points: number; simulated: boolean }[];
+}
+
+/** One restricted zone (GET /zones, staff only). */
+export interface ZoneRow {
+  id: number;
+  zone_type: string;
+  area_sqm: number;
+  plots_touching: number;
+  geometry: { type: "Polygon" | "MultiPolygon"; coordinates: unknown };
 }

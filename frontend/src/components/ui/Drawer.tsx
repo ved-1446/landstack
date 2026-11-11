@@ -29,6 +29,8 @@ export function Drawer({ open, onClose, label, viewingAs, children }: DrawerProp
   const returnFocusTo = useRef<HTMLElement | null>(null);
   const controls = useDragControls();
   const [snap, setSnap] = useState<Snap>("half");
+  const shell = useRef<HTMLElement>(null);
+  // the sheet is sized from the card it sits in (its parent), not from the whole window
   const [viewport, setViewport] = useState(() => window.innerHeight);
 
   const sheetHeight = viewport * SHEET_HEIGHT;
@@ -40,10 +42,17 @@ export function Drawer({ open, onClose, label, viewingAs, children }: DrawerProp
   const y = useMotionValue(sheetHeight);
 
   useEffect(() => {
-    const onResize = () => setViewport(window.innerHeight);
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
+    const card = shell.current?.parentElement;
+    const measure = () => setViewport(card?.clientHeight || window.innerHeight);
+    measure();
+    window.addEventListener("resize", measure);
+    const observer = card && typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
+    if (card) observer?.observe(card);
+    return () => {
+      window.removeEventListener("resize", measure);
+      observer?.disconnect();
+    };
+  }, [open]);
 
   // opening: remember where focus was, move it into the drawer; closing gives it back
   useEffect(() => {
@@ -79,11 +88,12 @@ export function Drawer({ open, onClose, label, viewingAs, children }: DrawerProp
 
   return (
     <motion.aside
+      ref={shell}
       role="dialog"
       aria-label={label}
       className={cn(
         "fixed z-drawer flex flex-col overflow-hidden border border-line-on-navy bg-navy-900 text-cream shadow-3",
-        mobile ? "inset-x-0 bottom-0 rounded-t-drawer" : "bottom-(--edge) right-(--edge) top-(--drawer-top) w-(--drawer-width) rounded-drawer",
+        mobile ? "inset-x-0 bottom-0 rounded-t-drawer" : "bottom-(--edge) right-(--edge) top-(--edge) w-(--drawer-width) rounded-drawer",
       )}
       style={mobile ? { height: sheetHeight, y } : undefined}
       initial={mobile ? { y: sheetHeight } : { x: 48, opacity: 0 }}

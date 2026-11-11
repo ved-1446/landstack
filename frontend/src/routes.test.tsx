@@ -2,22 +2,29 @@ import { cleanup, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthProvider } from "./auth";
+import { ToastProvider } from "./components/ui";
 import { Dock } from "./features/map/Dock";
-import { allowedPaths, HOME, navFor, VISITOR_LINKS } from "./lib/nav";
+import { allowedPaths, HOME, mayOpen, navFor, VISITOR_LINKS } from "./lib/nav";
 import { AppRoutes } from "./routes";
+import { api, resetApi } from "./test/fixtures";
 import type { Role, Session } from "./types";
 
 // The real API and the real map are never used here.
-vi.mock("./api", () => ({
-  getSession: () => null,
-  logout: () => undefined,
-  setUnauthorizedHandler: () => undefined,
-  login: vi.fn(),
-  getPublicPlot: vi.fn(),
-  getPublicStats: () => Promise.resolve({ total_plots: 100, plots_per_band: { green: 58, amber: 29, red: 13 } }),
-  askGuide: vi.fn(),
-  ApiError: class ApiError extends Error {},
-}));
+vi.mock("./api", async () => {
+  const { api } = await import("./test/fixtures");
+  return {
+    ...api,
+    getSession: () => null,
+    logout: () => undefined,
+    setUnauthorizedHandler: () => undefined,
+    login: vi.fn(),
+    askGuide: vi.fn(),
+    downloadPassportPdf: vi.fn(),
+    verifyDocument: vi.fn(),
+    explainPassport: vi.fn(),
+    ApiError: class ApiError extends Error {},
+  };
+});
 vi.mock("./screens/MapScreen", () => ({ default: () => <div data-testid="map-screen" /> }));
 vi.mock("./features/login/FlowField", () => ({ default: () => <div data-testid="flow-field" /> }));
 
@@ -27,21 +34,28 @@ function renderAt(path: string, role: Role | null) {
   return render(
     <MemoryRouter initialEntries={[path]}>
       <AuthProvider initial={role ? session(role) : null}>
-        <AppRoutes />
+        <ToastProvider>
+          <AppRoutes />
+        </ToastProvider>
       </AuthProvider>
     </MemoryRouter>,
   );
 }
 
 const tabs = (name: string) => within(screen.getByRole("navigation", { name })).getAllByRole("link").map((a) => a.textContent);
+const heading1 = (name: RegExp) => screen.findByRole("heading", { level: 1, name });
+const NOT_FOR_ROLE = /this page is not for your role/i;
 
-beforeEach(() => window.scrollTo(0, 0));
+beforeEach(() => {
+  resetApi();
+  window.scrollTo(0, 0);
+});
 afterEach(cleanup);
 
 describe("a visitor", () => {
-  it.each(["/app", "/app/map", "/app/plots", "/app/guide", "/app/dashboard", "/app/audit"])("cannot open %s: they land on the sign-in page", async (path) => {
+  it.each(["/app", "/app/map", "/app/plots", "/app/guide", "/app/dashboard", "/app/audit", "/app/zones", "/app/plots/MH000100000001"])("cannot open %s: they land on the sign-in page", async (path) => {
     renderAt(path, null);
-    expect(await screen.findByRole("heading", { name: /sign in/i })).toBeTruthy();
+    expect(await heading1(/sign in/i)).toBeTruthy();
     expect(screen.queryByTestId("map-screen")).toBeNull();
   });
 
@@ -60,57 +74,71 @@ describe("a visitor", () => {
 });
 
 describe("each role gets its own tabs", () => {
-  it("citizen: Home, My plots, Activity, Land Guide", async () => {
+  it("citizen: Home, My plots, Verify, Activity, Land Guide", async () => {
     renderAt("/app/plots", "citizen");
-    await screen.findByRole("heading", { level: 1 });
-    expect(tabs("citizen pages")).toEqual(["Home", "My plots", "Activity", "Land Guide"]);
+    await heading1(/my\s+plots/i);
+    expect(tabs("citizen pages")).toEqual(["Home", "My plots", "Verify", "Activity", "Land Guide"]);
   });
 
-  it("officer: Dashboard, Plots, Map, Conflicts, Construction, Land Guide", async () => {
+  it("officer: Dashboard, Plots, Map, Conflicts, Construction, Zones, Land Guide", async () => {
     renderAt("/app/dashboard", "officer");
-    await screen.findByRole("heading", { level: 1 });
-    expect(tabs("officer pages")).toEqual(["Dashboard", "Plots", "Map", "Conflicts", "Construction", "Land Guide"]);
+    await heading1(/attention/i);
+    expect(tabs("officer pages")).toEqual(["Dashboard", "Plots", "Map", "Conflicts", "Construction", "Zones", "Land Guide"]);
   });
 
   it("admin: Overview, Audit log, Users, System, Insights, plus a Work desk strip with the officer pages", async () => {
     renderAt("/app/dashboard", "admin");
-    await screen.findByRole("heading", { level: 1 });
+    await heading1(/attention/i);
     expect(tabs("admin pages")).toEqual(["Overview", "Audit log", "Users", "System", "Insights"]);
-    expect(tabs("Work desk pages")).toEqual(["Plots", "Map", "Conflicts", "Construction", "Land Guide"]);
+    expect(tabs("Work desk pages")).toEqual(["Plots", "Map", "Conflicts", "Construction", "Zones", "Land Guide"]);
   });
 
   it("only an admin has a second tab strip", async () => {
     renderAt("/app/dashboard", "officer");
-    await screen.findByRole("heading", { level: 1 });
+    await heading1(/attention/i);
     expect(screen.queryByRole("navigation", { name: "Work desk pages" })).toBeNull();
   });
 
   it("there is no side rail and no floating Land Guide button; the Guide is one nav tab", async () => {
     renderAt("/app/dashboard", "officer");
-    await screen.findByRole("heading", { level: 1 });
+    await heading1(/attention/i);
     expect(document.querySelector("[data-rail]")).toBeNull();
     expect(screen.queryByRole("button", { name: /ask the land guide/i })).toBeNull();
     expect(screen.getAllByRole("link", { name: "Land Guide" })).toHaveLength(1);
   });
 });
 
-describe("route guards by role", () => {
-  it("a citizen who types an admin URL is sent to their own home", async () => {
-    renderAt("/app/audit", "citizen");
-    expect(await screen.findByRole("heading", { level: 1, name: /my\s+plots/i })).toBeTruthy();
+describe("role guards: a page for another role shows a friendly page, never a blank screen", () => {
+  it.each(["/app/dashboard", "/app/conflicts", "/app/construction", "/app/zones", "/app/audit", "/app/users", "/app/system", "/app/insights"])("a citizen on %s", async (path) => {
+    renderAt(path, "citizen");
+    expect(await screen.findByText(NOT_FOR_ROLE)).toBeTruthy();
+    expect(screen.getByRole("link", { name: /go to my home page/i }).getAttribute("href")).toBe("/app/plots");
+    expect(tabs("citizen pages")).toHaveLength(5);                         // the shell and the tabs are still there
+    expect(api.getConflicts).not.toHaveBeenCalledWith(expect.anything());   // and no officer data was asked for
   });
 
-  it("an officer cannot open the admin pages", async () => {
-    for (const path of ["/app/audit", "/app/users", "/app/system", "/app/insights"]) {
-      cleanup();
-      renderAt(path, "officer");
-      expect(await screen.findByRole("heading", { level: 1, name: /dashboard/i })).toBeTruthy();
-    }
+  it.each(["/app/home", "/app/verify", "/app/audit", "/app/users", "/app/system", "/app/insights"])("an officer on %s", async (path) => {
+    renderAt(path, "officer");
+    expect(await screen.findByText(NOT_FOR_ROLE)).toBeTruthy();
+    expect(screen.getByRole("link", { name: /go to my home page/i }).getAttribute("href")).toBe("/app/dashboard");
   });
 
-  it("an admin can open the audit page", async () => {
+  it("an admin may open the admin pages and the officer pages, but not the citizen-only ones", async () => {
     renderAt("/app/audit", "admin");
-    expect(await screen.findByRole("heading", { level: 1, name: /audit/i })).toBeTruthy();
+    expect(await heading1(/audit/i)).toBeTruthy();
+    cleanup();
+    renderAt("/app/zones", "admin");
+    expect(await heading1(/zones/i)).toBeTruthy();
+    cleanup();
+    renderAt("/app/home", "admin");
+    expect(await screen.findByText(NOT_FOR_ROLE)).toBeTruthy();
+  });
+
+  it("citizens never request the staff-only lists", async () => {
+    renderAt("/app/plots", "citizen");
+    await heading1(/my\s+plots/i);
+    expect(api.getSummary).not.toHaveBeenCalled();
+    expect(api.getConflicts).not.toHaveBeenCalled();
   });
 
   it("everyone can open the map, which is shown inside the shell", async () => {
@@ -122,20 +150,27 @@ describe("route guards by role", () => {
     }
   });
 
+  it("a plot passport page follows the plots list: both roles may open it", () => {
+    expect(mayOpen("citizen", "/app/plots/MH000100000001")).toBe(true);
+    expect(mayOpen("officer", "/app/plots/MH000100000001")).toBe(true);
+    expect(mayOpen("citizen", "/app/zones/1")).toBe(false);
+    expect(mayOpen("officer", "/app/activity")).toBe(true);        // from the account menu
+  });
+
   it("/app sends each role to its home page", async () => {
     expect(HOME).toEqual({ citizen: "/app/plots", officer: "/app/dashboard", admin: "/app/dashboard" });
     renderAt("/app", "officer");
-    expect(await screen.findByRole("heading", { level: 1, name: /dashboard/i })).toBeTruthy();
+    expect(await heading1(/attention/i)).toBeTruthy();
   });
 
   it("a signed-in person who opens /login is sent to their home page", async () => {
     renderAt("/login", "citizen");
-    expect(await screen.findByRole("heading", { level: 1, name: /my\s+plots/i })).toBeTruthy();
+    expect(await heading1(/my\s+plots/i)).toBeTruthy();
   });
 });
 
 describe("navigation data", () => {
-  it("no role may open a page that is not in its own tabs, except the map", () => {
+  it("no role may open a page that is not its own, except the map", () => {
     expect(allowedPaths("citizen")).not.toContain("/app/audit");
     expect(allowedPaths("citizen")).not.toContain("/app/dashboard");
     expect(allowedPaths("citizen")).toContain("/app/map");

@@ -5,14 +5,13 @@ import { ApiError, verifyDocument } from "../api";
 import { Button, GlassCard, PageHeader } from "../components/ui";
 import type { Verification } from "../types";
 
-type Outcome = { kind: "matches" | "changed"; result: Verification } | { kind: "not_found" } | { kind: "error"; message: string };
+export type Outcome = { kind: "matches" | "changed"; result: Verification } | { kind: "not_found" } | { kind: "error"; message: string };
 
 const when = (iso: string) => new Date(iso).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
 
-/** /verify: type the document id printed on a land passport and see whether the records still match. Public, no login. */
-export default function VerifyPage() {
-  const [params] = useSearchParams();
-  const [id, setId] = useState(params.get("id") ?? "");
+/** The verify form and its result. Used by the public /verify page and by the citizen's Verify tab. */
+export function VerifyPanel({ initialId = "", onFound }: { initialId?: string; onFound?: (outcome: Outcome) => void }) {
+  const [id, setId] = useState(initialId);
   const [busy, setBusy] = useState(false);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
   const abort = useRef<AbortController | null>(null);
@@ -26,7 +25,9 @@ export default function VerifyPage() {
     setBusy(true);
     try {
       const result = await verifyDocument(clean, controller.signal);
-      setOutcome({ kind: result.valid ? "matches" : "changed", result });
+      const found: Outcome = { kind: result.valid ? "matches" : "changed", result };
+      setOutcome(found);
+      onFound?.(found);
     } catch (err) {
       if (controller.signal.aborted) return;
       if (err instanceof ApiError && (err.status === 404 || err.status === 422)) setOutcome({ kind: "not_found" });
@@ -36,7 +37,7 @@ export default function VerifyPage() {
   }
 
   useEffect(() => {
-    if (params.get("id")) void check(params.get("id") ?? "");
+    if (initialId) void check(initialId);
     return () => abort.current?.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -47,13 +48,7 @@ export default function VerifyPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-(--edge) py-12">
-      <PageHeader
-        eyebrow="VERIFY A PASSPORT"
-        title="Is this paper still"
-        emphasis="true?"
-        subtitle="Type the document id printed at the bottom of a land passport (or scan its QR code). We say whether the records still match what was printed. No login needed."
-      />
+    <>
       <GlassCard className="mt-8">
         <form onSubmit={submit} className="flex flex-wrap items-end gap-3">
           <div className="min-w-0 flex-1">
@@ -104,6 +99,22 @@ export default function VerifyPage() {
       <p className="mt-4 text-13 text-muted-on-navy">
         We show only whether it matches, the plot id and the date. No names, no evidence and no score.
       </p>
+    </>
+  );
+}
+
+/** /verify: type the document id printed on a land passport and see whether the records still match. Public, no login. */
+export default function VerifyPage() {
+  const [params] = useSearchParams();
+  return (
+    <div className="mx-auto max-w-3xl px-(--edge) py-12">
+      <PageHeader
+        eyebrow="VERIFY A PASSPORT"
+        title="Is this paper still"
+        emphasis="true?"
+        subtitle="Type the document id printed at the bottom of a land passport (or scan its QR code). We say whether the records still match what was printed. No login needed."
+      />
+      <VerifyPanel initialId={params.get("id") ?? ""} />
     </div>
   );
 }

@@ -1,5 +1,7 @@
 // The ONLY file that talks to the backend. Everything else calls these functions.
 import type {
+  ActivityEntry,
+  ConflictRow,
   ConflictTypeInfo,
   ConstructionCollection,
   Explanation,
@@ -14,6 +16,7 @@ import type {
   Session,
   Summary,
   Verification,
+  ZoneRow,
 } from "./types";
 
 const BASE_URL = (import.meta.env.VITE_API_URL ?? "http://localhost:8000").replace(/\/$/, "");
@@ -215,4 +218,19 @@ export function getPublicStats(signal?: AbortSignal) {
 /** Public "check a plot": only the village and the risk band. No login. A wrong id is a 404 (the same answer for every wrong id). */
 export function getPublicPlot(ulpin: string, signal?: AbortSignal) {
   return request<PublicPlot>(`/public/plot/${encodeURIComponent(ulpin.trim().toUpperCase())}`, { signal, authenticated: false });
+}
+
+/** My own recent actions (passport views, PDF downloads, explanations, Land Guide questions), newest first. */
+export function getMyActivity(limit = 50, signal?: AbortSignal) {
+  return request<ActivityEntry[]>("/me/activity", { params: { limit: String(limit) }, signal });
+}
+
+/** Staff only: every plot with findings (type and points, no evidence text), highest score first. */
+export function getConflicts(signal?: AbortSignal) {
+  return request<ConflictRow[]>("/conflicts", { signal });
+}
+
+/** Staff only: the restricted zones with their area, how many plots touch them and a simple outline. */
+export function getZones(signal?: AbortSignal) {
+  return request<ZoneRow[]>("/zones", { signal });
 }

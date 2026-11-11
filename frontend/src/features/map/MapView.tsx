@@ -322,13 +322,17 @@ export default function MapView(props: MapViewProps) {
     if (!bounds) return;
     const wide = window.innerWidth >= 768;
     const open = live.current.drawerOpen;
+    // the map is a framed card, so the padding is measured against the card and kept small enough that the plot always fits
+    const box = map.getContainer();
+    const fit = (wanted: number, room: number) => Math.max(0, Math.min(wanted, Math.round(room)));
+    const padding = {
+      top: fit(96, box.clientHeight * 0.25),
+      left: fit(wide ? 120 : 48, box.clientWidth * 0.2),
+      right: fit(wide && open ? 500 : 96, box.clientWidth * (wide && open ? 0.45 : 0.2)),
+      bottom: fit(!wide && open ? Math.round(box.clientHeight * 0.55) + 24 : 96, box.clientHeight * (!wide && open ? 0.7 : 0.25)),
+    };
     map.fitBounds(bounds, {
-      padding: {
-        top: 96,
-        left: wide ? 120 : 48,
-        right: wide && open ? 500 : 96,
-        bottom: !wide && open ? Math.round(window.innerHeight * 0.55) + 24 : 96,
-      },
+      padding,
       maxZoom: 18.5,
       duration: reduceMotion ? 0 : 900,
     });

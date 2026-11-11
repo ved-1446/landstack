@@ -141,6 +141,9 @@ MATRIX = {
     ("GET", "/verify/{doc_id}"): ("open", None),
     ("GET", "/public/stats"): ("open", None),            # Phase 13a: public by design, counts only (tested in test_public.py)
     ("GET", "/public/plot/{ulpin}"): ("open", None),    # Phase 13a: public by design, village and band only
+    ("GET", "/me/activity"): (200, 401),                # Phase 13b: a user sees only their own rows (tested in test_overview.py)
+    ("GET", "/conflicts"): (403, 401),                  # Phase 13b: staff only
+    ("GET", "/zones"): (403, 401),                      # Phase 13b: staff only
 }
 
 

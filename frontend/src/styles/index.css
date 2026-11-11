@@ -175,6 +175,17 @@
 /* the framed map card: fixed-position children (search, dock, popovers) are placed inside it */
 .map-frame { contain: layout paint; }
 
+/* the soft dark scrim behind the landing headline (the live Flow Field moves under the text) */
+.hero-scrim {
+  background: color-mix(in srgb, var(--navy-950) 80%, transparent);
+  border-radius: var(--r-glass);
+  filter: blur(22px);
+}
+/* a dark backing under the public check card, so its text stays readable on any frame of the moving background */
+.hero-card-backing {
+  background: color-mix(in srgb, var(--navy-950) 82%, transparent);
+}
+
 @layer base {
   html,
   body,

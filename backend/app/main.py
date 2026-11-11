@@ -19,7 +19,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, Response
 from pydantic import BaseModel, Field
 from slowapi.errors import RateLimitExceeded
 
-from . import audit, auth, checks, config, limits, passport, pdf, public, security, unusual, verify_page
+from . import audit, auth, checks, config, limits, passport, overview, pdf, public, security, unusual, verify_page
 from . import explain as explainer
 from chatbot import guide as land_guide
 from .auth import ErrorBody, User, current_user, require_roles
@@ -55,6 +55,7 @@ class PlotProperties(BaseModel):
     survey_no: str
     score: int
     band: Band
+    area_sqm: float | None = Field(default=None, description="area in square metres (geography cast); null for an invalid outline")
 
 
 class PlotFeature(BaseModel):
@@ -213,7 +214,7 @@ class Verification(BaseModel):
 
 app = FastAPI(
     title="LandStack API",
-    version="0.13.1",
+    version="0.13.2",
     description="Land records on a map. Plots, land passports, conflicts and risk scores "
                 "(fake demo data). Log in at POST /auth/login first; what you may see depends on your role.",
 )
@@ -230,6 +231,7 @@ app.state.limiter = limits.limiter
 PUBLIC_BASE_URL = pdf.get_public_base_url()   # checked at start-up; the QR codes point here
 app.include_router(auth.router)
 app.include_router(public.router)
+app.include_router(overview.router)
 unusual.load_model()   # the Phase 9 model, loaded once; no model file just means "unusual": null
 
 
@@ -285,7 +287,8 @@ def list_plots(
     owned = owned_ulpins(conn, user.username) if user.role == "citizen" else None
     rows = conn.execute(
         """
-        SELECT ulpin, village, land_use, survey_no, ST_AsGeoJSON(geom)::json
+        SELECT ulpin, village, land_use, survey_no, ST_AsGeoJSON(geom)::json,
+               CASE WHEN ST_IsValid(geom) THEN ST_Area(geom::geography) END
         FROM plots
         WHERE (%(village)s::text IS NULL OR village = %(village)s)
           AND (%(owned)s::text[] IS NULL OR ulpin = ANY(%(owned)s::text[]))
@@ -295,7 +298,7 @@ def list_plots(
     ).fetchall()
 
     features = []
-    for ulpin, vill, land_use, survey_no, geometry in rows:
+    for ulpin, vill, land_use, survey_no, geometry, area_sqm in rows:
         result = results[ulpin]
         if band and result["band"] != band:
             continue
@@ -306,7 +309,7 @@ def list_plots(
             "geometry": geometry,
             "properties": {"ulpin": ulpin, "village": vill, "land_use": land_use,
                            "survey_no": survey_no, "score": result["score"],
-                           "band": result["band"]},
+                           "band": result["band"], "area_sqm": area_sqm},
         })
     return {"type": "FeatureCollection", "features": features}
 

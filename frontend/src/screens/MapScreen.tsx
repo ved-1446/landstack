@@ -246,9 +246,7 @@ export default function MapScreen({ session }: MapScreenProps) {
         </div>
       )}
 
-    </div>
-
-      {/* the passport drawer overlays the page (not the card), so it keeps its full height on a phone */}
+      {/* the passport drawer docks INSIDE the map card: a side panel on a wide screen, a bottom sheet on a phone */}
       <AnimatePresence>
         {selected && (
           <PassportDrawer
@@ -263,6 +261,7 @@ export default function MapScreen({ session }: MapScreenProps) {
           />
         )}
       </AnimatePresence>
+    </div>
     </>
   );
 }

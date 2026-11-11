@@ -84,6 +84,19 @@ Real buttons and links; labels on icon-only buttons; visible coral focus rings; 
 ## Public pages (13a-2)
 Landing (hero with the live Flow Field, the public check card, three tilted preview cards, stat tiles, four steps with contour lines, role cards, closing call to action), How it works, About, Verify and Login. Page text lives in `src/pages/content.ts`; the step illustrations are original inline SVGs in `src/pages/Illustrations.tsx`. Every live number is from `/public/stats`; invented examples carry a visible "Sample data" label.
 
+## Role pages (13b)
+Same components, a different identity per role (see the table above).
+- **Citizen, "MY LAND"** (warm coral glow, cream cards dominate, big plain-words text). Tabs: Home, My plots, Verify, Activity, Land Guide. *Home*: a "short story" cream card written by code from the real counts (never by an AI), two stat cards and a "What to do next" list (open the worst red plot first, download a PDF, verify a printed passport, ask the Land Guide); no greeting. *My plots*: one cream card per plot (id, village, area, `BandChip` on cream, score). *Verify*: paste a document id, the web address in a QR code, or a plot id (a plot id opens that passport page); a camera QR scan button appears only in browsers that support `BarcodeDetector`. *Activity*: my own recent actions in plain words.
+- **Officer, "OFFICER WORK DESK"** (teal glow, dense glass cards). Tabs: Dashboard, Plots, Map, Conflicts, Construction, Zones, Land Guide; "My activity" is in the account menu. *Dashboard*: six stat cards, "Problems by type" (`BarList`, the 9 checks; the simulated one in lavender with the word "simulated"), a map preview (`MiniMap`, always with the counts written next to it) and the top-10 priority queue with reason chips. *Plots*: a real table with search, a multi-band filter (any combination), a village filter, sortable columns (`aria-sort`) and pages of 15. *Conflicts*: type chips with counts. *Construction*: a dashed lavender "SIMULATED" banner. *Zones*: bars plus a list with a small outline per zone.
+- **Admin** sees the officer pages (as "Overview" and the Work desk strip); its own pages are placeholders until 13c.
+- **Shared passport page** (`/app/plots/:ulpin`): the same content as the map drawer (`PassportDrawer variant="page"`).
+- **"Not for your role"** (`pages/NotForRole.tsx`): a page that belongs to another role shows this friendly page inside the normal shell, never a blank screen or a silent redirect. The server checks the data again.
+- **Every data page has the three states in plain words** through one component, `components/Async.tsx`: loading (grey blocks announced to screen readers), an error with a "Try again" button, and an empty state that says why it is empty.
+- **Data**: `lib/appData.tsx` fetches the plots, the summary, the conflicts and the rule texts once when the signed-in area opens and shares them, so moving between pages does not run the scoring again. Citizens never request the staff-only lists.
+- **Map card**: the passport drawer now docks INSIDE the framed map card (a side panel on a wide screen, a bottom sheet sized from the card on a phone).
+- **Code splitting**: every page is a lazy chunk; vendor libraries are split (`react`, `router`, `motion`); the map library loads only on `/app/map`. See HANDOFF for the sizes.
+- Coral is used only for primary buttons, the active tab and emphasis words, never for risk; bars that show problems use cream, simulated ones lavender.
+
 ## Responsive
 - 1440 and wider: nav pill on top (max width 1200), content centred, map card under the header, passport drawer 430px on the right.
 - Under 768px: the nav tabs wrap to a second row inside the pill, popovers and the passport drawer become bottom sheets, page gutters are 16px.

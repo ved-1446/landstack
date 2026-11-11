@@ -18,12 +18,14 @@ const WORK_DESK: NavLinkItem[] = [
   { to: "/app/map", label: "Map" },
   { to: "/app/conflicts", label: "Conflicts" },
   { to: "/app/construction", label: "Construction" },
+  { to: "/app/zones", label: "Zones" },
   { to: "/app/guide", label: "Land Guide" },
 ];
 
 const CITIZEN: NavLinkItem[] = [
   { to: "/app/home", label: "Home" },
   { to: "/app/plots", label: "My plots" },
+  { to: "/app/verify", label: "Verify" },
   { to: "/app/activity", label: "Activity" },
   { to: "/app/guide", label: "Land Guide" },
 ];
@@ -51,11 +53,17 @@ export function navFor(role: Role): RoleNav {
   return { links: ADMIN, workDesk: WORK_DESK };
 }
 
-/** The map is reachable for everyone (a citizen sees only their own plots there), even though it is not a citizen tab. */
-const EXTRA: Record<Role, string[]> = { citizen: ["/app/map"], officer: [], admin: [] };
+/** Pages a role may open that are not tabs: the map for a citizen (their own plots only), and "My activity" in the staff account menu. */
+const EXTRA: Record<Role, string[]> = { citizen: ["/app/map"], officer: ["/app/activity"], admin: ["/app/activity"] };
 
 /** Every /app path this role may open. The server still decides what data it gets; this only decides which page is shown. */
 export function allowedPaths(role: Role): string[] {
   const nav = navFor(role);
   return [...nav.links, ...(nav.workDesk ?? [])].map((l) => l.to).concat(EXTRA[role]);
+}
+
+/** Is this URL one of the role's pages? A plot passport (/app/plots/MH...) belongs to its list page's role. */
+export function mayOpen(role: Role, pathname: string): boolean {
+  const path = pathname.replace(/\/+$/, "");
+  return allowedPaths(role).some((allowed) => path === allowed || path.startsWith(allowed + "/"));
 }

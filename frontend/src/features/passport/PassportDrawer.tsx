@@ -21,6 +21,8 @@ interface PassportDrawerProps {
   prefetched: Passport | null;
   onClose: () => void;
   onLoaded: (passport: Passport) => void;
+  /** "drawer" (the map): docked inside the map card. "page" (/app/plots/:ulpin): the same content as a normal page, no drawer. */
+  variant?: "drawer" | "page";
 }
 
 const sqm = (n: number) => `${Math.round(n).toLocaleString()} m²`;
@@ -65,7 +67,7 @@ function SheetSkeleton() {
   );
 }
 
-export function PassportDrawer({ ulpin, role, rules, simulatedTypes, prefetched, onClose, onLoaded }: PassportDrawerProps) {
+export function PassportDrawer({ ulpin, role, rules, simulatedTypes, prefetched, onClose, onLoaded, variant = "drawer" }: PassportDrawerProps) {
   const toast = useToast();
   const [verifyOpen, setVerifyOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -123,9 +125,8 @@ export function PassportDrawer({ ulpin, role, rules, simulatedTypes, prefetched,
 
   const capped = passport ? passport.capped : false; // the server says so (it was inferred from the points before)
 
-  return (
+  const body = (
     <>
-      <Drawer open onClose={onClose} label="Land passport" viewingAs={prettyRole(role)}>
         {loading && !passport ? (
           <SheetSkeleton />
         ) : notFound ? (
@@ -224,7 +225,18 @@ export function PassportDrawer({ ulpin, role, rules, simulatedTypes, prefetched,
             </div>
           </>
         )}
-      </Drawer>
+    </>
+  );
+
+  return (
+    <>
+      {variant === "page" ? (
+        body
+      ) : (
+        <Drawer open onClose={onClose} label="Land passport" viewingAs={prettyRole(role)}>
+          {body}
+        </Drawer>
+      )}
       <VerifyDialog open={verifyOpen} onClose={() => setVerifyOpen(false)} />
     </>
   );

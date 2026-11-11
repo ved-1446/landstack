@@ -1,6 +1,6 @@
-import { LogOut, User } from "lucide-react";
+import { History, LogOut, User } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { useAuth } from "../auth";
 import { prettyRole } from "../constants";
 
@@ -45,6 +45,17 @@ export function AccountMenu() {
             {prettyRole(session.role)}.{" "}
             {session.role === "citizen" ? "You can see only the plots you own." : "You can see every plot and its passport."}
           </p>
+          {session.role !== "citizen" && (
+            <Link
+              to="/app/activity"
+              role="menuitem"
+              onClick={() => setOpen(false)}
+              className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-control glass-card text-14 text-cream hover:bg-glass-fill-strong"
+            >
+              <History className="size-4" aria-hidden="true" />
+              My activity
+            </Link>
+          )}
           <button
             type="button"
             role="menuitem"

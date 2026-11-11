@@ -85,7 +85,6 @@
   --edge: 24px;
   --nav-height: 72px;                    /* the top GlassNav */
   --tabbar-height: 0px;                  /* there is no bottom tab bar any more; panels sit on the bottom edge of the map card */
-  --drawer-top: calc(var(--nav-height) + var(--edge));   /* the passport drawer sits below the nav */
   --content-width: 1200px;
   --map-card-height: calc(100dvh - var(--nav-height) - 220px);
   --drawer-width: 430px;

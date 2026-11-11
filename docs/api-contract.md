@@ -421,3 +421,24 @@ Returns **only** `ulpin`, `village` and `band`: no names, evidence, survey numbe
 - The app has real URLs now: `/`, `/login`, `/how-it-works`, `/about`, `/verify` (a friendly page that calls `GET /verify/{doc_id}` asking for JSON), and the protected `/app/*`. The API is unchanged apart from the two endpoints above.
 - `GET /verify/{doc_id}` is called by the web app with `Accept: application/json`, so it always gets JSON even though the same URL returns a web page to a browser.
 - API title version is now 0.13.1.
+
+## Phase 13b: three read endpoints and the area on `/plots`
+
+All read-only, no AI, no schema change, no scoring change. The score is always the one the engine computed.
+
+### GET /plots (changed): `area_sqm`
+Each feature's `properties` now has `area_sqm`: the area in square metres (geography cast), or `null` for an invalid outline, the same number the passport shows. A citizen still gets only their own plots. Nothing else changed.
+
+### GET /me/activity (any logged-in user)
+Your own recent audit rows, newest first. `?limit=` 1 to 200 (default 50). Each row is exactly `{id, action, ulpin, looked_at}`.
+- Only the caller's own rows; the username and role are not repeated.
+- `ulpin` is `null` for a refused or not-found request (`*_denied`, `*_not_found`), so the id someone typed is never shown back.
+- Errors: 401, 422 (bad limit), 429, 503. Not audited itself.
+
+### GET /conflicts (officer and admin only; a citizen gets 403)
+Every plot that has at least one finding, highest score first: `[{ulpin, village, score, band, findings: [{type, points, simulated}]}]`. **Only the finding type and points** are copied: no evidence text, owner names, survey numbers, areas or document ids, and no other plot's id. `simulated` is true only for `unrecorded_construction`. Used for the priority queue and the Conflicts and Construction pages.
+
+### GET /zones (officer and admin only; a citizen gets 403)
+The restricted zones: `[{id, zone_type, area_sqm, plots_touching, geometry}]`. `area_sqm` is a geography cast; `plots_touching` counts valid plots that intersect the zone (touching is not the same as a clash, which needs more than a fifth of the plot inside); `geometry` is a simplified GeoJSON outline for a small preview. No plot ids or names.
+
+API title version is now 0.13.2.

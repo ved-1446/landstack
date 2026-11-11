@@ -20,7 +20,7 @@ export function DataList({ rows, label, className }: { rows: DataRow[]; label: s
           <>
             <div className="min-w-0 flex-1">
               <div className="truncate text-14 text-cream">{row.primary}</div>
-              {row.secondary && <div className="truncate text-13 text-muted-on-navy">{row.secondary}</div>}
+              {row.secondary && <div className="text-13 text-muted-on-navy">{row.secondary}</div>}
             </div>
             {row.trailing && <div className="shrink-0">{row.trailing}</div>}
           </>

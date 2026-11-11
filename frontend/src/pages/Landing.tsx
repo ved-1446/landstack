@@ -37,24 +37,25 @@ export default function Landing() {
           <FlowField />
         </Suspense>
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-linear-to-b from-navy-950/40 via-transparent to-navy-950" />
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-linear-to-r from-navy-950/60 via-navy-950/20 to-transparent max-lg:hidden" />
         <div className="relative mx-auto grid max-w-(--content-width) gap-10 px-(--edge) pb-20 pt-16 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:pt-24">
-          <div>
-            <p className="rise font-mono text-12 tracking-widest text-muted-on-navy" style={rise(0)}>
+          <div className="relative">
+            {/* a soft dark scrim behind the headline, so the text stays readable on any frame of the moving background */}
+            <div aria-hidden="true" className="hero-scrim pointer-events-none absolute -inset-x-8 -inset-y-10" />
+            <p className="rise relative font-mono text-12 tracking-widest text-muted-on-navy" style={rise(0)}>
               LAND RECORDS, MADE CLEAR
             </p>
-            <h1 id="hero-title" className="rise mt-3 font-serif text-58 text-cream" style={rise(1)}>
+            <h1 id="hero-title" className="rise relative mt-3 font-serif text-58 text-cream" style={rise(1)}>
               Every plot.
               <br />
               One passport.
               <br />
               <em className="text-coral">No surprises.</em>
             </h1>
-            <p className="rise mt-6 max-w-xl text-16 text-muted-on-navy" style={rise(2)}>
+            <p className="rise relative mt-6 max-w-xl text-16 text-muted-on-navy" style={rise(2)}>
               LandStack puts every plot on a map, checks its papers against its shape, and gives it a risk score from fixed rules, with a printable
               passport anyone can verify.
             </p>
-            <div className="rise mt-8 flex flex-wrap gap-3" style={rise(3)}>
+            <div className="rise relative mt-8 flex flex-wrap gap-3" style={rise(3)}>
               <Link to="/login" className={`${cta} bg-coral text-navy-950 hover:bg-coral-hover`}>
                 Sign in
                 <ArrowRight className="size-4" aria-hidden="true" />
@@ -64,7 +65,7 @@ export default function Landing() {
               </Link>
             </div>
           </div>
-          <div className="rise" style={rise(4)}>
+          <div className="rise hero-card-backing rounded-glass" style={rise(4)}>
             <CheckCard />
           </div>
         </div>
