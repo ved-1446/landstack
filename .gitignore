@@ -25,3 +25,11 @@ chatbot/raw/
 chatbot/chunks.jsonl
 .agents/
 skills-lock.json
+
+# Phase 13d: older working screenshots stay on disk only. Tracked: phase13c-* and the four files a doc links by name.
+docs/design/screens/*
+!docs/design/screens/phase13c-*
+!docs/design/screens/phase9-1440-unusual-chip.jpg
+!docs/design/screens/phase9-390-unusual-chip.jpg
+!docs/design/screens/phase10-1440-construction.jpg
+!docs/design/screens/phase10-390-construction.jpg

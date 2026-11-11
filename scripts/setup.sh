@@ -68,9 +68,6 @@ USER_NAME="$(env_value POSTGRES_USER landstack)"; DB_NAME="$(env_value POSTGRES_
 CONTAINER="$(env_value LANDSTACK_DB_CONTAINER landstack-db)"
 
 step 3 "Starting the database (Docker, PostGIS)"
-if docker ps -a --format "{{.Names}}" 2>/dev/null | grep -qx "landstack-db" && [ "$CONTAINER" != "landstack-db" ]; then
-  echo "Note: an OLD container named landstack-db exists (from before the rename). It is left alone; this script starts $CONTAINER with a new, empty database. Remove the old one yourself when you no longer need it."
-fi
 docker compose up -d || fail "docker compose up failed. If the name or port is taken, set LANDSTACK_DB_CONTAINER or POSTGRES_PORT in .env."
 ready=0
 for _ in $(seq 1 60); do

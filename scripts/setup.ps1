@@ -70,8 +70,6 @@ $User = EnvValue "POSTGRES_USER" "landstack"; $Db = EnvValue "POSTGRES_DB" "land
 $Container = EnvValue "LANDSTACK_DB_CONTAINER" "landstack-db"
 
 Step 3 "Starting the database (Docker, PostGIS)"
-$old = (& docker ps -a --format "{{.Names}}" 2>$null) -contains "landstack-db"
-if ($old -and $Container -ne "landstack-db") { Write-Host "Note: an OLD container named landstack-db exists (from before the rename). It is left alone; this script starts $Container with a new, empty database. Remove the old one yourself when you no longer need it." -ForegroundColor Yellow }
 docker compose up -d
 if ($LASTEXITCODE -ne 0) { Fail "docker compose up failed. If the name or port is taken, set LANDSTACK_DB_CONTAINER or POSTGRES_PORT in .env." }
 $ready = $false
