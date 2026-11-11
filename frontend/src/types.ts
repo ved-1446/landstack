@@ -174,3 +174,15 @@ export interface Verification {
   issued_at: string;
   status: "matches" | "records have changed since this was issued";
 }
+
+// ---- public front page endpoints (no login) ----
+export interface PublicStats {
+  total_plots: number;
+  plots_per_band: Record<Band, number>;
+}
+
+export interface PublicPlot {
+  ulpin: string;
+  village: string;
+  band: Band;
+}

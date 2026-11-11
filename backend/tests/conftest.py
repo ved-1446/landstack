@@ -98,6 +98,7 @@ def relaxed_rate_limits():
     """Normal tests make far more than 60 requests a minute. Rate-limit tests lower these again."""
     from backend.app import config
     config.RATE_LOGIN = config.RATE_DEFAULT = config.RATE_VERIFY = "100000/minute"
+    config.RATE_PUBLIC_STATS = config.RATE_PUBLIC_PLOT = "100000/minute"
 
 
 @pytest.fixture(autouse=True)

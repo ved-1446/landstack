@@ -3,7 +3,7 @@
 **Land records on a map: it finds conflicts between a plot's boundary, its land record, its registration and its tax record, gives each plot a risk score from fixed rules, and prints a one-page "land passport" that anyone can verify by scanning its QR code.**
 
 A student portfolio project, built on **fake data** near Pune. It is a demo, not an official or legal tool.
-Credit: the **LandStack SIH 2026 team** (the project started under that name).
+Origin: the **SIH 2026 land-records problem statement**.
 
 ![The map: 100 demo plots coloured green, amber and red by risk](docs/screenshots/02-map.jpg)
 
@@ -62,7 +62,7 @@ flowchart LR
 ## Tech stack
 - **Backend:** Python 3.14, FastAPI, psycopg 3 with hand-written SQL, PostgreSQL 16 + PostGIS 3.4 (Docker), argon2 and JWT for login, slowapi for rate limits, ReportLab, qrcode, pypdf, HarfBuzz (`uharfbuzz`) and fontTools for Devanagari in the PDF.
 - **ML and AI:** scikit-learn (Isolation Forest), SHAP, rank_bm25 + BeautifulSoup (Land Guide), OpenRouter (optional).
-- **Frontend:** React 19, TypeScript, Vite 8, Tailwind CSS 4, MapLibre GL, framer-motion, GSAP (one number animation), self-hosted fonts.
+- **Frontend:** React 19, TypeScript, Vite 8, Tailwind CSS 4, MapLibre GL, React Router, framer-motion, self-hosted fonts.
 - **Tests and CI:** pytest, a design-rule checker (`npm run check:design`), GitHub Actions.
 
 ## Quick start
@@ -104,10 +104,7 @@ Open <http://localhost:5173> (the port is fixed because the API only accepts req
 
 Then follow the 8-click tour in [docs/DEMO.md](docs/DEMO.md).
 
-**Doing it by hand** (what the script does): copy `.env.example` to `.env` and fill it in; `docker compose up -d`; `python -m venv .venv`, activate it, `pip install -r backend/requirements.txt`; apply `db/schema.sql` (`Get-Content db/schema.sql | docker exec -i landstack-db psql -U landstack -d landstack -v ON_ERROR_STOP=1`; on Linux/macOS use `< db/schema.sql`); `python db/seed.py`; `python db/seed_users.py`; `python -m chatbot.build`; `python -m backend.app.checks`; `cd frontend && npm ci`. Details for every part are in [docs/REFERENCE.md](docs/REFERENCE.md).
-
-### The legacy names: `landstack-db`, `landstack`, `landstack`
-The project began as **LandStack**. The Docker container is named `landstack-db`, and the PostgreSQL database and its user are both `landstack`. These **legacy infrastructure names were kept on purpose**: Postgres reads its user and database name only when a data volume is first created, so renaming them in `docker-compose.yml` would not rename an existing database and would break any machine that already has one. Everything a reader sees (the app, the PDF, the API docs, this file) says LandStack. Two variables let a second copy run beside the first: `LANDSTACK_DB_CONTAINER` (container name) and `POSTGRES_PORT`. Set them in your shell before the setup script (or in `.env`) if `5432` or the container name is already taken. `backend/app/db.py` and `db/seed.py` carry a comment pointing here.
+**Doing it by hand** (what the script does): copy `.env.example` to `.env` and fill it in; `docker compose up -d`; `python -m venv .venv`, activate it, `pip install -r backend/requirements.txt`; apply `db/schema.sql` (`Get-Content db/schema.sql | docker exec -i <db-container> psql -U <POSTGRES_USER> -d <POSTGRES_DB> -v ON_ERROR_STOP=1`; on Linux/macOS use `< db/schema.sql`); `python db/seed.py`; `python db/seed_users.py`; `python -m chatbot.build`; `python -m backend.app.checks`; `cd frontend && npm ci`. Details for every part are in [docs/REFERENCE.md](docs/REFERENCE.md).
 
 ### Settings (`.env`, never committed)
 `.env.example` lists every variable with no real values. The important ones:
@@ -165,7 +162,7 @@ Nothing below is built; it is the plan.
 6. **Cache the features.** Today each passport request rebuilds the features for every plot, which is fine for 100 plots but not for a state.
 
 ## Credits
-- The **LandStack SIH 2026 team**, where this project began.
+- The **SIH 2026 land-records problem statement**, where this project began.
 - **ThreeUI** (Meng To): the *Flow Field* login background, MIT licence (<https://github.com/MengTo/threeui>). Notice in [THIRD_PARTY.md](THIRD_PARTY.md).
 - **Vikaspedia**, C-DAC Hyderabad, Ministry of Electronics and Information Technology, Government of India: the public pages the Land Guide answers from (credited with a link in every answer; listed in `chatbot/sources.json`).
 - **Noto Sans Devanagari** (The Noto Project Authors), **Geist** (The Geist Project Authors) and **Instrument Serif** (The Instrument Serif Project Authors), all SIL Open Font License 1.1.
@@ -178,7 +175,7 @@ Nothing below is built; it is the plan.
 ## Future work
 Not built (by design, to keep each phase small):
 - **Login-token revocation** (a logout that really ends a token; short-lived tokens plus refresh).
-- **Frontend bundle size:** the production build is over 500 kB after minification; split the map and the Land Guide into separate chunks (and consider dropping GSAP, which does one animation).
+- **Frontend bundle size:** the production build is over 500 kB after minification; split the map and the Land Guide into separate chunks.
 - **API backlog:** `GET /zones` (so the restricted-zones layer can be drawn), a `source` field on each evidence item (which table the finding came from), and `GET /villages` plus taluka and district on plots.
 - A **native-speaker review** of `chatbot/strings.json`, and translating the rest of the app.
 - Real **state adapters** against real file formats, wired to the API (today they load files by command).

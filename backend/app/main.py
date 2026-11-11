@@ -19,7 +19,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, Response
 from pydantic import BaseModel, Field
 from slowapi.errors import RateLimitExceeded
 
-from . import audit, auth, checks, config, limits, passport, pdf, security, unusual, verify_page
+from . import audit, auth, checks, config, limits, passport, pdf, public, security, unusual, verify_page
 from . import explain as explainer
 from chatbot import guide as land_guide
 from .auth import ErrorBody, User, current_user, require_roles
@@ -213,7 +213,7 @@ class Verification(BaseModel):
 
 app = FastAPI(
     title="LandStack API",
-    version="0.11.1",
+    version="0.13.1",
     description="Land records on a map. Plots, land passports, conflicts and risk scores "
                 "(fake demo data). Log in at POST /auth/login first; what you may see depends on your role.",
 )
@@ -229,6 +229,7 @@ app.add_middleware(
 app.state.limiter = limits.limiter
 PUBLIC_BASE_URL = pdf.get_public_base_url()   # checked at start-up; the QR codes point here
 app.include_router(auth.router)
+app.include_router(public.router)
 unusual.load_model()   # the Phase 9 model, loaded once; no model file just means "unusual": null
 
 

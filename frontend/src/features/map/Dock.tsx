@@ -19,13 +19,13 @@ export function Dock({ shown, counts, active, onToggle, loading, drawerOpen, con
   return (
     <div
       className={cn(
-        "pointer-events-none fixed bottom-(--dock-bottom) left-(--rail-width) right-0 z-panel flex justify-center px-4 max-md:left-0",
-        drawerOpen && "md:right-[calc(var(--drawer-width)+var(--edge))]",
+        "pointer-events-none fixed bottom-(--dock-bottom) left-0 right-0 z-panel flex justify-center px-4",
+        drawerOpen && "xl:right-[calc(var(--drawer-width)-var(--edge))]",
       )}
     >
       <section aria-label="Risk bands" className="glass pointer-events-auto flex flex-wrap items-center justify-center gap-x-4 gap-y-2 rounded-panel px-4 py-3 shadow-2">
         <p aria-live="polite" className="text-13 text-cream">
-          {loading && shown === null ? "Loading plots…" : `Showing ${shown ?? 0} plots`}
+          {loading && shown === null ? "Loading plots…" : `Showing ${shown ?? 0} ${shown === 1 ? "plot" : "plots"}`}
         </p>
         <div className="flex flex-wrap items-center justify-center gap-2" role="group" aria-label="Show or hide plots by band">
           {ALL_BANDS.map((band) => (

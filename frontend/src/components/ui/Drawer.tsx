@@ -83,7 +83,7 @@ export function Drawer({ open, onClose, label, viewingAs, children }: DrawerProp
       aria-label={label}
       className={cn(
         "fixed z-drawer flex flex-col overflow-hidden border border-line-on-navy bg-navy-900 text-cream shadow-3",
-        mobile ? "inset-x-0 bottom-0 rounded-t-drawer" : "bottom-(--edge) right-(--edge) top-(--edge) w-(--drawer-width) rounded-drawer",
+        mobile ? "inset-x-0 bottom-0 rounded-t-drawer" : "bottom-(--edge) right-(--edge) top-(--drawer-top) w-(--drawer-width) rounded-drawer",
       )}
       style={mobile ? { height: sheetHeight, y } : undefined}
       initial={mobile ? { y: sheetHeight } : { x: 48, opacity: 0 }}

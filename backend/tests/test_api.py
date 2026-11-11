@@ -182,7 +182,8 @@ def test_openapi_lists_every_endpoint(client):
                           "/auth/login", "/auth/me", "/audit",
                           "/plots/{ulpin}/passport.pdf", "/verify/{doc_id}",
                           "/construction-alerts",       # Phase 10 (SIMULATED footprints for the map)
-                          "/plots/{ulpin}/explain", "/guide/ask"}      # Phase 11 (the AI explainer and the Land Guide)
+                          "/plots/{ulpin}/explain", "/guide/ask",      # Phase 11 (the AI explainer and the Land Guide)
+                          "/public/stats", "/public/plot/{ulpin}"}      # Phase 13a (public counts, and village + band of one plot)
 
 
 def test_database_down_returns_clean_json(monkeypatch):

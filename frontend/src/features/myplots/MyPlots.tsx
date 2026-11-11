@@ -1,7 +1,7 @@
 import { LayoutGrid } from "lucide-react";
 import { useMemo } from "react";
 import { ErrorState } from "../../components/ErrorState";
-import { Card, Chip, EmptyState, Popover, Skeleton } from "../../components/ui";
+import { Chip, GlassCard, EmptyState, Popover, Skeleton } from "../../components/ui";
 import { BAND_LABEL } from "../../constants";
 import { cn } from "../../lib/cn";
 import type { PlotFeature } from "../../types";
@@ -44,7 +44,7 @@ export function MyPlots({ open, onClose, plots, loading, error, onRetry, selecte
           <ul className="mt-3 grid grid-cols-2 gap-2">
             {tiles.map((f, index) => (
               <li key={f.properties.ulpin} className={cn(index === 0 && tiles.length > 1 && "col-span-2")}>
-                <Card surface="raised" padding="none" className={cn("h-full transition-[background-color,transform] duration-150 ease-out hover:-translate-y-0.5 hover:bg-navy-900 motion-reduce:transform-none", selected === f.properties.ulpin && "border-cream")}>
+                <GlassCard padding="none" className={cn("h-full transition-[background-color,transform] duration-150 ease-out hover:-translate-y-0.5 hover:bg-glass-fill-strong motion-reduce:transform-none", selected === f.properties.ulpin && "border-cream")}>
                   <button type="button" onClick={() => onPick(f.properties.ulpin)} className="flex h-full w-full flex-col items-start gap-3 rounded-card p-4 text-left">
                     <span className="font-mono text-12 text-muted-on-navy">{f.properties.ulpin}</span>
                     <span className={cn("font-serif text-cream", index === 0 ? "text-58" : "text-34")}>{f.properties.score}</span>
@@ -53,7 +53,7 @@ export function MyPlots({ open, onClose, plots, loading, error, onRetry, selecte
                       <span className="text-12 text-muted-on-navy">{f.properties.village}</span>
                     </span>
                   </button>
-                </Card>
+                </GlassCard>
               </li>
             ))}
           </ul>

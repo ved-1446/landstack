@@ -2,7 +2,7 @@ import { BadgeCheck, Copy, Download, FileX } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ApiError, downloadPassportPdf, getPassport } from "../../api";
 import { ErrorState } from "../../components/ErrorState";
-import { Button, Chip, Drawer, EmptyState, EvidenceCard, Gauge, Skeleton, useToast } from "../../components/ui";
+import { Button, Chip, Drawer, EmptyState, EvidenceCard, ScoreGauge, Skeleton, useToast } from "../../components/ui";
 import { BAND_WORDS, prettyRole } from "../../constants";
 import { useFetch } from "../../hooks";
 import type { ConflictType, Passport } from "../../types";
@@ -159,7 +159,7 @@ export function PassportDrawer({ ulpin, role, rules, simulatedTypes, prefetched,
               </div>
 
               <div className="mt-6">
-                <Gauge score={passport.score} band={passport.band} />
+                <ScoreGauge score={passport.score} band={passport.band} />
               </div>
               <div className="mt-3 flex flex-col items-center gap-2 text-center">
                 <Chip surface="cream" tone={passport.band}>

@@ -53,7 +53,7 @@ jobs:
         run: python -m pytest backend/tests -q
 
   frontend:
-    name: Frontend (design check and build)
+    name: Frontend (design check, tests and build)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -68,5 +68,7 @@ jobs:
       - run: npm ci
       - name: Design rules
         run: npm run check:design
+      - name: Routing and component tests (no network, no real API)
+        run: npm test
       - name: Type check and production build
         run: npm run build

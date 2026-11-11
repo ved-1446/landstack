@@ -139,6 +139,8 @@ MATRIX = {
     ("GET", "/summary"): (403, 401),
     ("GET", "/audit"): (403, 401),
     ("GET", "/verify/{doc_id}"): ("open", None),
+    ("GET", "/public/stats"): ("open", None),            # Phase 13a: public by design, counts only (tested in test_public.py)
+    ("GET", "/public/plot/{ulpin}"): ("open", None),    # Phase 13a: public by design, village and band only
 }
 
 

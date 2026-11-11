@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
@@ -7,4 +8,6 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   // fs.allow: the Hindi and Marathi sentences live in ONE file, chatbot/strings.json, shared with the backend (one level up)
   server: { port: 5173, strictPort: true, fs: { allow: [".."] } },
+  // npm test: component and routing tests run in a fake browser (jsdom). They never touch the real API or the real map.
+  test: { environment: "jsdom", setupFiles: ["./src/test/setup.ts"], include: ["src/**/*.test.{ts,tsx}"] },
 });

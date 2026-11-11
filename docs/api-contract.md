@@ -394,3 +394,30 @@ The printable land passport: one A4 page. It shows the demo-data notice, plot fa
 - `GET /plots/{ulpin}` (and the explain/passport data): new field `capped` (bool): the findings' points add up to more than 100, so the score is held at 100. It is NOT part of the tamper-evidence hash.
 - `GET /plots/{ulpin}/passport.pdf`: new response header `X-Document-Id` (the id printed on the page and in its QR code). Exposed to browsers through CORS. The PDF shows "Capped at 100: findings add up to N" when `capped` is true.
 - CORS: allowed origins come from `CORS_ORIGINS` (comma separated, default `http://localhost:5173`). A wildcard or malformed value stops the server from starting.
+
+## Phase 13a: two public endpoints (no login, no AI)
+
+> **Note: these two endpoints are open to everyone.** Even with the rate limits they confirm that a plot id exists and show its village and risk band (never anything else). That is deliberate: it powers the "Check a plot" card on the public home page.
+
+Both are read-only, limited **per IP address** (so a bulk scrape is cut off), never read the login token (a citizen's or officer's token changes nothing) and never call the AI. They are not written to `audit_log` (its `username` column is required, and the schema did not change); the server only counts the calls in memory and logs the totals, never the ids that were asked for.
+
+### GET /public/stats
+Counts only. Cached for about 60 seconds. Limit `RATE_PUBLIC_STATS` = 30 per minute per IP.
+```json
+{"total_plots": 100, "plots_per_band": {"green": 58, "amber": 29, "red": 13}}
+```
+The fields are exactly those two (no extras are ever added: the response model forbids them). Errors: 429, 503.
+
+### GET /public/plot/{ulpin}
+Returns **only** `ulpin`, `village` and `band`: no names, evidence, survey numbers, scores, areas, geometry or ids.
+```json
+{"ulpin": "MH000100000006", "village": "Hinjewadi", "band": "red"}
+```
+- The id must be 14 capital letters or digits. A malformed id and an unknown id get the **same** answer, `404 {"detail": "No plot found"}` (there is no 422 here, so the answer reveals nothing).
+- Limit `RATE_PUBLIC_PLOT` = 20 per minute per IP, one counter for the whole endpoint (not one per id). Over the limit: 429 with `Retry-After`.
+- `band` is the same band `GET /plots` shows for staff.
+
+### Other changes in 13a
+- The app has real URLs now: `/`, `/login`, `/how-it-works`, `/about`, `/verify` (a friendly page that calls `GET /verify/{doc_id}` asking for JSON), and the protected `/app/*`. The API is unchanged apart from the two endpoints above.
+- `GET /verify/{doc_id}` is called by the web app with `Accept: application/json`, so it always gets JSON even though the same URL returns a web page to a browser.
+- API title version is now 0.13.1.

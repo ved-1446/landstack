@@ -31,6 +31,9 @@
   --color-risk-green: var(--risk-green);
   --color-risk-amber: var(--risk-amber);
   --color-risk-red: var(--risk-red);
+  --color-risk-green-tint: var(--risk-green-tint);
+  --color-risk-amber-tint: var(--risk-amber-tint);
+  --color-risk-red-tint: var(--risk-red-tint);
   --color-risk-green-ink: var(--risk-green-ink);
   --color-risk-amber-ink: var(--risk-amber-ink);
   --color-risk-red-ink: var(--risk-red-ink);
@@ -40,6 +43,11 @@
   --color-line-on-navy: var(--line-on-navy);
   --color-line-on-cream: var(--line-on-cream);
   --color-glass: var(--glass);
+  --color-glass-fill: var(--glass-fill);
+  --color-glass-fill-strong: var(--glass-fill-strong);
+  --color-glass-border: var(--glass-border);
+  --color-forest-line: var(--forest-line);
+  --color-indigo: var(--indigo);
 
   --font-sans: "Geist", "Noto Sans Devanagari", system-ui, sans-serif;
   --font-mono: "Geist Mono", "Noto Sans Devanagari", ui-monospace, monospace;
@@ -72,6 +80,7 @@
   --radius-card: var(--r-card);
   --radius-panel: var(--r-panel);
   --radius-drawer: var(--r-drawer);
+  --radius-glass: var(--r-glass);
   --radius-pill: var(--r-pill);
 
   --shadow-*: initial;
@@ -87,6 +96,7 @@
 @utility z-drawer { z-index: var(--z-drawer); }
 @utility z-modal { z-index: var(--z-modal); }
 @utility z-toast { z-index: var(--z-toast); }
+@utility z-nav { z-index: var(--z-nav); }
 
 /* glass: ONLY for panels floating over the map (search pill, popovers, dock) */
 @utility glass {
@@ -95,6 +105,75 @@
   -webkit-backdrop-filter: blur(16px) saturate(1.2);
   border: 1px solid var(--line-on-navy);
 }
+
+/* ---- Phase 13a: glass surfaces (30%) and the static background layer ---- */
+@utility glass-card {
+  background-color: var(--glass-fill);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.2);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.2);
+}
+@utility glass-card-strong {
+  background-color: var(--glass-fill-strong);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.2);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.2);
+}
+
+/* Every page except the landing hero and the login uses this light static layer: a gradient, a dot grid and a role glow.
+   No WebGL. --glow is set by the role class below. */
+.static-layer {
+  --glow: var(--glow-visitor);
+  background-color: var(--navy-950);
+  background-image:
+    radial-gradient(60rem 36rem at 80% -10%, var(--glow), transparent 70%),
+    radial-gradient(40rem 28rem at 0% 100%, var(--glow), transparent 70%),
+    linear-gradient(180deg, var(--navy-900), var(--navy-950) 70%);
+}
+.static-layer--citizen { --glow: var(--glow-citizen); }
+.static-layer--officer { --glow: var(--glow-officer); }
+.static-layer--admin { --glow: var(--glow-admin); }
+.static-layer--visitor { --glow: var(--glow-visitor); }
+
+/* the three patterns: use a different one per section */
+.pattern-dots {
+  background-image: radial-gradient(circle at 1px 1px, var(--glass-border) 1px, transparent 1.5px);
+  background-size: 24px 24px;
+}
+.pattern-stripes {
+  background-image: repeating-linear-gradient(90deg, transparent 0 47px, var(--glass-fill) 47px 48px);
+  -webkit-mask-image: linear-gradient(180deg, transparent, black 30%, black 70%, transparent);
+  mask-image: linear-gradient(180deg, transparent, black 30%, black 70%, transparent);
+}
+
+/* ---- motion: everything below is switched off by the prefers-reduced-motion rule further down ---- */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(var(--rise-distance)); }
+  to { opacity: 1; transform: none; }
+}
+@utility rise {
+  animation: rise var(--rise-duration) var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * var(--rise-step));
+}
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0) rotate(var(--tilt, 0deg)); }
+  50% { transform: translateY(-8px) rotate(var(--tilt, 0deg)); }
+}
+@utility float-slow { animation: float-slow 7s ease-in-out infinite; animation-delay: calc(var(--i, 0) * -2s); }
+@utility lift {
+  transition: transform 200ms var(--ease-out), border-color 200ms var(--ease-out), background-color 200ms var(--ease-out);
+  &:hover { transform: translateY(-4px); }
+}
+@keyframes route-in {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: none; }
+}
+@utility route-in { animation: route-in 200ms var(--ease-out) both; }
+@keyframes gauge-sweep { from { stroke-dashoffset: var(--arc-length); } }
+@utility gauge-sweep { animation: gauge-sweep 0.9s var(--ease-out) both; }
+
+/* the framed map card: fixed-position children (search, dock, popovers) are placed inside it */
+.map-frame { contain: layout paint; }
 
 @layer base {
   html,
@@ -186,7 +265,7 @@
     right: 0;
   }
   .maplibregl-ctrl-bottom-right {
-    bottom: calc(var(--tabbar-height) + 8px);
+    bottom: calc(var(--tabbar-height) + 72px);
   }
 }
 

@@ -1,76 +1,92 @@
 # LandStack design system
 
-The look of `frontend/` (Phase 5). Everything below lives in `frontend/src/styles/tokens.css` and is mapped into the Tailwind theme in `frontend/src/styles/index.css`. **Components never contain hex codes or arbitrary pixel values**; `npm run check:design` fails the build if they do.
+The look of `frontend/` (rebuilt in Phase 13a). Everything below lives in `frontend/src/styles/tokens.css` and is mapped into the Tailwind theme in `frontend/src/styles/index.css`. **Components never contain hex codes or arbitrary pixel values**; `npm run check:design` fails the build if they do (hex codes are allowed in `tokens.css` only).
 
-## Palette: navy about 60%, cream about 30%, coral about 10%
+## Palette: 60 / 30 / 10 (taken from the login Flow Field)
 
-| Token | Value | Use |
-|---|---|---|
-| `navy-950` | #0A1429 | page, dark map |
-| `navy-900` | #0F1E3D | panels, drawer shell |
-| `navy-800` | #182C54 | raised surfaces |
-| `cream` | #F6F0E4 | text on navy, the passport sheet |
-| `muted-on-navy` | #B4BDD0 | secondary text on navy |
-| `faint-on-navy` | #97A2BA | tertiary text on navy |
-| `ink` | #0F1E3D | text on cream |
-| `muted-on-cream` | #3E4A66 | secondary text on cream |
-| `faint-on-cream` | #5B6781 | tertiary text on cream |
-| `coral` / hover / pressed | #FF6F59 / #FF8A78 / #E85A44 | **only**: the search button, primary buttons, the selected-plot ring, focus rings, the active rail icon |
-| `mist` | #8FA3C4 | the soft blue-grey particle colour on the login background |
-| `risk-green` / `risk-amber` / `risk-red` | #3DBE7F / #E9B44C / #E5535F | **only** for risk (plot fills, chips' dots and borders) |
-| `risk-*-ink` | #1E7A4C / #7A4B00 / #A31E32 | risk on cream (chip text, gauge arcs) |
-| `gauge-red` | #D23A4A | the gauge arc on cream |
-| `sim` / `sim-ink` | #5CC8FF / #0B5C86 | **only** for SIMULATED data (Phase 10, the construction alert): the new-building footprints and labels on the map, and the "Simulated" chips. `sim` on navy (about 10:1), `sim-ink` on cream (about 6:1) |
-| `line-on-navy` / `line-on-cream` | cream 14% / navy 14% | hairlines |
+| Share | Token | Value | Use |
+|---|---|---|---|
+| 60% | `navy-950` ("ink") | #08101F | page background |
+| 60% | `navy-900` ("navy") | #0B1530 | panels, the passport drawer shell |
+| 60% | `navy-800` ("navy-2") | #16275A | raised surfaces |
+| 60% | `forest-line` | #2F7A66 | flow lines and patterns only (contour lines). Never text |
+| 30% | glass | fill white 7% (10% strong), 1px border white 16%, `backdrop-filter` blur 18px (24px once the page is scrolled), radius 22px | glass cards, the nav pill, secondary buttons |
+| 30% | `cream` | #F3ECDD | cream cards and primary text on dark |
+| 30% | `muted-on-navy` / `faint-on-navy` | #A9B3C7 / #97A2BA | secondary text on dark |
+| 30% | `ink` / `muted-on-cream` / `faint-on-cream` | #0B1530 / #4B5670 / #566178 | text on cream |
+| 10% | `coral` / hover / pressed | #FF6B4E / #FF8468 / #E8553A | buttons, the active nav pill, the ONE italic emphasis word in a headline, key highlights, focus rings. **Text on coral is navy-950.** |
+| risk | `risk-green` / `risk-amber` / `risk-red` | #2F9E6E / #D9970F / #D23B41 | **only** risk: plot fills, chip borders, gauge arcs |
+| risk text on dark | `risk-*-tint` | #5FD3A0 / #F2BC4B / #FF8F93 | the lighter shades for risk TEXT on dark |
+| risk on cream | `risk-*-ink` | #1E7A4C / #7A4B00 / #A31E32 | chip text and arcs on cream |
+| simulated | `sim` / `sim-ink` | #B9A7FF / #4D3AA8 | **only** for simulated data: lavender, always with a dashed outline or chip and the word SIMULATED |
+| role glow | `glow-citizen` / `glow-officer` / `glow-admin` / `glow-visitor` | coral 20% / forest 34% / indigo (#5B6CFF) 26% / coral 22% | soft background glows only, never text or borders |
 
-Coral never marks risk. Risk colours are never used for anything but risk. `sim` never marks risk either: it is the colour of "this is simulated", always next to the word SIMULATED (a dashed outline on the map, a chip in the drawer), never colour alone.
+Coral is **never** used for risk. Risk is never colour-only: every band comes with an icon plus words (`BandChip`: "LOW RISK · GREEN", "WATCH · AMBER", "HIGH RISK · RED"). Lavender never marks risk.
 
-### Contrast rules (checked with a script; all text 4.5:1 or better)
-- Text on a coral button is **navy-950** (6.70:1). Cream on coral fails (2.41:1), so it is never used.
-- Coral is never text on cream (2.41:1).
-- Risk red on navy-800 is 3.75:1 and fails. Risk chips on navy therefore use **cream text** with a coloured dot and border; red text is never placed on navy-800.
-- Risk is never colour-only: every risk colour comes with a word (LOW RISK, WATCH, HIGH RISK, GREEN BAND...), a dot or an icon.
+### Contrast rules (all text 4.5:1 or better)
+Measured for every token pair in 13a-1 (the lowest is `risk-green-ink` on cream, 4.53:1; cream on ink 16.2:1; muted-on-navy on ink 9.0:1 and on navy-2 6.8:1; navy-950 on coral 6.8:1; the three risk tints on ink 8.7 to 10.9:1; `sim` on ink 9.1:1; `sim-ink` on cream 7.2:1). The rendered pages are re-checked in the browser in 13a-2.
+- Text on a coral button is **navy-950**. Cream on coral fails, so it is never used. Coral is not used as text on cream.
+- Risk text on dark uses the `tint` shades; on cream the `ink` shades. Chips on dark keep cream text with a coloured border and an icon.
 
-## Type (self-hosted with @fontsource, no Google CDN)
-- **Instrument Serif**: titles and the score number.
-- **Geist**: all UI text.
-- **Geist Mono**: ULPINs, numbers, small-caps labels.
+## Type (self-hosted with @fontsource, no CDN)
+- **Instrument Serif** for display: regular, with **one italic coral word** per headline (`PageHeader`).
+- **Geist** for UI text. **Geist Mono** for ULPINs, numbers and the small uppercase eyebrow labels (11 to 12 px, letter-spacing `.08em`, `tracking-widest`).
+- The Devanagari fallback (Noto Sans Devanagari, Hindi and Marathi) stays in all three stacks.
 - Sizes only: 11, 12, 13, 14, 16, 20, 26, 34, 58 px (`text-11` ... `text-58`).
 
 ## Space, shape, depth
-- Spacing is the 4px scale: 4, 8, 12, 16, 24, 32, 48 (`1, 2, 3, 4, 6, 8, 12`). No arbitrary values such as `mt-[13px]`.
-- Floating panels sit 24px from the screen edge on desktop and 16px on mobile (`--edge`).
-- Radius: 8 `rounded-control` (inputs, chips), 12 `rounded-card`, 16 `rounded-panel` (floating panels), 20 `rounded-drawer`, `rounded-pill`.
-- Shadows: three levels, `shadow-1`, `shadow-2`, `shadow-3`.
-- Z-layers, by name: `z-map`, `z-panel`, `z-rail`, `z-drawer`, `z-modal`, `z-toast`.
-- Glass (backdrop blur) only on panels floating over the map: the search pill, popovers and the dock. The drawer is solid navy. Nowhere else.
+- Spacing is the 4px scale. No arbitrary values such as `mt-[13px]`.
+- Radius: 8 `rounded-control`, 12 `rounded-card`, 16 `rounded-panel`, 20 `rounded-drawer`, **22 `rounded-glass`** (glass and cream cards), `rounded-pill` (nav, chips, badges).
+- Shadows: `shadow-1`, `shadow-2`, `shadow-3`. Z-layers by name: `z-map`, `z-panel`, `z-rail`, `z-drawer`, `z-modal`, `z-toast`, `z-nav`.
+
+## Backgrounds and patterns
+- **Live Flow Field only on the landing hero and the login page.** It runs in a sandboxed iframe, pauses when the tab is hidden and shows a still frame under `prefers-reduced-motion`.
+- **Every other page** uses `StaticLayer` (`components/Backdrop.tsx`): a gradient, a dot grid and a soft glow in the role's tint (`static-layer--citizen|officer|admin|visitor`). No WebGL.
+- Three patterns, a different one per section so pages do not look the same: **dot grid** (`.pattern-dots`), **topographic contour lines** (`ContourLines`, SVG, `forest-line`) and a **soft vertical stripe glow** (`StripeGlow`, `.pattern-stripes`).
 
 ## Motion
-- 150 to 300 ms, ease-out. framer-motion for UI transitions (login steps, drawer, cards, panels, toasts).
-- GSAP only for the gauge arc fill and the score count-up (about 900 ms).
-- `prefers-reduced-motion` is respected everywhere (framer-motion `MotionConfig reducedMotion="user"`, GSAP skipped, the Flow Field background shows a still frame).
+All of it is CSS or `framer-motion`, and all of it respects `prefers-reduced-motion` (a global CSS rule shortens animations to 0.01 ms; `MotionConfig reducedMotion="user"` for framer-motion; the count-up hook shows the end number at once).
+- Staggered rise on load (`.rise`: 24px, 0.8 s, 0.12 s steps through `--i`).
+- Slow float on preview cards (`.float-slow`), hover lift on cards (`.lift`), route transition (`.route-in`: fade plus a 16px, 200 ms slide).
+- Count-up on stat numbers and the gauge number (`lib/useCountUp.ts`, about 900 ms). The gauge arc sweeps with `.gauge-sweep`.
+- **GSAP is gone** (removed from dependencies and THIRD_PARTY.md in 13a).
 
-## Components (`src/components/ui`, one file each)
-Button, Chip, Card, Switch, Segmented, SearchPill, Gauge, EvidenceCard, Skeleton, Drawer, Toast, EmptyState, plus Popover (the frosted popover that becomes a bottom sheet on mobile). `cn()` (clsx + tailwind-merge) and `cva` variants throughout. Every data component has loading, empty and error states. Icons: lucide-react only (Copy = overlap, Users = owner mismatch, Receipt = tax, ShieldAlert = restricted zone, Ruler = area mismatch, Files = duplicate survey number, AlertTriangle = invalid boundary, FileX = missing record, Building2 = construction alert).
+## Shared components (`src/components/ui`, one implementation each)
+`GlassNav` (pill, translucent, blurs more when scrolled; coral active tab; on phones the tabs wrap to a sideways-scrolling second row), `PageHeader` (eyebrow + serif title with italic coral word + subtitle), `GlassCard`, `CreamCard`, `StatCard` (counts up), `BandChip` (icon + words), `RoleBadge`, `ScoreGauge` (cream or dark surface), `BarList`, `Donut` (legend always writes the numbers), `DataList` (rows, not a table), `EmptyState`, `Skeleton`, `Toast`, `Button` (primary coral, secondary glass, ghost, paper for cream sheets). Also: `Chip`, `Switch`, `Segmented`, `SearchPill`, `Drawer`, `Popover`, `EvidenceCard`. `cn()` (clsx + tailwind-merge) and `cva` variants throughout. Icons: lucide-react only.
+
+## Role identity (same components, different identity)
+
+| Role | Area name (eyebrow) | Background glow | Surfaces | Nav tabs | Signature |
+|---|---|---|---|---|---|
+| Visitor | (public pages) | coral glow; live Flow Field on the home hero and login | glass cards | Home, Check a plot, Verify a passport, How it works, About, Sign in | the "Check a plot" card and three preview cards |
+| Citizen | **MY LAND** | warm coral | cream cards dominate, big plain-words text | Home, My plots, Activity, Land Guide | plain-words story card + "what to do next" list |
+| Officer | **OFFICER WORK DESK** | teal (forest) | dense glass cards | Dashboard, Plots, Map, Conflicts, Construction, Land Guide | priority queue + charts + map preview card |
+| Admin | **CONTROL ROOM** | indigo | dense glass cards; a **second tab strip** | Overview, Audit log, Users, System, Insights, plus the officer pages under a "Work desk" strip | audit timeline + system health tiles |
+
+13a built the shell, the tabs per role and the visitor pages; the role pages (dashboards, plots, conflicts and so on) are placeholders until 13b (citizen, officer) and 13c (admin). A role can open only its own pages; anything else sends it to its home page. The map is open to every role (a citizen sees only their own plots on it).
+
+## Routes and the app shell
+`/` home, `/login`, `/how-it-works`, `/about`, `/verify` (public); `/app/*` (protected). After sign-in: officer and admin go to `/app/dashboard`, a citizen to `/app/plots`. `AppShell` = glass nav at the top, role badge, account menu (sign out). There is **no side rail and no floating Land Guide button**; the Land Guide is one tab, `/app/guide`, a full-page version of the same panel. `/app/map` shows the map as a **framed card** (`.map-frame`, `contain: layout paint`) under the page header; its search box, tool buttons, dock and popovers sit inside the card. The passport drawer overlays the page.
 
 ## The Land Guide and "Explain in plain words" (Phase 11)
-No new tokens. The Land Guide is a `Popover` (wider via `--guide-width`, with a new optional `footer` slot that keeps the input pinned) opened by a rail icon and a floating button (navy with a hairline border: coral stays for primary actions; the button carries `data-rail` so the click-outside handler does not fight it, and it hides on phones while the sheet is open). Every state is written in words with an icon, never colour alone: "AI answer, from the sources", "Not in my sources", "AI is off", "AI is busy", "AI could not answer", "Could not ask". The AI label and a "can be wrong, not legal advice" note are always visible. "Explain in plain words" is a `paper` button in the cream sheet; its result card always carries the label the API sends ("AI-written summary of the findings above", or the honest "written by code" one) and says the score, band and findings are unchanged.
+The Land Guide is a page (or a `Popover` where one is used) with a pinned input. Every state is written in words with an icon, never colour alone: "AI answer, from the sources", "Not in my sources", "AI is off", "AI is busy", "AI could not answer", "Could not ask". The AI label and a "can be wrong, not legal advice" note are always visible. "Explain in plain words" is a `paper` button in the cream sheet; its result card carries the label the API sends and says the score, band and findings are unchanged.
 
 ## Hindi and Marathi, and Devanagari text (Phase 11b)
-- **Font:** Noto Sans Devanagari (SIL OFL 1.1), self-hosted from the `@fontsource/noto-sans-devanagari` package (weights 400, 500, 600, **Devanagari subset only**, about 50 KB each as woff2, no CDN). Its `unicode-range` means the browser downloads it only when a Devanagari letter is on the page. It is the fallback in all three font stacks (`--font-sans`, `--font-mono`, `--font-serif`), so Devanagari renders correctly wherever it appears (for example an owner name in a passport), and Latin text still uses Geist, Geist Mono and Instrument Serif.
-- **Line height:** `:lang(hi), :lang(mr) { line-height: 1.6 }`, because Devanagari signs reach above and below the line. Hindi and Marathi text carries a `lang` attribute (including source titles marked `lang="en"` inside Hindi UI).
-- **Language selector:** `LanguageSelector` (EN / हिन्दी / मराठी) is a `Segmented` radio group, with a `cream` surface variant for the passport sheet. One choice, remembered for the browser tab only, is shared by the Land Guide and the Explain section. It is never auto-detected.
-- **Strings:** every fixed Hindi and Marathi sentence is in ONE file, `chatbot/strings.json` (shared with the backend). It has **not been reviewed by a native speaker yet**. Only the Land Guide panel and the Explain section are translated; the rest of the app stays English (full-app translation is out of scope).
-- **Never colour-only, never empty boxes:** every state keeps its word and icon in the chosen language; machine-translated text carries "machine-translated, may contain errors" in that language.
-- **PDF:** Devanagari is shaped with HarfBuzz and drawn as vector glyph outlines (see `backend/app/devanagari.py`); the font files and licence are in `backend/app/fonts/`.
+- **Font:** Noto Sans Devanagari (SIL OFL 1.1), self-hosted, Devanagari subset only, weights 400, 500, 600, loaded only when a Devanagari letter is on the page.
+- **Line height:** `:lang(hi), :lang(mr) { line-height: 1.6 }`. Hindi and Marathi text carries a `lang` attribute.
+- **Language selector:** `LanguageSelector` (EN / हिन्दी / मराठी), one choice per browser tab, never auto-detected, shared by the Land Guide and Explain.
+- **Strings:** every fixed Hindi and Marathi sentence is in `chatbot/strings.json`. **Not yet reviewed by a native speaker.**
+- **PDF:** Devanagari is shaped with HarfBuzz and drawn as vector outlines (`backend/app/devanagari.py`).
 
 ## Accessibility
-Real buttons and inputs; labels on icon-only buttons; visible coral focus rings on everything focusable; keyboard friendly (Escape closes the drawer, popovers and dialogs); the gauge is an image with a text alternative ("Risk score 75 out of 100, red band") and the band is always written in words; toasts live in an `aria-live` region.
+Real buttons and links; labels on icon-only buttons; visible coral focus rings; Escape closes the drawer, popovers and the account menu; the gauge is an image with a text alternative ("Risk score 75 out of 100, red band"); toasts live in an `aria-live` region; the nav is a `<nav>` with a label; pages have one `h1`.
 
 ## Responsive
-- 1440 and wider: icon rail on the left, floating search pill, dock at the bottom, drawer 430px on the right.
-- 768 to 1439: the same, with narrower popovers.
-- Under 768: the rail becomes a bottom tab bar, the search pill spans the width, popovers and the passport drawer become bottom sheets (the passport has peek / half / full snap points).
+- 1440 and wider: nav pill on top (max width 1200), content centred, map card under the header, passport drawer 430px on the right.
+- Under 768px: the nav tabs wrap to a second row inside the pill, popovers and the passport drawer become bottom sheets, page gutters are 16px.
+
+## Tests
+`npm test` (vitest + Testing Library + jsdom) checks the route guards (a visitor cannot open `/app/*`, a role cannot open another role's pages), the tabs of each role, and the singular "Showing 1 plot". They use no network and no real API.
 
 ## Basemaps and attribution
-Light = CARTO Positron, Dark (default) = CARTO Dark Matter, Satellite = Esri World Imagery. The keyless endpoints are used unless `VITE_CARTO_KEY` / `VITE_ESRI_KEY` are set. Attribution is always visible on the map and repeated in the Layers popover. If a basemap fails to load, a toast says so and the map falls back to Dark. See `docs/HANDOFF.md` for the terms risk.
+Light = CARTO Positron, Dark (default) = CARTO Dark Matter, Satellite = Esri World Imagery. The keyless endpoints are used unless `VITE_CARTO_KEY` / `VITE_ESRI_KEY` are set. Attribution is always visible on the map. If a basemap fails to load, a toast says so and the map falls back to Dark. See `docs/HANDOFF.md` for the terms risk.

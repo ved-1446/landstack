@@ -5,17 +5,13 @@ import { ApiError, getConflictTypes, getConstructionAlerts, getPassport, getPlot
 import { ErrorState } from "../components/ErrorState";
 import { Button, EmptyState, SearchPill, Skeleton, useToast } from "../components/ui";
 import { ALL_BANDS } from "../constants";
-import { GuideButton } from "../features/guide/GuideButton";
-import { LanguageProvider } from "../features/guide/language";
-import { GuidePanel } from "../features/guide/GuidePanel";
-import { AccountPopover } from "../features/map/AccountPopover";
 import { BASEMAPS, type BasemapId } from "../features/map/basemaps";
 import { Dock } from "../features/map/Dock";
 import { FiltersPopover, type MapFilters } from "../features/map/FiltersPopover";
 import { LayersPopover } from "../features/map/LayersPopover";
 import MapView, { type FocusRequest, type MapLayerSwitches } from "../features/map/MapView";
 import { PlotsPanel } from "../features/map/PlotsPanel";
-import { Rail, type PanelId } from "../features/map/Rail";
+import { MapToolbar, type PanelId } from "../features/map/MapToolbar";
 import { MyPlots } from "../features/myplots/MyPlots";
 import { PassportDrawer } from "../features/passport/PassportDrawer";
 import { useFetch } from "../hooks";
@@ -27,15 +23,14 @@ const NARROW_DESKTOP = 1200;
 
 interface MapScreenProps {
   session: Session;
-  onLogout: () => void;
 }
 
-export default function MapScreen({ session, onLogout }: MapScreenProps) {
+/** The map, its tools and the passport drawer. It lives inside the app shell as a framed card (see MapPage). */
+export default function MapScreen({ session }: MapScreenProps) {
   const staff = session.role !== "citizen";
   const toast = useToast();
-  const searchInput = useRef<HTMLInputElement>(null);
 
-  const [panel, setPanel] = useState<PanelId | null>(() => (!staff && window.innerWidth >= 768 ? "plots" : null));
+  const [panel, setPanel] = useState<PanelId | null>(() => (!staff && window.innerWidth >= 1200 ? "plots" : null));
   const [filters, setFilters] = useState<MapFilters>({ village: "", conflictType: "" });
   const [bands, setBands] = useState<Set<Band>>(new Set(ALL_BANDS));
   const [basemap, setBasemap] = useState<BasemapId>("dark");
@@ -172,8 +167,9 @@ export default function MapScreen({ session, onLogout }: MapScreenProps) {
   const filtersActive = filters.village !== "" || filters.conflictType !== "";
 
   return (
-    <LanguageProvider>
-    <div className="relative h-dvh overflow-hidden bg-navy-950">
+    <>
+    {/* map-frame: "contain: layout paint" makes the panels, dock and popovers position themselves inside THIS card, not the page */}
+    <div className="map-frame relative mt-8 h-(--map-card-height) min-h-96 overflow-hidden rounded-glass border border-glass-border bg-navy-950">
       <MapView
         features={visible}
         construction={layers.construction ? construction.data : null}
@@ -186,10 +182,9 @@ export default function MapScreen({ session, onLogout }: MapScreenProps) {
         onBasemapError={onBasemapError}
       />
 
-      <Rail staff={staff} active={panel} onToggle={togglePanel} onSearch={() => searchInput.current?.focus()} />
-
-      <div className="fixed left-(--popover-left) top-(--edge) z-panel w-(--pill-width) max-md:left-(--edge) max-md:right-(--edge) max-md:w-auto">
-        <SearchPill ref={searchInput} onSearch={search} />
+      <div className="fixed left-(--edge) top-(--edge) z-panel flex w-(--pill-width) flex-col gap-2 max-md:right-(--edge) max-md:w-auto">
+        <SearchPill onSearch={search} />
+        <MapToolbar staff={staff} active={panel} onToggle={togglePanel} />
       </div>
 
       <Dock shown={all ? visible.length : null} counts={counts} active={bands} onToggle={(band) => setBands((current) => {
@@ -215,10 +210,6 @@ export default function MapScreen({ session, onLogout }: MapScreenProps) {
       ) : (
         <MyPlots open={panel === "plots"} onClose={closePanel} plots={all} loading={plots.loading} error={plots.error} onRetry={plots.retry} selected={selected} onPick={choose} />
       )}
-      <AccountPopover open={panel === "account"} onClose={closePanel} session={session} onLogout={onLogout} />
-      {/* the Land Guide: opened by the rail icon AND the floating button (same panel); it stays mounted to keep the chat */}
-      <GuidePanel open={panel === "guide"} onClose={closePanel} />
-      <GuideButton open={panel === "guide"} onToggle={() => togglePanel("guide")} drawerOpen={selected !== null} />
 
       {plots.loading && !all && (
         <div className="pointer-events-none fixed inset-0 z-panel flex items-center justify-center" role="status" aria-label="Loading plots">
@@ -255,6 +246,9 @@ export default function MapScreen({ session, onLogout }: MapScreenProps) {
         </div>
       )}
 
+    </div>
+
+      {/* the passport drawer overlays the page (not the card), so it keeps its full height on a phone */}
       <AnimatePresence>
         {selected && (
           <PassportDrawer
@@ -269,7 +263,6 @@ export default function MapScreen({ session, onLogout }: MapScreenProps) {
           />
         )}
       </AnimatePresence>
-    </div>
-    </LanguageProvider>
+    </>
   );
 }

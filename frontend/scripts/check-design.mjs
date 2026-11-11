@@ -23,7 +23,7 @@ const rules = [
     exts: [".ts", ".tsx"],
   },
   { name: "emoji", test: /\p{Extended_Pictographic}/gu, exts: [".ts", ".tsx", ".css", ".html"] },
-  { name: "old product name in the UI", test: /LandStack/gi, exts: [".ts", ".tsx", ".css", ".html", ".webmanifest", ".svg"] },
+  { name: "old product name in the UI", test: new RegExp("Code" + "Astra", "gi"), exts: [".ts", ".tsx", ".css", ".html", ".webmanifest", ".svg"] },
 ];
 
 const files = [...walk(join(ROOT, "src")), join(ROOT, "index.html"), ...walk(join(ROOT, "public"))];

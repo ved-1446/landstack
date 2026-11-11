@@ -1,6 +1,5 @@
 # LandStack: Project Brief
 
-*(The project was called LandStack in its first phases. The Docker container `landstack-db`, the database `landstack` and the database user `landstack` keep that legacy name on purpose.)*
 
 ## What it is
 A map app on fake land data. It shows plots, gathers each plot's records into one "land passport", finds eight kinds of conflicts with evidence, and gives a risk score from 0 to 100.
@@ -141,8 +140,16 @@ Claude Code and Antigravity are both used, one at a time, in this same folder. T
 - 605 backend tests pass (the earlier 511 untouched). Next: Phase 12.
 
 ## Status update after Phase 12 (hardening, naming, README, demo)
-- **Naming:** LandStack everywhere a reader sees it; the LandStack SIH 2026 team is credited in the README. The container `landstack-db`, the database `landstack` and its user are legacy infrastructure names kept on purpose (the owner chose to keep them; the README explains why).
+- **Naming:** LandStack everywhere a reader sees it; the origin credit is the SIH 2026 land-records problem statement. The Docker container, database and database user keep their original infrastructure names until Phase 13c.
 - **Hardening:** CORS from `CORS_ORIGINS` (no wildcards), exact version pins (tested on Python 3.14.7), the demo login row only when `VITE_DEMO_ACCOUNTS=true`, a test that walks every endpoint as a citizen and as a visitor, error responses that leak nothing. `pip-audit` and `npm audit` were clean. Scoring, bands, checks and planted data were not changed.
 - **Small features:** friendly HTML `/verify` page (JSON still available), a `capped` flag (API, drawer, PDF; not in the tamper-evidence hash), an `X-Document-Id` header on the PDF.
 - **Repo polish:** MIT `LICENSE`, `THIRD_PARTY.md` (Flow Field MIT notice, OFL fonts, GSAP's non-open licence noted), GitHub Actions CI (PostGIS service, pytest, `check:design`, build; Python 3.14; no secrets; AI mocked), `scripts/setup.ps1` and `scripts/setup.sh`, `docs/DEMO.md`, curated `docs/screenshots/`, regenerated `docs/samples/`, the final README (the long phase-by-phase notes moved to `docs/REFERENCE.md`).
 - 659 backend tests pass. The project is feature-complete for the portfolio goal; what is left is in the README's Future work.
+
+## Status update after Phase 13a-1 (new design foundation, shell and public endpoints)
+- **Frontend overhaul has started (13a, 13b, 13c).** 13a-1 is done: new design tokens (60% navy, 30% glass and cream, 10% coral; role glows; lavender only for simulated data), the shared components, real URL routes (`react-router`) and a new app shell. The old flat navy look, the side icon rail and the floating Land Guide button are gone. See `docs/DESIGN_SYSTEM.md` (it has the role identity table).
+- **Routes:** `/`, `/login`, `/how-it-works`, `/about`, `/verify` are public; `/app/*` needs a login and each role gets its own tabs (citizen, officer, admin with a second "Work desk" strip). The map lives inside the shell as a framed card at `/app/map`; the Land Guide is the `/app/guide` tab. Dashboard, plots, activity, conflicts, construction, audit, users, system and insights are placeholders until 13b (citizen, officer) and 13c (admin).
+- **Backend:** two public, read-only, per-IP-limited endpoints, `GET /public/stats` (counts) and `GET /public/plot/{ulpin}` (only ulpin, village, band). No AI, no personal data, no schema change. Scoring, checks, planted data and `ml/` are untouched.
+- **Dependencies:** added `react-router`, and `vitest`, `@testing-library/react`, `@testing-library/dom`, `jsdom` for tests; removed `gsap` (the gauge uses CSS and a small count-up hook).
+- **Names:** the old product name and personal names were removed from the docs, LICENSE and code comments; the origin credit is "the SIH 2026 land-records problem statement". The Docker container, database and database user keep their original names until 13c.
+- **Still to do in 13a-2:** the full landing page, How it works, About, browser checks and screenshots.

@@ -97,4 +97,8 @@ RATE_DEFAULT = "60/minute"                # per logged-in user (per IP when nobo
 
 # ---- Phase 8: printable passport ----
 RATE_VERIFY = "10/minute"                 # GET /verify/{doc_id}: public, so strictly limited, per IP address
+
+# ---- Phase 13a: public front-page endpoints (no login), per IP address ----
+RATE_PUBLIC_STATS = "30/minute"           # GET /public/stats (counts only, cached about 60 s)
+RATE_PUBLIC_PLOT = "20/minute"            # GET /public/plot/{ulpin} (village and band only)
 DEFAULT_PUBLIC_BASE_URL = "http://localhost:8000"   # PUBLIC_BASE_URL in .env overrides; used inside the QR code

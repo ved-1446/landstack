@@ -98,23 +98,20 @@ If you ship LandStack inside one bundled program, read the LGPL first.
 | react, react-dom | 19.3.1 | MIT |
 | maplibre-gl | 6.17.0 | BSD-3-Clause |
 | framer-motion | 14.12.0 | MIT |
-| gsap | 3.15.1 | GSAP "Standard No Charge" licence (see note) |
+| react-router | 8.5.1 | MIT |
 | lucide-react | 1.71.0 | ISC |
 | class-variance-authority | 0.7.1 | Apache-2.0 |
 | clsx, tailwind-merge | 2.1.1, 3.7.0 | MIT |
 | tailwindcss, @tailwindcss/vite | 4.3.5 | MIT |
 | vite, @vitejs/plugin-react | 8.3.7, 6.3.0 | MIT |
 | typescript | 7.0.2 | Apache-2.0 |
+| vitest, jsdom, @testing-library/react, @testing-library/dom (tests only, never shipped) | 5.1.0, 31.0.0, 16.3.3, 10.4.2 | MIT |
 | @types/react, @types/react-dom | 19.3.0 | MIT |
 | the four `@fontsource/*` font packages | 5.3.0 | OFL-1.1 |
 
-The lock file holds 138 packages: 78 MIT, 23 Apache-2.0, 12 MPL-2.0 (build tools only, not shipped to the browser), 11 ISC, 4 OFL-1.1, 4 BSD-3-Clause, and a few others (BSD-2-Clause, 0BSD, one dual MIT or Apache-2.0, and GSAP).
+The lock file holds 199 packages (153 of them are build and test tools that are not shipped to the browser): 132 MIT, 26 Apache-2.0, 12 ISC, 12 MPL-2.0 (build tools only), 5 BSD-3-Clause, 4 OFL-1.1, 4 BSD-2-Clause, 2 0BSD, and one each dual MIT or Apache-2.0 and BlueOak-1.0.0. There is no non-open-source licence in the list.
 
-**Note on GSAP:** GSAP (GreenSock, now owned by Webflow) is free of charge, including commercial use, but its licence is **not** an open-source licence.
-It forbids using GSAP inside a tool that lets people build animations through a visual interface in competition with Webflow. LandStack is not such a tool: it uses
-GSAP for one number animation on the score gauge (`frontend/src/components/ui/Gauge.tsx`). We could not read the full licence text
-with our tools (only summaries), so check <https://gsap.com/standard-license> before relying on this. If it ever becomes a problem, that one animation can be done with
-`framer-motion`, which is already installed.
+**GSAP was removed in Phase 13a.** The score gauge now sweeps with a CSS animation and counts up with a small hook, so the "Standard No Charge" licence question no longer applies.
 
 ## Development aid, not part of the app
 `.agents/skills/design-taste-frontend/` (and `skills-lock.json`) is an AI-coding-agent "skill" (from `Leonxlnx/taste-skill` on GitHub)

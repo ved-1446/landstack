@@ -1,7 +1,7 @@
 import { AlertTriangle, CircleHelp, Clock, ExternalLink, Info, Languages, PowerOff, SendHorizontal, Sparkles } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { askGuide } from "../../api";
-import { Button, Chip, Popover } from "../../components/ui";
+import { Button, Chip, GlassCard, Popover } from "../../components/ui";
 import type { GuideAnswer, GuideStatus } from "../../types";
 import type { StringKey } from "./i18n";
 import { LanguageSelector, useLanguage } from "./language";
@@ -24,8 +24,10 @@ const STATUS: Record<GuideStatus, { icon: typeof Sparkles; label: StringKey }> =
 };
 
 interface GuidePanelProps {
-  open: boolean;
-  onClose: () => void;
+  /** "page" renders the conversation as a full page card (the /app/guide route); "popover" is the older floating panel */
+  variant?: "popover" | "page";
+  open?: boolean;
+  onClose?: () => void;
 }
 
 /**
@@ -34,7 +36,7 @@ interface GuidePanelProps {
  * The visitor picks English, हिन्दी or मराठी; it is never guessed. Questions in Hindi or Marathi are translated to English on
  * the server, answered from the English sources, and translated back (retrieval is English-only).
  */
-export function GuidePanel({ open, onClose }: GuidePanelProps) {
+export function GuidePanel({ variant = "popover", open = true, onClose = () => undefined }: GuidePanelProps) {
   const { language, t } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState("");
@@ -45,7 +47,7 @@ export function GuidePanel({ open, onClose }: GuidePanelProps) {
 
   useEffect(() => () => abort.current?.abort(), []);
   useEffect(() => {
-    if (open) end.current?.scrollIntoView({ block: "end" });
+    if (open && variant !== "page") end.current?.scrollIntoView({ block: "end" });
   }, [open, messages, loading]);
 
   const ask = useCallback(
@@ -115,8 +117,8 @@ export function GuidePanel({ open, onClose }: GuidePanelProps) {
     </form>
   );
 
-  return (
-    <Popover open={open} onClose={onClose} title={t("guide_title")} footer={footer} className="md:w-(--guide-width)">
+  const body = (
+    <>
       <div className="mt-2">
         <LanguageSelector />
       </div>
@@ -177,6 +179,20 @@ export function GuidePanel({ open, onClose }: GuidePanelProps) {
         )}
       </ol>
       <div ref={end} />
+    </>
+  );
+
+  if (variant === "page") {
+    return (
+      <GlassCard padding="none" className="mx-auto flex w-full max-w-3xl flex-col" aria-label={t("guide_title")}>
+        <div className="min-h-96 px-6 pb-6 pt-4">{body}</div>
+        <div className="sticky bottom-0 rounded-b-glass border-t border-glass-border bg-glass px-6 py-4">{footer}</div>
+      </GlassCard>
+    );
+  }
+  return (
+    <Popover open={open} onClose={onClose} title={t("guide_title")} footer={footer} className="md:w-(--guide-width)">
+      {body}
     </Popover>
   );
 }

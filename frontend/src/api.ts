@@ -9,6 +9,8 @@ import type {
   Passport,
   PlotCollection,
   PlotFilters,
+  PublicPlot,
+  PublicStats,
   Session,
   Summary,
   Verification,
@@ -85,11 +87,12 @@ interface Options {
   signal?: AbortSignal;
   body?: unknown; // sent as JSON with POST
   authenticated?: boolean; // default true: send the token, and treat 401 as "session over"
+  accept?: string; // an Accept header (the verify page asks for JSON explicitly, because the same URL can also return a web page)
 }
 
 /** Sends the request and returns the response if it worked. Everything that went wrong becomes an ApiError. */
 async function send(path: string, options: Options = {}): Promise<Response> {
-  const { params = {}, signal, body, authenticated = true } = options;
+  const { params = {}, signal, body, authenticated = true, accept } = options;
   const url = new URL(BASE_URL + path);
   for (const [key, value] of Object.entries(params)) {
     if (value) url.searchParams.set(key, value);
@@ -97,6 +100,7 @@ async function send(path: string, options: Options = {}): Promise<Response> {
 
   const headers: Record<string, string> = {};
   if (body !== undefined) headers["Content-Type"] = "application/json";
+  if (accept) headers["Accept"] = accept;
   const token = authenticated ? getSession()?.token : undefined;
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
@@ -200,5 +204,15 @@ export async function downloadPassportPdf(ulpin: string, signal?: AbortSignal): 
 
 /** Does a printed passport still match the records? Public endpoint: no login needed. */
 export function verifyDocument(docId: string, signal?: AbortSignal) {
-  return request<Verification>(`/verify/${encodeURIComponent(docId.trim())}`, { signal, authenticated: false });
+  return request<Verification>(`/verify/${encodeURIComponent(docId.trim())}`, { signal, authenticated: false, accept: "application/json" });
+}
+
+/** Public counts for the front page: total plots and plots per band. No login, no names. */
+export function getPublicStats(signal?: AbortSignal) {
+  return request<PublicStats>("/public/stats", { signal, authenticated: false });
+}
+
+/** Public "check a plot": only the village and the risk band. No login. A wrong id is a 404 (the same answer for every wrong id). */
+export function getPublicPlot(ulpin: string, signal?: AbortSignal) {
+  return request<PublicPlot>(`/public/plot/${encodeURIComponent(ulpin.trim().toUpperCase())}`, { signal, authenticated: false });
 }

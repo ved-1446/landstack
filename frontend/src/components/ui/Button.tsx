@@ -10,8 +10,9 @@ const button = cva(
       variant: {
         // coral: primary actions only. The label is navy-950 (6.7:1); cream on coral would fail.
         primary: "bg-coral text-navy-950 hover:bg-coral-hover active:bg-coral-pressed",
-        secondary: "border border-line-on-navy bg-navy-800 text-cream hover:bg-navy-900",
-        ghost: "text-cream hover:bg-navy-800",
+        // the glass button: translucent with a fine border
+        secondary: "glass-card text-cream hover:bg-glass-fill-strong",
+        ghost: "text-cream hover:bg-glass-fill",
         // for buttons sitting on the cream passport sheet
         paper: "border border-line-on-cream bg-transparent text-ink hover:bg-line-on-cream",
       },

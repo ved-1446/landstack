@@ -1,21 +1,16 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, ArrowRight, Building2, Eye, EyeOff, ShieldCheck, UserRound } from "lucide-react";
 import { lazy, Suspense, useEffect, useRef, useState, type FormEvent } from "react";
+import { Link } from "react-router";
 import { ApiError, login } from "../api";
+import { useAuth } from "../auth";
 import { Button } from "../components/ui";
 import { DEMO_ACCOUNTS, DEMO_ACCOUNTS_ENABLED } from "../features/login/demoAccounts";
 import { cn } from "../lib/cn";
 import { DURATION, EASE_OUT } from "../lib/motion";
-import type { Session } from "../types";
 
 // Loaded only when the login screen is shown (it is not part of the map screen's code).
 const FlowField = lazy(() => import("../features/login/FlowField"));
-
-interface LoginScreenProps {
-  /** shown above the form, for example "Your session has ended." */
-  notice?: string | null;
-  onLoggedIn: (session: Session) => void;
-}
 
 function friendlyError(error: unknown): string {
   if (error instanceof ApiError) {
@@ -29,9 +24,17 @@ function friendlyError(error: unknown): string {
 }
 
 const inputClass =
-  "h-11 w-full rounded-control border border-line-on-navy bg-navy-950 px-3 text-14 text-cream placeholder:text-faint-on-navy";
+  "h-11 w-full rounded-control border border-glass-border bg-navy-950 px-3 text-14 text-cream placeholder:text-faint-on-navy";
 
-export default function LoginScreen({ notice, onLoggedIn }: LoginScreenProps) {
+// the three demo role cards use these accounts (the passwords are public demo passwords, shown only when VITE_DEMO_ACCOUNTS is true)
+const DEMO_CARDS = [
+  { username: "citizen1", label: "Citizen", note: "Sees only their own 3 plots", icon: UserRound },
+  { username: "officer", label: "Officer", note: "Sees every plot", icon: Building2 },
+  { username: "admin", label: "Admin", note: "Sees everything, plus the audit log", icon: ShieldCheck },
+] as const;
+
+export default function LoginScreen() {
+  const { notice, signedIn } = useAuth();
   const [step, setStep] = useState<1 | 2>(1);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -64,7 +67,7 @@ export default function LoginScreen({ notice, onLoggedIn }: LoginScreenProps) {
     setBusy(true);
     setError(null);
     try {
-      onLoggedIn(await login(username.trim(), password));
+      signedIn(await login(username.trim(), password));
     } catch (err) {
       setError(friendlyError(err));
       setBusy(false);
@@ -87,8 +90,12 @@ export default function LoginScreen({ notice, onLoggedIn }: LoginScreenProps) {
         <FlowField />
       </Suspense>
 
-      <div className="relative z-panel w-full max-w-96 rounded-panel border border-line-on-navy bg-navy-900 p-8 shadow-3">
-        <h1 className="font-serif text-58 text-cream">LandStack</h1>
+      <div className="glass-card-strong relative z-panel w-full max-w-md rounded-glass p-8 shadow-3">
+        <Link to="/" className="mb-6 inline-flex items-center gap-2 rounded-control text-13 text-muted-on-navy hover:text-cream">
+          <ArrowLeft className="size-4" aria-hidden="true" />
+          Back to home
+        </Link>
+        <h1 className="font-serif text-58 text-cream">Sign <em className="text-coral">in</em></h1>
         <p className="mt-2 text-14 text-muted-on-navy">Sign in to see land records. All data here is demo data.</p>
 
         {notice && (
@@ -197,21 +204,27 @@ export default function LoginScreen({ notice, onLoggedIn }: LoginScreenProps) {
         </div>
 
         {DEMO_ACCOUNTS_ENABLED && (
-          <section aria-label="Demo accounts" className="mt-6 border-t border-line-on-navy pt-4">
-            <h2 className="font-mono text-11 tracking-wider text-faint-on-navy">TRY A DEMO ACCOUNT</h2>
-            <ul className="mt-3 grid grid-cols-2 gap-2">
-              {DEMO_ACCOUNTS.map((account) => (
-                <li key={account.username}>
-                  <button
-                    type="button"
-                    onClick={() => fillDemo(account)}
-                    className="flex w-full flex-col rounded-control border border-line-on-navy px-3 py-2 text-left transition-[background-color,transform] duration-150 ease-out hover:-translate-y-0.5 hover:bg-navy-800 motion-reduce:transform-none"
-                  >
-                    <span className="font-mono text-13 text-cream">{account.username}</span>
-                    <span className="text-12 text-muted-on-navy">{account.role}</span>
-                  </button>
-                </li>
-              ))}
+          <section aria-label="Demo accounts" className="mt-6 border-t border-glass-border pt-4">
+            <h2 className="font-mono text-11 tracking-widest text-muted-on-navy">TRY A DEMO ACCOUNT</h2>
+            <ul className="mt-3 grid grid-cols-3 gap-2 max-sm:grid-cols-1">
+              {DEMO_CARDS.map((card) => {
+                const account = DEMO_ACCOUNTS.find((a) => a.username === card.username);
+                if (!account) return null;
+                return (
+                  <li key={card.username}>
+                    <button
+                      type="button"
+                      onClick={() => fillDemo(account)}
+                      className="lift glass-card flex h-full w-full flex-col gap-1 rounded-card p-3 text-left hover:bg-glass-fill-strong"
+                    >
+                      <card.icon className="size-5 text-coral" aria-hidden="true" />
+                      <span className="text-14 font-medium text-cream">{card.label}</span>
+                      <span className="font-mono text-11 text-muted-on-navy">{account.username}</span>
+                      <span className="text-12 text-muted-on-navy">{card.note}</span>
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           </section>
         )}

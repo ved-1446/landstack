@@ -17,8 +17,8 @@ interface PopoverProps {
 }
 
 /**
- * A frosted panel that floats next to the rail. Under 768px it becomes a bottom sheet above the tab bar.
- * Escape closes it, and so does a click anywhere outside it (the rail buttons toggle it themselves).
+ * A frosted panel that floats inside the map card. Under 768px it becomes a bottom sheet along the bottom edge of the card.
+ * Escape closes it, and so does a click anywhere outside it (the map toolbar buttons toggle it themselves).
  */
 export function Popover({ open, onClose, title, children, footer, className }: PopoverProps) {
   const mobile = useIsMobile();
@@ -58,7 +58,7 @@ export function Popover({ open, onClose, title, children, footer, className }: P
             "glass fixed z-panel flex flex-col overflow-hidden shadow-2",
             mobile
               ? "inset-x-0 bottom-(--tabbar-height) max-h-(--sheet-max) rounded-t-drawer"
-              : "left-(--popover-left) top-(--popover-top) max-h-[calc(100dvh-var(--popover-top)-var(--popover-bottom))] w-(--popover-width) rounded-panel",
+              : "left-(--popover-left) top-(--popover-top) max-h-[calc(var(--map-card-height)-var(--popover-top)-var(--popover-bottom))] w-(--popover-width) rounded-panel",
             className,
           )}
         >

@@ -2,8 +2,8 @@
 
 The long, detailed notes written while building each phase. For the short version (what it is, quick start, honest limits) read the
 [README](../README.md). Commands are run from the repo root with the virtual environment active, unless said otherwise.
-Where this file mentions `docker exec -i landstack-db psql -U landstack -d landstack`, those are the **legacy infrastructure names**
-described in the README (container, database and user); keep them as they are.
+Where this file shows `docker exec -i <db-container> psql -U <POSTGRES_USER> -d <POSTGRES_DB>`, use the container name from `docker compose ps`
+and the database user and name from your `.env`.
 
 ## Manual setup (Phase 0-1; `scripts/setup.ps1` / `scripts/setup.sh` do all of this for you)
 
@@ -25,11 +25,11 @@ pip install -r backend/requirements.txt
 
 Git Bash / Mac / Linux:
 ```
-docker exec -i landstack-db psql -U landstack -d landstack -v ON_ERROR_STOP=1 < db/schema.sql
+docker exec -i <db-container> psql -U <POSTGRES_USER> -d <POSTGRES_DB> -v ON_ERROR_STOP=1 < db/schema.sql
 ```
 PowerShell:
 ```
-Get-Content db/schema.sql | docker exec -i landstack-db psql -U landstack -d landstack -v ON_ERROR_STOP=1
+Get-Content db/schema.sql | docker exec -i <db-container> psql -U <POSTGRES_USER> -d <POSTGRES_DB> -v ON_ERROR_STOP=1
 ```
 
 **4. Seed the fake data** (same flags = same data; also writes `db/planted_truth.json`)
@@ -115,11 +115,11 @@ In `.env.example` use `JWT_SECRET=change-me-generate-a-long-random-string`. Neve
 
 **2. Recreate the tables and seed.** Phase 7 changed `db/schema.sql` (`users`, new `user_plots`, new `audit_log` columns). Re-running the schema drops and recreates every table, so seed again afterwards:
 ```
-docker exec -i landstack-db psql -U landstack -d landstack -v ON_ERROR_STOP=1 < db/schema.sql
+docker exec -i <db-container> psql -U <POSTGRES_USER> -d <POSTGRES_DB> -v ON_ERROR_STOP=1 < db/schema.sql
 python db/seed.py
 python db/seed_users.py
 ```
-(PowerShell: `Get-Content db/schema.sql | docker exec -i landstack-db psql -U landstack -d landstack -v ON_ERROR_STOP=1`.) `db/seed_users.py` is safe to run again. Only argon2 hashes go into the database.
+(PowerShell: `Get-Content db/schema.sql | docker exec -i <db-container> psql -U <POSTGRES_USER> -d <POSTGRES_DB> -v ON_ERROR_STOP=1`.) `db/seed_users.py` is safe to run again. Only argon2 hashes go into the database.
 
 **3. Start the API and the frontend** as before, then open http://localhost:5173 and log in.
 
@@ -201,7 +201,7 @@ python -m db.adapters.make_samples
 
 To load the new data (the schema changed: `building_snapshots` has a `ulpin` column, so re-run it, which also drops the users table):
 ```
-docker exec -i landstack-db psql -U landstack -d landstack -v ON_ERROR_STOP=1 < db/schema.sql
+docker exec -i <db-container> psql -U <POSTGRES_USER> -d <POSTGRES_DB> -v ON_ERROR_STOP=1 < db/schema.sql
 python db/seed.py
 python db/seed_users.py
 ```
@@ -315,7 +315,7 @@ The Land Guide and "Explain in plain words" also work in **हिन्दी** 
 - **Setup:** `pip install -r backend/requirements.txt` (adds `uharfbuzz` and `fonttools`) and `cd frontend && npm install` (adds the font package).
 
 ## Phase 12 (hardening, naming, README, demo)
-- **Naming:** LandStack everywhere a reader sees it. The Docker container `landstack-db`, the database `landstack` and its user are legacy infrastructure names kept on purpose (see the README).
+- **Naming:** LandStack everywhere a reader sees it.
 - **Hardening:** CORS only for `CORS_ORIGINS` (default `http://localhost:5173`; a wildcard or malformed value stops the server); exact version pins in `backend/requirements.txt` and `ml/requirements.txt` (tested on Python 3.14.7); the demo login row only when `VITE_DEMO_ACCOUNTS` is exactly `true`; a test that walks every endpoint as a citizen and a visitor; tests that error responses leak no stack trace, SQL or host details. `pip-audit` and `npm audit` were clean.
 - **Three small features:** a friendly HTML page at `GET /verify/{doc_id}` (browsers get HTML, programs get JSON; see `backend/app/verify_page.py`); a `capped` flag (API, drawer, PDF note, not part of the tamper-evidence hash); an `X-Document-Id` header on the PDF response.
 - **Repo polish:** `LICENSE` (MIT), `THIRD_PARTY.md`, `.github/workflows/ci.yml`, `scripts/setup.ps1` and `scripts/setup.sh`, `docs/DEMO.md`, curated `docs/screenshots/`, regenerated `docs/samples/`.
