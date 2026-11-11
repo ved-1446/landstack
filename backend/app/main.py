@@ -19,7 +19,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, Response
 from pydantic import BaseModel, Field
 from slowapi.errors import RateLimitExceeded
 
-from . import audit, auth, checks, config, limits, passport, overview, pdf, public, security, unusual, verify_page
+from . import admin, audit, auth, checks, config, limits, passport, overview, pdf, public, security, unusual, verify_page
 from . import explain as explainer
 from chatbot import guide as land_guide
 from .auth import ErrorBody, User, current_user, require_roles
@@ -214,7 +214,7 @@ class Verification(BaseModel):
 
 app = FastAPI(
     title="LandStack API",
-    version="0.13.2",
+    version="0.13.3",
     description="Land records on a map. Plots, land passports, conflicts and risk scores "
                 "(fake demo data). Log in at POST /auth/login first; what you may see depends on your role.",
 )
@@ -225,13 +225,14 @@ app.add_middleware(
     allow_origins=security.cors_origins(),        # CORS_ORIGINS in .env, default http://localhost:5173 only
     allow_methods=["GET", "POST"],
     allow_headers=["Authorization", "Content-Type"],
-    expose_headers=["Retry-After", "X-Document-Id"],
+    expose_headers=["Retry-After", "X-Document-Id", "X-Total-Count"],
 )
 app.state.limiter = limits.limiter
 PUBLIC_BASE_URL = pdf.get_public_base_url()   # checked at start-up; the QR codes point here
 app.include_router(auth.router)
 app.include_router(public.router)
 app.include_router(overview.router)
+app.include_router(admin.router)
 unusual.load_model()   # the Phase 9 model, loaded once; no model file just means "unusual": null
 
 
@@ -451,21 +452,34 @@ def audit_log(
     request: Request,
     conn: Conn,
     user: Admin,
+    response: Response,
     username: Annotated[str | None, Query(max_length=64, description="Only this user's views")] = None,
     ulpin: Annotated[str | None, Query(max_length=40, description="Only views of this plot")] = None,
+    action: Annotated[str | None, Query(max_length=64, description="Only this kind of action, for example view_passport")] = None,
+    since: Annotated[datetime | None, Query(description="Only rows at or after this time (ISO 8601)")] = None,
+    until: Annotated[datetime | None, Query(description="Only rows before this time (ISO 8601)")] = None,
     limit: Annotated[int, Query(ge=1, le=500, description="How many rows (newest first)")] = 100,
+    offset: Annotated[int, Query(ge=0, le=1_000_000, description="Skip this many rows, for pages")] = 0,
 ):
-    """The audit log, newest first. Admins only."""
+    """The audit log, newest first. Admins only. The filters combine; the total number of matching rows is in the X-Total-Count
+    response header, so a page can say "page 2 of 7"."""
+    where = """WHERE (%(username)s::text IS NULL OR username = %(username)s)
+          AND (%(ulpin)s::text IS NULL OR ulpin = %(ulpin)s)
+          AND (%(action)s::text IS NULL OR action = %(action)s)
+          AND (%(since)s::timestamptz IS NULL OR looked_at >= %(since)s)
+          AND (%(until)s::timestamptz IS NULL OR looked_at < %(until)s)"""
+    args = {"username": username, "ulpin": ulpin, "action": action, "since": since, "until": until}
+    (total,) = conn.execute(f"SELECT count(*) FROM audit_log {where}", args).fetchone()
+    response.headers["X-Total-Count"] = str(total)
     rows = conn.execute(
-        """
+        f"""
         SELECT id, username, role, ulpin, action, looked_at
         FROM audit_log
-        WHERE (%(username)s::text IS NULL OR username = %(username)s)
-          AND (%(ulpin)s::text IS NULL OR ulpin = %(ulpin)s)
+        {where}
         ORDER BY looked_at DESC, id DESC
-        LIMIT %(limit)s
+        LIMIT %(limit)s OFFSET %(offset)s
         """,
-        {"username": username, "ulpin": ulpin, "limit": limit},
+        {**args, "limit": limit, "offset": offset},
     ).fetchall()
     return [{"id": r[0], "username": r[1], "role": r[2], "ulpin": r[3], "action": r[4], "looked_at": r[5]}
             for r in rows]

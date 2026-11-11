@@ -1,7 +1,7 @@
 services:
   db:
     image: postgis/postgis:16-3.4
-    container_name: ${LANDSTACK_DB_CONTAINER:-landstack-db}   # legacy name kept as the default; a variable so a second copy can run beside it
+    container_name: ${LANDSTACK_DB_CONTAINER:-landstack-db}   # a variable so a second copy can run beside it
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-landstack}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
@@ -9,7 +9,7 @@ services:
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - db:/var/lib/postgresql/data   # volume landstack_db (new in Phase 13c: the old volume is left alone)
 
 volumes:
-  pgdata:
+  db:

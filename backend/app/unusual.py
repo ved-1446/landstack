@@ -52,6 +52,20 @@ def is_loaded():
     return _state["bundle"] is not None
 
 
+def current():
+    """(bundle, explainer) of the loaded model, or (None, None). Read-only: used by the admin pages."""
+    return _state["bundle"], _state["explainer"]
+
+
+def metadata():
+    """The small description saved next to the model (training date and so on), or {} if it cannot be read."""
+    try:
+        import json
+        return json.loads((model_dir() / train_unusual.META_FILE).read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return {}
+
+
 def _inputs(conn):
     """Every plot with its three latest records, and the zones, as the plain inputs ml/features.py wants.
     Plain SELECTs only (no spatial functions): the geometry comes back as hex WKB and shapely reads it."""

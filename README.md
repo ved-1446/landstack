@@ -5,27 +5,37 @@
 A student portfolio project, built on **fake data** near Pune. It is a demo, not an official or legal tool.
 Origin: the **SIH 2026 land-records problem statement**.
 
-![The map: 100 demo plots coloured green, amber and red by risk](docs/screenshots/02-map.jpg)
+![The public home page, with the live Flow Field and the "Check a plot" card](docs/screenshots/01-landing.jpg)
 
 ## Screenshots
 
 | | |
 |---|---|
-| ![A land passport for a red plot, score capped at 100](docs/screenshots/03-passport.jpg) **Land passport.** Score, findings with evidence and rules. | ![A citizen sees only their own plot](docs/screenshots/05-citizen.jpg) **Citizen view.** A citizen sees only their own plots; the plot they overlap is neither named nor drawn. |
-| ![The simulated unrecorded-construction layer](docs/screenshots/04-construction.jpg) **Construction switch.** New-building outlines, labelled SIMULATED (there is no real imagery). | ![The Land Guide chat panel](docs/screenshots/07-land-guide.jpg) **Land Guide.** Answers only from a few public pages, with links. *(Made with a local stand-in model, so the wording is not a real model's.)* |
-| ![The Land Guide in Hindi](docs/screenshots/08-hindi.jpg) **हिन्दी.** Machine-translated, and labelled so. | ![The Land Guide in Marathi](docs/screenshots/09-marathi.jpg) **मराठी.** Same. |
+| ![A citizen's plots as cream cards](docs/screenshots/02-citizen.jpg) **Citizen, "MY LAND".** Only their own plots, in plain words. | ![The officer's dashboard](docs/screenshots/03-officer.jpg) **Officer, "OFFICER WORK DESK".** Counts, problems by type, the priority queue and a map preview. |
+| ![The admin control room](docs/screenshots/04-admin.jpg) **Admin, "CONTROL ROOM".** System health, people and activity. | ![The map with a land passport open beside it](docs/screenshots/05-map-passport.jpg) **Map and passport.** The score, each finding with its evidence, and the rule that raised it. |
+| ![A land passport explained in Hindi](docs/screenshots/06-hindi-passport.jpg) **हिन्दी.** The fixed sentences are in Hindi. With no AI key set, the explanation itself stays in English and says so in Hindi. | |
 
-More: [login screen](docs/screenshots/01-login.jpg), [phone passport](docs/screenshots/06-phone-passport.jpg), [sample PDFs](docs/samples/), and the guided tour in [docs/DEMO.md](docs/DEMO.md).
+More: [sample PDFs](docs/samples/) and the guided tour in [docs/DEMO.md](docs/DEMO.md).
 
 ## What it does
 - **Shows 100 demo plots on a map**, coloured by risk band, with filters, search by ULPIN (a plot's 14-character id) and light, dark and satellite basemaps.
 - **Runs nine conflict checks** in PostGIS (overlaps, restricted zones, area, owner name, duplicate survey number, invalid shape, overdue tax, missing record, and a *simulated* unrecorded-construction check). The SQL is visible in `backend/app/checks.py`: no ORM.
 - **Scores each plot** with fixed points (below) and shows a **land passport**: every finding with its evidence and the rule that raised it.
 - **Prints a one-page PDF passport** with a QR code and a short document id. **`/verify`** tells anyone, on a phone or through the API, whether the records still match what was printed.
-- **Has roles**: admin, officer (see every plot) and citizen (see only their own; anything else is "not found"). Logins and downloads are audit-logged; there are rate limits.
+- **Has three roles, each with its own pages** (see below): a citizen sees only their own plots (anything else is "not found"), an officer works through every plot, and an admin also runs the control room. Passport views and downloads are audit-logged; there are rate limits.
+- **Has a public side**: a home page with a "Check a plot" card that shows only a plot's village and risk band, a how-it-works page, an about page, and a page that checks a printed passport.
 - **Optional AI helpers** (off unless you add a key): "Explain in plain words" rewrites a plot's findings in words; the **Land Guide** answers general questions from a small set of public pages. Both can work in हिन्दी and मराठी. **The AI never changes a score.**
 - **A statistical "unusual plot" note** from an Isolation Forest model: a hint for a human, never part of the score.
 - **State adapters** turn three made-up state formats into one standard format (square metres, ISO dates, "Given Family" names).
+
+## The three views
+Everything after signing in sits in one app with a top navigation. A page that belongs to another role shows a friendly "not for your role" page (and the server checks again).
+
+| Role | Pages |
+|---|---|
+| **Citizen** ("MY LAND") | **Home** (a short story about your plots, written by code, and what to do next), **My plots** (cards), a **passport page** per plot (checks, a plain-words explanation in English, Hindi or Marathi, the PDF), **Verify** (paste a document id, a QR address or a plot id), **Activity** (your own recent actions) and the **Land Guide**. |
+| **Officer** ("OFFICER WORK DESK") | **Dashboard** (counts, problems by type, the ten riskiest plots, a map preview), **Plots** (a table with search, a filter for any mix of bands, a village filter, sorting and pages), **Map**, **Conflicts**, **Construction** (simulated), **Zones**, the **Land Guide**, and your own activity in the account menu. |
+| **Admin** ("CONTROL ROOM") | **Overview** (system health, people, activity), the **audit log** (a timeline with filters and pages), **Users** (roles, linked plots, last activity; never a password), **System** (API, database, PostGIS, the AI explainer, the model, versions) and **Insights** (what the unusual-plot model pays attention to, labelled "explanation only"). The officer pages are in a second strip. |
 
 ## How the risk score works
 **The score is computed by code only.** Models and LLMs never add, remove or change a point, a finding or a band. The points are in `backend/app/config.py`:
@@ -63,7 +73,7 @@ flowchart LR
 - **Backend:** Python 3.14, FastAPI, psycopg 3 with hand-written SQL, PostgreSQL 16 + PostGIS 3.4 (Docker), argon2 and JWT for login, slowapi for rate limits, ReportLab, qrcode, pypdf, HarfBuzz (`uharfbuzz`) and fontTools for Devanagari in the PDF.
 - **ML and AI:** scikit-learn (Isolation Forest), SHAP, rank_bm25 + BeautifulSoup (Land Guide), OpenRouter (optional).
 - **Frontend:** React 19, TypeScript, Vite 8, Tailwind CSS 4, MapLibre GL, React Router, framer-motion, self-hosted fonts.
-- **Tests and CI:** pytest, a design-rule checker (`npm run check:design`), GitHub Actions.
+- **Tests and CI:** pytest, vitest, a design-rule checker (`npm run check:design`), GitHub Actions.
 
 ## Quick start
 You need **Docker** (running), **Python 3.14** (what the exact pinned versions were tested on; 3.11 to 3.13 may work if every pinned package has a wheel for it) and **Node 20.19 or newer** (24 was tested). About 10 minutes.
@@ -107,7 +117,7 @@ Then follow the 8-click tour in [docs/DEMO.md](docs/DEMO.md).
 **Doing it by hand** (what the script does): copy `.env.example` to `.env` and fill it in; `docker compose up -d`; `python -m venv .venv`, activate it, `pip install -r backend/requirements.txt`; apply `db/schema.sql` (`Get-Content db/schema.sql | docker exec -i <db-container> psql -U <POSTGRES_USER> -d <POSTGRES_DB> -v ON_ERROR_STOP=1`; on Linux/macOS use `< db/schema.sql`); `python db/seed.py`; `python db/seed_users.py`; `python -m chatbot.build`; `python -m backend.app.checks`; `cd frontend && npm ci`. Details for every part are in [docs/REFERENCE.md](docs/REFERENCE.md).
 
 ### Settings (`.env`, never committed)
-`.env.example` lists every variable with no real values. The important ones:
+`.env.example` lists every variable with no real values (the database is called `landstack`, with the user `landstack`, in a container called `landstack-db`). The important ones:
 
 | Variable | What it does |
 |---|---|
@@ -116,7 +126,7 @@ Then follow the 8-click tour in [docs/DEMO.md](docs/DEMO.md).
 | `CORS_ORIGINS` | web addresses allowed to call the API (comma separated, **no wildcards**; a bad value stops the server) |
 | `PUBLIC_BASE_URL` | where the QR code on a printed passport points |
 | `OPENROUTER_API_KEY`, `OPENROUTER_MODEL` | optional: turn on the AI helpers (a free model is fine) |
-| `VITE_API_URL`, `VITE_DEMO_ACCOUNTS`, `VITE_CARTO_KEY`, `VITE_ESRI_KEY` | web app (`frontend/.env`): see below |
+| `VITE_API_URL`, `VITE_DEMO_ACCOUNTS`, `VITE_CARTO_KEY`, `VITE_ESRI_KEY` | web app: put them in `frontend/.env` (Vite reads that folder), see below |
 
 Optional **free basemap keys**: the Light and Dark maps use a keyless CARTO address that works today but may stop; a free CARTO key in `VITE_CARTO_KEY` and an Esri API key in `VITE_ESRI_KEY` (satellite) make them dependable. Without keys the app still runs.
 
@@ -125,20 +135,21 @@ Optional **free basemap keys**: the Light and Dark maps use a keyless CARTO addr
 
 | Username | Password | Role | Sees |
 |---|---|---|---|
-| `admin` | `AdminDemo#2026` | admin | everything an officer sees, plus the audit log |
+| `admin` | `AdminDemo#2026` | admin | the control room (audit log, users, system, insights) and the officer pages |
 | `officer` | `OfficerDemo#2026` | officer | all plots and passports |
 | `citizen1` | `Citizen1Demo#2026` | citizen | only its 3 plots |
-| `citizen2` | `Citizen2Demo#2026` | citizen | only its 3 plots |
+| `citizen2` | `Citizen2Demo#2026` | citizen | only its own plots |
 
 The login screen shows these as one-click buttons **only when `VITE_DEMO_ACCOUNTS` is exactly `true`** in `frontend/.env` (the setup script writes that for local demos). **Warning: the row shows usernames and passwords on the login screen. It is off by default; never set it to `true` in a real deployment**, and build a production copy with it unset (`npm run build`).
 
 ## Tests
 ```
-python -m pytest backend/tests -q        # 659 tests; needs the database running and seeded
+python -m pytest backend/tests -q        # 709 tests; needs the database running and seeded
+cd frontend && npm test                  # 100 tests: routing, role guards, every page's loading, empty and error states
 cd frontend && npm run check:design      # design rules: no stray colours, sizes, emoji or old product name
 cd frontend && npm run build             # design check + TypeScript + production build
 ```
-The tests use a throw-away JWT secret, switch the AI **off** and block the network, so they never call OpenRouter or any website. GitHub Actions runs the same three things on every push (`.github/workflows/ci.yml`, Python 3.14, a PostGIS service container, no secrets).
+The tests use a throw-away JWT secret, switch the AI **off** and block the network, so they never call OpenRouter or any website. GitHub Actions runs the same things on every push (`.github/workflows/ci.yml`, Python 3.14, a PostGIS service container, no secrets).
 
 ## Honesty: what this is not
 - **The data is fake.** 100 generated plots near Pune, with problems planted on purpose by `db/seed.py` (same seed, same data). Every number in the demo is demo data. PDFs say so.
@@ -175,8 +186,9 @@ Nothing below is built; it is the plan.
 ## Future work
 Not built (by design, to keep each phase small):
 - **Login-token revocation** (a logout that really ends a token; short-lived tokens plus refresh).
-- **Frontend bundle size:** the production build is over 500 kB after minification; split the map and the Land Guide into separate chunks.
-- **API backlog:** `GET /zones` (so the restricted-zones layer can be drawn), a `source` field on each evidence item (which table the finding came from), and `GET /villages` plus taluka and district on plots.
+- **The map chunk is still large.** Every page is its own lazy chunk and the first page load is about 510 kB (166 kB gzip), but the map library alone is about 1.1 MB (300 kB gzip) and loads when `/app/map` opens. A lighter map library, or loading it only after a click, would shrink that.
+- **API backlog:** a `source` field on each evidence item (which table the finding came from), `GET /villages`, taluka and district on plots, and drawing the restricted zones on the map (the zones page only shows small outlines).
+- **Admin actions.** The control room only reads: there is no way yet to create a user, change a role or link a plot from the app.
 - A **native-speaker review** of `chatbot/strings.json`, and translating the rest of the app.
 - Real **state adapters** against real file formats, wired to the API (today they load files by command).
 - **Real imagery** for change detection, instead of generated snapshots.

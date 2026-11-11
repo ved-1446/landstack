@@ -1,21 +1,13 @@
-import { Download, FileSearch, History, MessageCircleQuestion, ShieldX, Sparkles, type LucideIcon } from "lucide-react";
+import { History } from "lucide-react";
 import { Link } from "react-router";
 import { getMyActivity } from "../api";
 import { useAuth } from "../auth";
 import { Async } from "../components/Async";
 import { GlassCard, PageHeader } from "../components/ui";
 import { ROLE_IDENTITY } from "../components/ui/RoleBadge";
+import { actionIcon } from "../lib/actionIcon";
 import { actionWords, when } from "../lib/format";
 import { useFetch } from "../hooks";
-
-function iconFor(action: string): LucideIcon {
-  if (action.endsWith("_denied")) return ShieldX;
-  if (action.endsWith("_not_found")) return FileSearch;
-  if (action.startsWith("download")) return Download;
-  if (action.startsWith("explain")) return Sparkles;
-  if (action === "guide_ask") return MessageCircleQuestion;
-  return FileSearch;
-}
 
 /** My own recent actions: passport views, PDF downloads, explanations and Land Guide questions, newest first. Nobody else's. */
 export default function ActivityPage() {
@@ -35,7 +27,7 @@ export default function ActivityPage() {
           {(rows) => (
             <ul aria-label="My recent activity" className="divide-y divide-glass-border">
               {rows.map((row) => {
-                const Icon = iconFor(row.action);
+                const Icon = actionIcon(row.action);
                 return (
                   <li key={row.id} className="flex items-center gap-3 py-3">
                     <Icon className="size-5 shrink-0 text-muted-on-navy" aria-hidden="true" />

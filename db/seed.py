@@ -424,8 +424,7 @@ def _read_env():
     return env
 
 
-# "landstack" is the LEGACY infrastructure name of the database and its user (the project was called LandStack at the start).
-# It is kept on purpose: renaming a Postgres database or user does not change an existing data volume. See the README.
+# The default database name and user are "landstack" (they match docker-compose.yml and .env.example; POSTGRES_USER and POSTGRES_DB in .env override them).
 def connect():
     import psycopg
     env = _read_env()

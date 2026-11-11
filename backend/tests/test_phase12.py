@@ -67,7 +67,7 @@ def quiet_client():
     return TestClient(main.app, raise_server_exceptions=False)
 
 
-FORBIDDEN_IN_ERRORS = ("Traceback", "File \"", "SELECT", "FROM plots", "psycopg", "RuntimeError", "password", "LEAK-ME", "landstack",
+FORBIDDEN_IN_ERRORS = ("Traceback", "File \"", "SELECT", "FROM plots", "psycopg", "RuntimeError", "password", "LEAK-ME", "for user",
                        "localhost:5432", "site-packages", "backend\\app", "backend/app")
 
 
@@ -144,6 +144,9 @@ MATRIX = {
     ("GET", "/me/activity"): (200, 401),                # Phase 13b: a user sees only their own rows (tested in test_overview.py)
     ("GET", "/conflicts"): (403, 401),                  # Phase 13b: staff only
     ("GET", "/zones"): (403, 401),                      # Phase 13b: staff only
+    ("GET", "/admin/users"): (403, 401),                # Phase 13c: admin only
+    ("GET", "/admin/system"): (403, 401),               # Phase 13c: admin only
+    ("GET", "/admin/insights"): (403, 401),             # Phase 13c: admin only
 }
 
 

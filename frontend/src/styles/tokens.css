@@ -31,7 +31,7 @@
   --risk-green-tint: #5fd3a0;
   --risk-amber-tint: #f2bc4b;
   --risk-red-tint: #ff8f93;
-  --risk-green-ink: #1e7a4c;
+  --risk-green-ink: #17653c;
   --risk-amber-ink: #7a4b00;
   --risk-red-ink: #a31e32;
   --gauge-red: #d23b41;
@@ -106,12 +106,20 @@
   --rise-step: 0.12s;
 }
 
+/* under 1024px the nav tabs wrap to a second row inside the pill, so the nav is taller */
+@media (max-width: 1023px) {
+  :root {
+    --nav-height: 112px;
+    --map-card-height: calc(100dvh - var(--nav-height) - 270px);   /* nav + the page title block above the card */
+  }
+}
+
 @media (max-width: 767px) {
   :root {
     --edge: 16px;
     --nav-height: 112px;               /* the tabs wrap to a second row inside the nav */
     --toast-bottom: 200px;
     --dock-bottom: calc(var(--tabbar-height) + var(--edge));
-    --map-card-height: calc(100dvh - var(--nav-height) - 160px);
+    --map-card-height: calc(100dvh - var(--nav-height) - 210px);
   }
 }

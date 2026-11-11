@@ -20,7 +20,7 @@ export function Dock({ shown, counts, active, onToggle, loading, drawerOpen, con
     <div
       className={cn(
         "pointer-events-none fixed bottom-(--dock-bottom) left-0 right-0 z-panel flex justify-center px-4",
-        drawerOpen && "md:right-[calc(var(--drawer-width)+var(--edge))]",
+        drawerOpen && "max-md:hidden md:right-[calc(var(--drawer-width)+var(--edge))]",
       )}
     >
       <section aria-label="Risk bands" className="glass pointer-events-auto flex flex-wrap items-center justify-center gap-x-4 gap-y-2 rounded-panel px-4 py-3 shadow-2">

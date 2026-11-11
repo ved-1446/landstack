@@ -19,7 +19,7 @@ jobs:
       db:
         image: postgis/postgis:16-3.4
         env:
-          POSTGRES_USER: landstack            # legacy infrastructure name, kept on purpose (see README)
+          POSTGRES_USER: landstack
           POSTGRES_PASSWORD: ci-throwaway-password
           POSTGRES_DB: landstack
         ports:

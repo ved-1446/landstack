@@ -215,3 +215,58 @@ export interface ZoneRow {
   plots_touching: number;
   geometry: { type: "Polygon" | "MultiPolygon"; coordinates: unknown };
 }
+
+// ---- Phase 13c: the admin's Control Room ----
+export interface AuditEntry {
+  id: number;
+  username: string;
+  role: Role;
+  ulpin: string | null;
+  action: string;
+  looked_at: string;
+}
+
+export interface AdminUser {
+  username: string;
+  role: Role;
+  plots: number;
+  last_active: string | null;
+  actions_30d: number;
+}
+
+export interface PartStatus {
+  state: "ok" | "off" | "not_loaded";
+  detail: string;
+}
+
+export interface SystemInfo {
+  checked_at: string;
+  api: PartStatus;
+  api_started_at: string;
+  api_version: string;
+  database: PartStatus;
+  postgis: PartStatus;
+  ai_explainer: PartStatus;
+  model: {
+    loaded: boolean;
+    kind: string;
+    trained_on_plots: number | null;
+    trained_on: string | null;
+    explanation_method: string | null;
+    flag_percentile: number | null;
+  };
+  counts: Record<string, number>;
+  versions: Record<string, string>;
+}
+
+export interface Insights {
+  available: boolean;
+  note: string;
+  method: string | null;
+  plots_checked: number;
+  flagged: number;
+  flagged_also_amber_or_red: number;
+  trained_on_plots: number | null;
+  flag_percentile: number | null;
+  features: { name: string; label: string; share: number; top_reason_for: number }[];
+}

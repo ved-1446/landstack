@@ -88,9 +88,9 @@ describe("each role gets its own tabs", () => {
 
   it("admin: Overview, Audit log, Users, System, Insights, plus a Work desk strip with the officer pages", async () => {
     renderAt("/app/dashboard", "admin");
-    await heading1(/attention/i);
+    await heading1(/running/i);
     expect(tabs("admin pages")).toEqual(["Overview", "Audit log", "Users", "System", "Insights"]);
-    expect(tabs("Work desk pages")).toEqual(["Plots", "Map", "Conflicts", "Construction", "Zones", "Land Guide"]);
+    expect(tabs("Work desk pages")).toEqual(["Dashboard", "Plots", "Map", "Conflicts", "Construction", "Zones", "Land Guide"]);
   });
 
   it("only an admin has a second tab strip", async () => {
@@ -125,7 +125,7 @@ describe("role guards: a page for another role shows a friendly page, never a bl
 
   it("an admin may open the admin pages and the officer pages, but not the citizen-only ones", async () => {
     renderAt("/app/audit", "admin");
-    expect(await heading1(/audit/i)).toBeTruthy();
+    expect(await heading1(/who looked at/i)).toBeTruthy();
     cleanup();
     renderAt("/app/zones", "admin");
     expect(await heading1(/zones/i)).toBeTruthy();

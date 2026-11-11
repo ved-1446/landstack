@@ -1,5 +1,5 @@
-import { useEffect, useState, type ReactNode } from "react";
-import { Link, NavLink } from "react-router";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Link, NavLink, useLocation } from "react-router";
 import { cn } from "../../lib/cn";
 
 export interface NavLinkItem {
@@ -26,6 +26,12 @@ interface GlassNavProps {
  */
 export function GlassNav({ home, links, right, label = "Main" }: GlassNavProps) {
   const [scrolled, setScrolled] = useState(false);
+  const tabs = useRef<HTMLElement>(null);
+  const { pathname } = useLocation();
+  // on a phone the tabs scroll sideways: keep the active tab in view after every page change
+  useEffect(() => {
+    tabs.current?.querySelector<HTMLElement>('[aria-current="page"]')?.scrollIntoView?.({ inline: "center", block: "nearest" });
+  }, [pathname]);
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
     onScroll();
@@ -45,7 +51,7 @@ export function GlassNav({ home, links, right, label = "Main" }: GlassNavProps) 
         <Link to={home} className="flex items-center gap-2 rounded-pill px-2 font-serif text-26 text-cream">
           LandStack
         </Link>
-        <nav aria-label={label} className="order-3 -mx-2 flex w-full gap-1 overflow-x-auto px-2 md:order-none md:mx-0 md:w-auto md:overflow-visible md:px-0">
+        <nav ref={tabs} aria-label={label} className="order-3 -mx-2 flex w-full gap-1 overflow-x-auto px-2 lg:order-none lg:mx-0 lg:w-auto lg:overflow-visible lg:px-0">
           {links.map((link) => link.plain ? (
             <Link key={link.to + link.label} to={link.to} className="shrink-0 whitespace-nowrap rounded-pill px-4 py-2 text-14 font-medium text-muted-on-navy transition-colors duration-150 ease-out hover:bg-glass-fill-strong hover:text-cream">
               {link.label}

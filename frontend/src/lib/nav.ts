@@ -32,6 +32,9 @@ const CITIZEN: NavLinkItem[] = [
 
 const OFFICER: NavLinkItem[] = [{ to: "/app/dashboard", label: "Dashboard" }, ...WORK_DESK];
 
+// the admin reaches the officer dashboard from the Work desk strip (its own Overview is a different page)
+const ADMIN_DESK: NavLinkItem[] = [{ to: "/app/desk", label: "Dashboard" }, ...WORK_DESK];
+
 const ADMIN: NavLinkItem[] = [
   { to: "/app/dashboard", label: "Overview" },
   { to: "/app/audit", label: "Audit log" },
@@ -50,7 +53,7 @@ export interface RoleNav {
 export function navFor(role: Role): RoleNav {
   if (role === "citizen") return { links: CITIZEN };
   if (role === "officer") return { links: OFFICER };
-  return { links: ADMIN, workDesk: WORK_DESK };
+  return { links: ADMIN, workDesk: ADMIN_DESK };
 }
 
 /** Pages a role may open that are not tabs: the map for a citizen (their own plots only), and "My activity" in the staff account menu. */

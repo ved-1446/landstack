@@ -1,11 +1,14 @@
 // The ONLY file that talks to the backend. Everything else calls these functions.
 import type {
   ActivityEntry,
+  AdminUser,
+  AuditEntry,
   ConflictRow,
   ConflictTypeInfo,
   ConstructionCollection,
   Explanation,
   GuideAnswer,
+  Insights,
   Language,
   LoginResponse,
   Passport,
@@ -15,6 +18,7 @@ import type {
   PublicStats,
   Session,
   Summary,
+  SystemInfo,
   Verification,
   ZoneRow,
 } from "./types";
@@ -233,4 +237,45 @@ export function getConflicts(signal?: AbortSignal) {
 /** Staff only: the restricted zones with their area, how many plots touch them and a simple outline. */
 export function getZones(signal?: AbortSignal) {
   return request<ZoneRow[]>("/zones", { signal });
+}
+
+export interface AuditQuery {
+  username?: string;
+  action?: string;
+  /** ISO 8601 time: only rows at or after it */
+  since?: string;
+  until?: string;
+  limit?: number;
+  offset?: number;
+}
+
+/** Admin only: a page of the audit log (newest first) and the TOTAL number of matching rows (from the X-Total-Count header). */
+export async function getAuditLog(query: AuditQuery = {}, signal?: AbortSignal): Promise<{ rows: AuditEntry[]; total: number }> {
+  const params: Record<string, string | undefined> = {
+    username: query.username,
+    action: query.action,
+    since: query.since,
+    until: query.until,
+    limit: query.limit === undefined ? undefined : String(query.limit),
+    offset: query.offset ? String(query.offset) : undefined,
+  };
+  const response = await send("/audit", { params, signal });
+  const rows = (await response.json()) as AuditEntry[];
+  const total = Number(response.headers.get("X-Total-Count"));
+  return { rows, total: Number.isFinite(total) && response.headers.has("X-Total-Count") ? total : rows.length };
+}
+
+/** Admin only: every account with its role, linked plots and last activity (never a password). */
+export function getAdminUsers(signal?: AbortSignal) {
+  return request<AdminUser[]>("/admin/users", { signal });
+}
+
+/** Admin only: is everything running, and which versions. */
+export function getAdminSystem(signal?: AbortSignal) {
+  return request<SystemInfo>("/admin/system", { signal });
+}
+
+/** Admin only: what the unusual-plot model says overall, in plain words (explanation only). */
+export function getAdminInsights(signal?: AbortSignal) {
+  return request<Insights>("/admin/insights", { signal });
 }

@@ -47,7 +47,7 @@ export const TYPES = (Object.keys(SUMMARY.findings_per_type) as ConflictType[]).
 export const ZONES = [{ id: 1, zone_type: "flood_plain", area_sqm: 50000, plots_touching: 7, geometry: { type: "Polygon" as const, coordinates: [[[73.7, 18.5], [73.71, 18.5], [73.71, 18.51], [73.7, 18.5]]] } }];
 
 /** The mocked API. Tests change what a function resolves to with mockResolvedValue / mockRejectedValue. */
-export const api = {
+export const api: Record<string, ReturnType<typeof vi.fn>> = {
   getPlots: vi.fn(),
   getSummary: vi.fn(),
   getConflicts: vi.fn(),
@@ -60,6 +60,7 @@ export const api = {
 };
 
 export function resetApi() {
+  resetAdminApi();
   api.getPlots.mockReset().mockResolvedValue(PLOTS);
   api.getSummary.mockReset().mockResolvedValue(SUMMARY);
   api.getConflicts.mockReset().mockResolvedValue(CONFLICTS);
@@ -69,4 +70,72 @@ export function resetApi() {
   api.getPassport.mockReset().mockRejectedValue(new Error("not used here"));
   api.getPublicStats.mockReset().mockResolvedValue({ total_plots: 100, plots_per_band: { green: 58, amber: 29, red: 13 } });
   api.getPublicPlot.mockReset();
+}
+
+// ---- Phase 13c: the admin's Control Room ----
+export const ADMIN_USERS = [
+  { username: "admin", role: "admin" as const, plots: 0, last_active: "2026-11-11T10:00:00Z", actions_30d: 6 },
+  { username: "officer", role: "officer" as const, plots: 0, last_active: "2026-11-11T09:00:00Z", actions_30d: 41 },
+  { username: "citizen1", role: "citizen" as const, plots: 3, last_active: null, actions_30d: 0 },
+  { username: "citizen2", role: "citizen" as const, plots: 1, last_active: "2026-11-10T09:00:00Z", actions_30d: 2 },
+];
+
+const ACTIONS = ["view_passport", "view_passport_denied", "download_passport_pdf", "guide_ask", "explain_passport", "view_passport_not_found"];
+export const AUDIT_ROWS = Array.from({ length: 20 }, (_, i) => ({
+  id: 500 - i,
+  username: i % 2 ? "citizen2" : "officer",
+  role: (i % 2 ? "citizen" : "officer") as "citizen" | "officer",
+  ulpin: ACTIONS[i % 6].endsWith("_denied") || ACTIONS[i % 6].endsWith("_not_found") || ACTIONS[i % 6] === "guide_ask" ? null : `MH0001000000${String(10 + i)}`,
+  action: ACTIONS[i % 6],
+  looked_at: `2026-11-11T${String(10 - Math.floor(i / 4)).padStart(2, "0")}:${String(59 - i).padStart(2, "0")}:00Z`,
+}));
+
+export const SYSTEM = {
+  checked_at: "2026-11-11T10:05:00Z",
+  api: { state: "ok" as const, detail: "The API is answering this request." },
+  api_started_at: "2026-11-11T08:00:00Z",
+  api_version: "0.13.3",
+  database: { state: "ok" as const, detail: "PostgreSQL 16.4 answered a query." },
+  postgis: { state: "ok" as const, detail: "PostGIS 3.4.2" },
+  ai_explainer: { state: "off" as const, detail: "Switched off (no key is set). Explanations are written by code instead." },
+  model: { loaded: true, kind: "Isolation Forest (a statistical hint, not a conflict)", trained_on_plots: 5000, trained_on: "2026-11-11", explanation_method: "shap", flag_percentile: 95 },
+  counts: { plots: 100, users: 4, audit_rows: 37, passports_issued: 9 },
+  versions: { python: "3.14.7", fastapi: "0.162.2", psycopg: "3.3.8", "scikit-learn": "1.9.1", shap: "0.54.1", shapely: "2.2.0", postgresql: "16.4", postgis: "3.4.2" },
+};
+
+export const INSIGHTS = {
+  available: true,
+  note: "Explanation only. A statistical model learned from made-up data and points out plots that look unusual. It adds no points and never changes a score or a band: scores are added up by code from the nine checks.",
+  method: "shap",
+  plots_checked: 100,
+  flagged: 5,
+  flagged_also_amber_or_red: 4,
+  trained_on_plots: 5000,
+  flag_percentile: 95,
+  features: [
+    ["neighbour_count", "How many other plots it overlaps or touches", 0.3, 2],
+    ["years_since_tax_paid", "How long ago tax was last paid", 0.2, 2],
+    ["area_sqm", "How big the plot is", 0.1, 1],
+    ["perimeter_m", "How long its boundary is", 0.1, 0],
+    ["compactness", "How round or stretched its shape is", 0.08, 0],
+    ["aspect_ratio", "How much longer than wide it is", 0.05, 0],
+    ["vertex_count", "How many corners its outline has", 0.05, 0],
+    ["recorded_over_mapped", "How the recorded area compares with the mapped area", 0.04, 0],
+    ["years_since_registration", "How long ago it was registered", 0.03, 0],
+    ["zone_distance_m", "How close it is to a restricted zone", 0.02, 0],
+    ["area_vs_village_median", "How its size compares with other plots in its village", 0.02, 0],
+    ["invalid_shape", "Whether its outline is a broken shape", 0.01, 0],
+  ].map(([name, label, share, top]) => ({ name: name as string, label: label as string, share: share as number, top_reason_for: top as number })),
+};
+
+api.getAdminUsers = vi.fn();
+api.getAdminSystem = vi.fn();
+api.getAdminInsights = vi.fn();
+api.getAuditLog = vi.fn();
+
+export function resetAdminApi() {
+  api.getAdminUsers.mockReset().mockResolvedValue(ADMIN_USERS);
+  api.getAdminSystem.mockReset().mockResolvedValue(SYSTEM);
+  api.getAdminInsights.mockReset().mockResolvedValue(INSIGHTS);
+  api.getAuditLog.mockReset().mockResolvedValue({ rows: AUDIT_ROWS, total: 45 });
 }

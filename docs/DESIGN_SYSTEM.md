@@ -17,14 +17,14 @@ The look of `frontend/` (rebuilt in Phase 13a). Everything below lives in `front
 | 10% | `coral` / hover / pressed | #FF6B4E / #FF8468 / #E8553A | buttons, the active nav pill, the ONE italic emphasis word in a headline, key highlights, focus rings. **Text on coral is navy-950.** |
 | risk | `risk-green` / `risk-amber` / `risk-red` | #2F9E6E / #D9970F / #D23B41 | **only** risk: plot fills, chip borders, gauge arcs |
 | risk text on dark | `risk-*-tint` | #5FD3A0 / #F2BC4B / #FF8F93 | the lighter shades for risk TEXT on dark |
-| risk on cream | `risk-*-ink` | #1E7A4C / #7A4B00 / #A31E32 | chip text and arcs on cream |
+| risk on cream | `risk-*-ink` | #17653C / #7A4B00 / #A31E32 | chip text and arcs on cream (green text 6.1:1, amber 6.3:1, red 6.4:1) |
 | simulated | `sim` / `sim-ink` | #B9A7FF / #4D3AA8 | **only** for simulated data: lavender, always with a dashed outline or chip and the word SIMULATED |
 | role glow | `glow-citizen` / `glow-officer` / `glow-admin` / `glow-visitor` | coral 20% / forest 34% / indigo (#5B6CFF) 26% / coral 22% | soft background glows only, never text or borders |
 
 Coral is **never** used for risk. Risk is never colour-only: every band comes with an icon plus words (`BandChip`: "LOW RISK · GREEN", "WATCH · AMBER", "HIGH RISK · RED"). Lavender never marks risk.
 
 ### Contrast rules (all text 4.5:1 or better)
-Measured for every token pair in 13a-1 (the lowest is `risk-green-ink` on cream, 4.53:1; cream on ink 16.2:1; muted-on-navy on ink 9.0:1 and on navy-2 6.8:1; navy-950 on coral 6.8:1; the three risk tints on ink 8.7 to 10.9:1; `sim` on ink 9.1:1; `sim-ink` on cream 7.2:1). **Rendered pages (13a-2):** a script hides each text, samples the pixels behind it from a screenshot and compares them with the real text colour; the worst of the public pages is 4.69:1 (login) and none is under 4.5:1. Contour lines sit at 30% opacity so they never cut the contrast of text over them.
+Measured for every token pair in 13a-1 (the lowest is now `faint-on-navy` on navy-2, 5.6:1; `risk-green-ink` on cream was darkened from 4.53:1 to 6.1:1; cream on ink 16.2:1; muted-on-navy on ink 9.0:1 and on navy-2 6.8:1; navy-950 on coral 6.8:1; the three risk tints on ink 8.7 to 10.9:1; `sim` on ink 9.1:1; `sim-ink` on cream 7.2:1). **Rendered pages (13a-2):** a script hides each text, samples the pixels behind it from a screenshot and compares them with the real text colour; the worst of the public pages is 4.69:1 (login) and none is under 4.5:1. Contour lines sit at 30% opacity so they never cut the contrast of text over them.
 - Text on a coral button is **navy-950**. Cream on coral fails, so it is never used. Coral is not used as text on cream.
 - Risk text on dark uses the `tint` shades; on cream the `ink` shades. Chips on dark keep cream text with a coloured border and an icon.
 
@@ -96,6 +96,15 @@ Same components, a different identity per role (see the table above).
 - **Map card**: the passport drawer now docks INSIDE the framed map card (a side panel on a wide screen, a bottom sheet sized from the card on a phone).
 - **Code splitting**: every page is a lazy chunk; vendor libraries are split (`react`, `router`, `motion`); the map library loads only on `/app/map`. See HANDOFF for the sizes.
 - Coral is used only for primary buttons, the active tab and emphasis words, never for risk; bars that show problems use cream, simulated ones lavender.
+
+## Control Room (13c, admin only)
+CONTROL ROOM in indigo, the same components. *Overview* is about the system and the people (not the plot queue, which is the officer's, reachable for an admin as "Dashboard" in the Work desk strip): four `StatusTile`s (an icon and a word: Running, Switched off, Not loaded; never colour alone), people by role, activity in the last 24 hours and 7 days, the model status and the latest activity as a timeline. *Audit log*: a timeline (an icon, who, role, when, what in plain words, the plot) with filters for person, kind of action and time (presets: last 24 hours, 7 days, 30 days, all time) and pages of 20 with "Newer" and "Older". *Users*: rows with the role badge, linked plots, last activity and actions in 30 days; no password or hash. *System*: the status tiles, the model, counts and versions, and a "Check again" button. *Insights*: a note that says "Explanation only" on every state of the page, the 12 signals the model looks at in plain words with their share, and why flagged plots look unusual; scoring stays code-only. Lavender is not used there (it is only for simulated data).
+
+## Polish (13c)
+- A "Skip to content" link is the first focusable thing on every page; after a page change the keyboard focus moves to the new page (`<main id="main" tabindex="-1">`).
+- Below 1024 px the nav tabs wrap onto a second row inside the pill (`--nav-height` 112px), so the nav never overlaps the page at 768 px.
+- The map card is sized so that it fits inside the visible screen on a phone and a tablet (`--map-card-height`), so the bottom sheet's half position is never cut off.
+- Filter drop-downs are full width on a phone, so no page scrolls sideways.
 
 ## Responsive
 - 1440 and wider: nav pill on top (max width 1200), content centred, map card under the header, passport drawer 430px on the right.

@@ -16,11 +16,15 @@ const MapPage = lazy(() => import("./pages/MapPage"));
 const GuidePage = lazy(() => import("./pages/GuidePage"));
 const ActivityPage = lazy(() => import("./pages/ActivityPage"));
 const PassportPage = lazy(() => import("./pages/PassportPage"));
-const Placeholder = lazy(() => import("./pages/Placeholder"));
 const CitizenHome = lazy(() => import("./pages/citizen/CitizenHome"));
 const CitizenPlots = lazy(() => import("./pages/citizen/CitizenPlots"));
 const CitizenVerify = lazy(() => import("./pages/citizen/CitizenVerify"));
 const Dashboard = lazy(() => import("./pages/officer/Dashboard"));
+const AdminOverview = lazy(() => import("./pages/admin/Overview"));
+const AuditLog = lazy(() => import("./pages/admin/AuditLog"));
+const Users = lazy(() => import("./pages/admin/Users"));
+const System = lazy(() => import("./pages/admin/System"));
+const Insights = lazy(() => import("./pages/admin/Insights"));
 const PlotsTable = lazy(() => import("./pages/officer/PlotsTable"));
 const Conflicts = lazy(() => import("./pages/officer/Conflicts"));
 const Construction = lazy(() => import("./pages/officer/Construction"));
@@ -45,13 +49,11 @@ function PlotsPage() {
   return session?.role === "citizen" ? <CitizenPlots /> : <PlotsTable />;
 }
 
-// Admin pages: built in 13c
-const ADMIN_PLACEHOLDERS: Record<string, { title: string; emphasis: string }> = {
-  audit: { title: "Audit", emphasis: "log" },
-  users: { title: "People and", emphasis: "access" },
-  system: { title: "System", emphasis: "health" },
-  insights: { title: "Model", emphasis: "insights" },
-};
+/** /app/dashboard: the officer's dashboard for an officer, the system-and-people Overview for an admin. */
+function DashboardPage() {
+  const { session } = useAuth();
+  return session?.role === "admin" ? <AdminOverview /> : <Dashboard />;
+}
 
 function RoleLogin() {
   const { session } = useAuth();
@@ -92,14 +94,16 @@ export function AppRoutes() {
         <Route path="verify" element={<CitizenVerify />} />
         <Route path="activity" element={<ActivityPage />} />
         <Route path="guide" element={<GuidePage />} />
-        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="dashboard" element={<DashboardPage />} />
+        <Route path="desk" element={<Dashboard />} />
         <Route path="map" element={<MapPage />} />
         <Route path="conflicts" element={<Conflicts />} />
         <Route path="construction" element={<Construction />} />
         <Route path="zones" element={<Zones />} />
-        {Object.entries(ADMIN_PLACEHOLDERS).map(([path, props]) => (
-          <Route key={path} path={path} element={<Placeholder {...props} />} />
-        ))}
+        <Route path="audit" element={<AuditLog />} />
+        <Route path="users" element={<Users />} />
+        <Route path="system" element={<System />} />
+        <Route path="insights" element={<Insights />} />
         <Route path="*" element={<RoleHome />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

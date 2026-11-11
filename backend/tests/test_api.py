@@ -184,7 +184,8 @@ def test_openapi_lists_every_endpoint(client):
                           "/construction-alerts",       # Phase 10 (SIMULATED footprints for the map)
                           "/plots/{ulpin}/explain", "/guide/ask",      # Phase 11 (the AI explainer and the Land Guide)
                           "/public/stats", "/public/plot/{ulpin}",      # Phase 13a (public counts, and village + band of one plot)
-                          "/me/activity", "/conflicts", "/zones"}      # Phase 13b (own activity; staff-only conflict list and zones)
+                          "/me/activity", "/conflicts", "/zones",      # Phase 13b (own activity; staff-only conflict list and zones)
+                          "/admin/users", "/admin/system", "/admin/insights"}      # Phase 13c (admin only)
 
 
 def test_database_down_returns_clean_json(monkeypatch):

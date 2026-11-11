@@ -4,7 +4,6 @@ import { Async } from "../../components/Async";
 import { MiniMap } from "../../components/MiniMap";
 import { BandChip, BarList, Chip, DataList, GlassCard, PageHeader, StatCard } from "../../components/ui";
 import { useAppData } from "../../lib/appData";
-import { useAuth } from "../../auth";
 import { prettyType } from "../../constants";
 import type { ConflictType, Summary } from "../../types";
 
@@ -18,15 +17,13 @@ function problemBars(summary: Summary, simulated: ReadonlySet<string>) {
 
 /** The officer's dashboard: the numbers, the problems by type, the priority queue and a map preview. Admin sees the same page as "Overview" until 13c. */
 export default function Dashboard() {
-  const { session } = useAuth();
   const { plots, summary, conflicts, types } = useAppData();
   const navigate = useNavigate();
   const simulated = new Set((types.data ?? []).filter((t) => t.simulated).map((t) => t.type));
-  const eyebrow = session?.role === "admin" ? "CONTROL ROOM" : "OFFICER WORK DESK";
 
   return (
     <section>
-      <PageHeader eyebrow={eyebrow} title="What needs your" emphasis="attention" subtitle="Counts for every plot, the kinds of problems found, and the ten riskiest plots." />
+      <PageHeader eyebrow="OFFICER WORK DESK" title="What needs your" emphasis="attention" subtitle="Counts for every plot, the kinds of problems found, and the ten riskiest plots." />
 
       <div className="mt-8">
         <Async state={summary} what="the counts" skeleton={<div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">{Array.from({ length: 6 }, (_, i) => <div key={i} className="h-28 animate-pulse rounded-glass bg-glass-fill motion-reduce:animate-none" />)}</div>}>

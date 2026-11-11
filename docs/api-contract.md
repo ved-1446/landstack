@@ -442,3 +442,21 @@ Every plot that has at least one finding, highest score first: `[{ulpin, village
 The restricted zones: `[{id, zone_type, area_sqm, plots_touching, geometry}]`. `area_sqm` is a geography cast; `plots_touching` counts valid plots that intersect the zone (touching is not the same as a clash, which needs more than a fifth of the plot inside); `geometry` is a simplified GeoJSON outline for a small preview. No plot ids or names.
 
 API title version is now 0.13.2.
+
+## Phase 13c: the admin's Control Room (all admin only; officers and citizens get 403)
+
+Read-only, no AI call, no secrets, no personal data beyond usernames and roles.
+
+### GET /audit (extended)
+New optional filters: `action` (for example `view_passport`), `since` and `until` (ISO 8601; `since` is inclusive, `until` exclusive) and `offset` (0 to 1,000,000) next to `username`, `ulpin` and `limit`. The body is still the list of rows. The **total number of matching rows** is in the `X-Total-Count` response header (exposed to browsers by CORS), so a page can say "page 2 of 7".
+
+### GET /admin/users
+`[{username, role, plots, last_active, actions_30d}]`, admins first, then officers, then citizens. `plots` is only a COUNT of linked plots (never their ids). `last_active` is the newest audit row (null if none) and `actions_30d` the number of audit rows in 30 days. The password hash is never selected.
+
+### GET /admin/system
+`{checked_at, api, api_started_at, api_version, database, postgis, ai_explainer, model, counts, versions}`. Each part is `{state: ok|off|not_loaded, detail}`. The AI explainer is reported from the settings (switched on or off) without calling it. `model` says whether the unusual-plot model is loaded, how many plots it was trained on, when and how its reasons are worked out. `counts` has plots, users, audit rows and passports issued. `versions` has Python, FastAPI, psycopg, scikit-learn, SHAP, Shapely, PostgreSQL and PostGIS. It never includes a key, a URL with a secret or a file path. `/health` is unchanged.
+
+### GET /admin/insights
+What the unusual-plot model says over all plots, in plain words: `{available, note, method, plots_checked, flagged, flagged_also_amber_or_red, trained_on_plots, flag_percentile, features: [{name, label, share, top_reason_for}]}`. `share` is each of the 12 signals' average push towards "unusual" as a fraction of the total (they add to 1), worked out on the demo data with SHAP (or distances from the typical value if SHAP is not installed) and cached for 5 minutes. `top_reason_for` counts the flagged plots that signal pushed hardest. With no model, `available` is false and `features` is empty. **Explanation only:** the `note` says so, it adds no points and no score or band is touched.
+
+API title version is now 0.13.3.

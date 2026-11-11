@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import { Link, Outlet, useLocation } from "react-router";
 import { useAuth } from "../auth";
 import { StaticLayer } from "../components/Backdrop";
@@ -10,8 +10,20 @@ import { HOME, VISITOR_LINKS } from "../lib/nav";
 export default function PublicShell() {
   const { session } = useAuth();
   const { pathname } = useLocation();
+  const main = useRef<HTMLDivElement>(null);
+  const first = useRef(true);
+  useEffect(() => {
+    if (first.current) first.current = false;
+    else if (!window.location.hash) main.current?.focus({ preventScroll: true });
+  }, [pathname]);
   return (
     <StaticLayer identity="visitor">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-modal focus:rounded-control focus:bg-coral focus:px-4 focus:py-2 focus:text-14 focus:font-medium focus:text-navy-950"
+      >
+        Skip to content
+      </a>
       <GlassNav
         home="/"
         links={VISITOR_LINKS}
@@ -26,7 +38,7 @@ export default function PublicShell() {
         }
       />
       <div className="relative pt-(--nav-height)">
-        <div key={pathname} className="route-in">
+        <div id="main" ref={main} tabIndex={-1} key={pathname} className="route-in outline-none">
           <Suspense fallback={<RouteLoading />}>
             <Outlet />
           </Suspense>

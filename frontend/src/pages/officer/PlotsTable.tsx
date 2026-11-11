@@ -75,7 +75,7 @@ export default function PlotsTable() {
                     className="h-11 w-full rounded-control border border-glass-border bg-navy-950 px-3 text-14 text-cream placeholder:text-faint-on-navy"
                   />
                 </div>
-                <div>
+                <div className="max-sm:w-full">
                   <label htmlFor="plot-village" className="mb-2 block text-13 text-muted-on-navy">
                     Village
                   </label>
@@ -86,7 +86,7 @@ export default function PlotsTable() {
                       setVillage(e.target.value);
                       setPage(1);
                     }}
-                    className="h-11 rounded-control border border-glass-border bg-navy-950 px-3 text-14 text-cream"
+                    className="h-11 w-full max-w-full rounded-control border border-glass-border bg-navy-950 px-3 text-14 text-cream sm:w-auto"
                   >
                     <option value="">All villages</option>
                     {villages.map((v) => (

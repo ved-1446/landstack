@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import { NavLink, Outlet, useLocation } from "react-router";
 import { useAuth } from "../auth";
 import { StaticLayer } from "../components/Backdrop";
@@ -19,6 +19,13 @@ import { AccountMenu } from "./AccountMenu";
 export default function AppShell() {
   const { session } = useAuth();
   const { pathname } = useLocation();
+  const main = useRef<HTMLElement>(null);
+  const first = useRef(true);
+  // after a page change, move the keyboard focus to the new page (not on the very first load)
+  useEffect(() => {
+    if (first.current) first.current = false;
+    else main.current?.focus({ preventScroll: true });
+  }, [pathname]);
   if (!session) return null; // the route guard has already sent a visitor to /login
   const nav = navFor(session.role);
   const allowed = mayOpen(session.role, pathname) || pathname.replace(/\/+$/, "") === "/app";
@@ -27,7 +34,13 @@ export default function AppShell() {
     <LanguageProvider>
       <AppDataProvider role={session.role}>
         <StaticLayer identity={session.role}>
-          <GlassNav
+          <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-modal focus:rounded-control focus:bg-coral focus:px-4 focus:py-2 focus:text-14 focus:font-medium focus:text-navy-950"
+      >
+        Skip to content
+      </a>
+      <GlassNav
             home={HOME[session.role]}
             links={nav.links}
             label={`${session.role} pages`}
@@ -58,7 +71,7 @@ export default function AppShell() {
                 ))}
               </nav>
             )}
-            <main key={pathname} className="route-in pt-4">
+            <main id="main" ref={main} tabIndex={-1} key={pathname} className="route-in pt-4 outline-none">
               <Suspense fallback={<RouteLoading />}>{allowed ? <Outlet /> : <NotForRole />}</Suspense>
             </main>
           </div>
