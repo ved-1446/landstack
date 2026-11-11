@@ -24,7 +24,7 @@ The look of `frontend/` (rebuilt in Phase 13a). Everything below lives in `front
 Coral is **never** used for risk. Risk is never colour-only: every band comes with an icon plus words (`BandChip`: "LOW RISK · GREEN", "WATCH · AMBER", "HIGH RISK · RED"). Lavender never marks risk.
 
 ### Contrast rules (all text 4.5:1 or better)
-Measured for every token pair in 13a-1 (the lowest is `risk-green-ink` on cream, 4.53:1; cream on ink 16.2:1; muted-on-navy on ink 9.0:1 and on navy-2 6.8:1; navy-950 on coral 6.8:1; the three risk tints on ink 8.7 to 10.9:1; `sim` on ink 9.1:1; `sim-ink` on cream 7.2:1). The rendered pages are re-checked in the browser in 13a-2.
+Measured for every token pair in 13a-1 (the lowest is `risk-green-ink` on cream, 4.53:1; cream on ink 16.2:1; muted-on-navy on ink 9.0:1 and on navy-2 6.8:1; navy-950 on coral 6.8:1; the three risk tints on ink 8.7 to 10.9:1; `sim` on ink 9.1:1; `sim-ink` on cream 7.2:1). **Rendered pages (13a-2):** a script hides each text, samples the pixels behind it from a screenshot and compares them with the real text colour; the worst of the public pages is 4.69:1 (login) and none is under 4.5:1. Contour lines sit at 30% opacity so they never cut the contrast of text over them.
 - Text on a coral button is **navy-950**. Cream on coral fails, so it is never used. Coral is not used as text on cream.
 - Risk text on dark uses the `tint` shades; on cream the `ink` shades. Chips on dark keep cream text with a coloured border and an icon.
 
@@ -80,6 +80,9 @@ The Land Guide is a page (or a `Popover` where one is used) with a pinned input.
 
 ## Accessibility
 Real buttons and links; labels on icon-only buttons; visible coral focus rings; Escape closes the drawer, popovers and the account menu; the gauge is an image with a text alternative ("Risk score 75 out of 100, red band"); toasts live in an `aria-live` region; the nav is a `<nav>` with a label; pages have one `h1`.
+
+## Public pages (13a-2)
+Landing (hero with the live Flow Field, the public check card, three tilted preview cards, stat tiles, four steps with contour lines, role cards, closing call to action), How it works, About, Verify and Login. Page text lives in `src/pages/content.ts`; the step illustrations are original inline SVGs in `src/pages/Illustrations.tsx`. Every live number is from `/public/stats`; invented examples carry a visible "Sample data" label.
 
 ## Responsive
 - 1440 and wider: nav pill on top (max width 1200), content centred, map card under the header, passport drawer 430px on the right.

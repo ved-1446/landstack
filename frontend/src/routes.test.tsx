@@ -13,6 +13,7 @@ vi.mock("./api", () => ({
   logout: () => undefined,
   setUnauthorizedHandler: () => undefined,
   login: vi.fn(),
+  getPublicPlot: vi.fn(),
   getPublicStats: () => Promise.resolve({ total_plots: 100, plots_per_band: { green: 58, amber: 29, red: 13 } }),
   askGuide: vi.fn(),
   ApiError: class ApiError extends Error {},

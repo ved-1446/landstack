@@ -153,3 +153,7 @@ Claude Code and Antigravity are both used, one at a time, in this same folder. T
 - **Dependencies:** added `react-router`, and `vitest`, `@testing-library/react`, `@testing-library/dom`, `jsdom` for tests; removed `gsap` (the gauge uses CSS and a small count-up hook).
 - **Names:** the old product name and personal names were removed from the docs, LICENSE and code comments; the origin credit is "the SIH 2026 land-records problem statement". The Docker container, database and database user keep their original names until 13c.
 - **Still to do in 13a-2:** the full landing page, How it works, About, browser checks and screenshots.
+
+## Status update after Phase 13a-2 (the public pages)
+- The public site is complete: a landing page (live Flow Field hero, public "Check a plot" card that shows only village and band, preview cards, four steps, three role cards), a "How it works" page (steps, the 9 checks with points, the bands, what is simulated) and an About page (what it is and is not, scoring, limits, credits). All live numbers come from `/public/stats`; the example passport is labelled "Sample data".
+- Measured in a browser at 1440 and 390 px: no sideways scroll, no overlapping controls, reduced motion respected, text contrast at least 4.69:1 on the rendered pages. 36 frontend tests and 681 backend tests pass. Next: 13b (citizen and officer pages), then 13c (admin pages, final README, infra renames).
