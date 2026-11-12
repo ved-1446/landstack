@@ -1,6 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { lazy, Suspense, useEffect, type CSSProperties } from "react";
-import { Link, useLocation } from "react-router";
+import { Link, useLocation, useSearchParams } from "react-router";
 import { getPublicStats } from "../api";
 import { ContourLines, StripeGlow } from "../components/Backdrop";
 import { GlassCard, RoleBadge, StatCard } from "../components/ui";
@@ -21,6 +21,9 @@ const cta = "inline-flex h-12 items-center gap-2 rounded-control px-5 text-14 fo
 
 /** The public home page. Every number is from GET /public/stats or is labelled "Sample data". */
 export default function Landing() {
+  const [params] = useSearchParams();
+  const plotParam = params.get("plot") ?? "";
+  const startPlot = /^[A-Za-z0-9]{1,14}$/.test(plotParam) ? plotParam : "";
   const stats = useFetch((signal) => getPublicStats(signal), []);
   const { hash } = useLocation();
 
@@ -66,7 +69,7 @@ export default function Landing() {
             </div>
           </div>
           <div className="rise hero-card-backing rounded-glass" style={rise(4)}>
-            <CheckCard />
+            <CheckCard initialUlpin={startPlot} />
           </div>
         </div>
       </section>

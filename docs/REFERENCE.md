@@ -123,11 +123,11 @@ python db/seed_users.py
 
 **3. Start the API and the frontend** as before, then open http://localhost:5173 and log in.
 
-**Demo logins. DEMO ONLY: these passwords are public, never use them anywhere real.**
+**Demo logins for a LOCAL copy. DEMO ONLY: these passwords are public, never use them anywhere real. The `admin` row is local only; a hosted copy sets its own private admin password with `ADMIN_PASSWORD`.**
 
 | Username | Password | Role | What it sees |
 |---|---|---|---|
-| `admin` | `AdminDemo#2026` | admin | everything an officer sees, plus the audit log (`GET /audit`) |
+| `admin` | local default in the README's local-setup section | admin | everything an officer sees, plus the audit log (`GET /audit`) |
 | `officer` | `OfficerDemo#2026` | officer | all plots, all passports, the summary |
 | `citizen1` | `Citizen1Demo#2026` | citizen | only its 3 plots (a RED plot that overlaps another plot, a missing-record plot, a clean plot) |
 | `citizen2` | `Citizen2Demo#2026` | citizen | only its 3 plots (a restricted-zone plot and 2 clean plots) |

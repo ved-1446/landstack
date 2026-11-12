@@ -5,6 +5,7 @@ import { Async } from "../../components/Async";
 import { MiniMap } from "../../components/MiniMap";
 import { BandChip, CreamCard, GlassCard, PageHeader, StatCard } from "../../components/ui";
 import { useAppData } from "../../lib/appData";
+import { CheckCard } from "../landing/CheckCard";
 import type { PlotCollection } from "../../types";
 
 interface Todo {
@@ -108,6 +109,13 @@ export default function CitizenHome() {
                     </div>
                   </Link>
                 </GlassCard>
+                <div className="lg:col-span-2">
+                  <CheckCard
+                    eyebrow="CHECK ANY PLOT"
+                    title={<>Look up <em className="text-coral-text">any</em> plot</>}
+                    intro="Your own plots appear under My plots, with all their checks. Any other plot returns only the public summary: its id, village and risk band."
+                  />
+                </div>
               </div>
             );
           }}

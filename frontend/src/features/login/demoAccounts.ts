@@ -1,4 +1,5 @@
-// DEMO ONLY. These are the public demo logins from the README (never real credentials).
+// DEMO ONLY. These are the public demo logins from the README (never real credentials). There is NO admin here on purpose:
+// the admin password is private on the live demo, and admin signs in by typing the credentials.
 // The "Try a demo account" row on the login screen is shown ONLY when VITE_DEMO_ACCOUNTS is exactly "true" (off by default,
 // because it shows demo usernames and passwords). Set it to "true" in frontend/.env for local demos, and in Vercel for the public DEMO
 // site (the data is fake and the passwords are public on purpose). It MUST be "false" for anything with real data, because these
@@ -12,7 +13,6 @@ export interface DemoAccount {
 }
 
 export const DEMO_ACCOUNTS: DemoAccount[] = [
-  { username: "admin", password: "AdminDemo#2026", role: "Admin" },
   { username: "officer", password: "OfficerDemo#2026", role: "Officer" },
   { username: "citizen1", password: "Citizen1Demo#2026", role: "Citizen" },
   { username: "citizen2", password: "Citizen2Demo#2026", role: "Citizen" },

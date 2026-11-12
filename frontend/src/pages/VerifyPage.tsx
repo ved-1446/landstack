@@ -1,7 +1,8 @@
 import { CircleCheck, FileQuestion, TriangleAlert } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { useSearchParams } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { ApiError, verifyDocument } from "../api";
+import { SamplePlotChips } from "../components/SamplePlotChips";
 import { Button, GlassCard, PageHeader } from "../components/ui";
 import type { Verification } from "../types";
 
@@ -97,6 +98,9 @@ export function VerifyPanel({ initialId = "", onFound }: { initialId?: string; o
         </div>
       </GlassCard>
       <p className="mt-4 text-13 text-muted-on-navy">
+        Where does a document id come from? It is printed on a passport PDF. Download a passport from My plots, then paste its document id here or scan its QR code.
+      </p>
+      <p className="mt-2 text-13 text-muted-on-navy">
         We show only whether it matches, the plot id and the date. No names, no evidence and no score.
       </p>
     </>
@@ -106,6 +110,7 @@ export function VerifyPanel({ initialId = "", onFound }: { initialId?: string; o
 /** /verify: type the document id printed on a land passport and see whether the records still match. Public, no login. */
 export default function VerifyPage() {
   const [params] = useSearchParams();
+  const navigate = useNavigate();
   return (
     <div className="mx-auto max-w-3xl px-(--edge) py-12">
       <PageHeader
@@ -115,6 +120,10 @@ export default function VerifyPage() {
         subtitle="Type the document id printed at the bottom of a land passport (or scan its QR code). We say whether the records still match what was printed. No login needed."
       />
       <VerifyPanel initialId={params.get("id") ?? ""} />
+      <div className="mt-6">
+        <p className="text-13 text-muted-on-navy">No passport at hand? A plot id is checked on the home page.</p>
+        <SamplePlotChips label="Try a plot id" onPick={(ulpin) => navigate(`/?plot=${ulpin}#check`)} />
+      </div>
     </div>
   );
 }

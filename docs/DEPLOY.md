@@ -57,10 +57,13 @@ $env:NEON_URL = "postgresql://USER:PASSWORD@ep-something-123456.eu-central-1.aws
 # 2) the tables, using the psql program inside your local Docker database container (it only connects OUT to Neon)
 Get-Content db/schema.sql | docker exec -i -e NEON_URL=$env:NEON_URL landstack-db sh -c 'psql "$NEON_URL" -v ON_ERROR_STOP=1 -q'
 
-# 3) the 100 fake plots, then the four demo users (the Python scripts read DATABASE_URL)
+# 3) the 100 fake plots, then the four users; the admin gets the private password you type (the scripts read DATABASE_URL)
 $env:DATABASE_URL = $env:NEON_URL
 .\.venv\Scripts\python.exe db\seed.py
+$secure = Read-Host "Choose a private admin password (12+ characters; you type it, it is never shown or saved)" -AsSecureString
+$env:ADMIN_PASSWORD = [System.Net.NetworkCredential]::new("", $secure).Password
 .\.venv\Scripts\python.exe db\seed_users.py
+Remove-Item Env:ADMIN_PASSWORD
 
 # 4) proof: every check should flag exactly what was planted
 .\.venv\Scripts\python.exe -m backend.app.checks
@@ -72,7 +75,7 @@ Expect: step 2 prints nothing (that is success; `ON_ERROR_STOP` stops at the fir
 
 `db/seed.py` **clears the plots** it is pointed at. Run it only with the address of the database you mean.
 
-> The demo accounts (`admin`, `officer`, `citizen1`, `citizen2`) have **public** passwords (they are in the README on purpose). Anyone on the internet can sign in as the demo admin. That is acceptable only because every record is fake and the admin pages are read-only. Never reuse these passwords anywhere.
+> The `officer`, `citizen1` and `citizen2` accounts have **public** passwords (they are in the README on purpose; every record is fake). **The `admin` password must be private.** `db/seed_users.py` uses the `ADMIN_PASSWORD` environment variable when it is set, which is why step 3 above asks you to type it (never write it into a file or paste it into a chat). To change the admin password on a database that is already seeded, without touching anything else, use `db/set_admin_password.py` the same way (it reads `ADMIN_PASSWORD` and `DATABASE_URL`; see "Change the live admin password" below). Never reuse the public passwords anywhere.
 
 ## 3. Render (the API)
 You can do this by hand, or let `render.yaml` (in the repository root) do most of it.
@@ -143,7 +146,7 @@ Set `CORS_ORIGINS` to the Vercel address and `PUBLIC_BASE_URL` to the Render add
 - [ ] Open the Vercel address: the home page shows live counts (100 plots).
 - [ ] Open `https://YOUR-SITE/verify` and press refresh: the page loads (deep links work).
 - [ ] Sign in with the **Officer** demo card, open a red plot, download the **PDF passport**, scan its QR code with your phone: it opens the **Render** address and shows **MATCHES**.
-- [ ] Sign in as `admin` → **System**: API, database, PostGIS "Running", AI explainer "Switched off" if you set no key. **Insights** shows the 12 signals.
+- [ ] Sign in as `admin` (typing your private password) → **System**: API, database, PostGIS "Running", AI explainer "Switched off" if you set no key. **Insights** shows the 12 signals. The sign-in page must show only the Citizen and Officer cards.
 - [ ] Sign in as `citizen1`: only 3 plots; the **Map** tab shows only those.
 - [ ] Wait 20 minutes, then open the site: you see the "waking up" note, then it works.
 
@@ -171,6 +174,19 @@ Image `landstack-api` built from `backend/Dockerfile`: **869 MB on disk** (uncom
 | After `/admin/insights` (SHAP over 100 plots) | **251 MB**, highest still 316 MB; the SHAP libraries are loaded at start-up, and the answer is cached for 5 minutes |
 
 That is under the 400 MB target and leaves headroom inside Render's 512 MB free instance. Nothing about scoring was changed to get there.
+
+## Change the live admin password
+Run in PowerShell, in the repository folder. Both secrets live only in this window and are cleared at the end; nothing is written to a file or printed.
+
+```powershell
+$neon = Read-Host "Neon direct connection string" -AsSecureString
+$new  = Read-Host "New private admin password (12+ characters)" -AsSecureString
+$env:DATABASE_URL   = [System.Net.NetworkCredential]::new("", $neon).Password
+$env:ADMIN_PASSWORD = [System.Net.NetworkCredential]::new("", $new).Password
+.\.venv\Scripts\python.exe db\set_admin_password.py      # prints: The admin password was changed.
+Remove-Item Env:DATABASE_URL, Env:ADMIN_PASSWORD
+```
+Confirm the old password is dead: on the live site, sign in as `admin` with the old public demo password (see the README's local section): it must say wrong username or password. Then sign in with the new one. (Logins are limited to 5 a minute per visitor, so wait a minute between tries.) A new password does not end tokens already issued; they expire within `JWT_EXPIRE_MINUTES`.
 
 ## Rolling back, and costs
 - **Render** keeps previous deploys: **Events → Rollback**. **Vercel** keeps every deploy: **Deployments → … → Promote to Production**.

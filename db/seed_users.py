@@ -2,11 +2,14 @@
 
     python db/seed_users.py
 
-The passwords below are DEMO ONLY (they are in the README on purpose). Never use them anywhere real.
+The citizen and officer passwords below are DEMO ONLY (they are in the README on purpose). Never use them anywhere real.
+The admin password is the local default below ONLY when the ADMIN_PASSWORD environment variable is not set. For any public
+deployment set ADMIN_PASSWORD (for that one command only) so the admin password is private and never in a file.
 Only argon2 hashes go into the database. Safe to run again: it updates the same four users and
 re-assigns their plots. Run it after db/seed.py (it picks plots from db/planted_truth.json).
 """
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -18,7 +21,7 @@ TRUTH_PATH = Path(__file__).resolve().parent / "planted_truth.json"
 
 # DEMO-ONLY passwords. Real passwords never go in code.
 DEMO_USERS = [
-    ("admin", "admin", "AdminDemo#2026"),
+    ("admin", "admin", os.environ.get("ADMIN_PASSWORD") or "AdminDemo#2026"),   # local default; ADMIN_PASSWORD overrides it
     ("officer", "officer", "OfficerDemo#2026"),
     ("citizen1", "citizen", "Citizen1Demo#2026"),
     ("citizen2", "citizen", "Citizen2Demo#2026"),
@@ -97,7 +100,7 @@ def main():
         plot_ulpins = [u for (u,) in conn.execute("SELECT ulpin FROM plots ORDER BY ulpin")]
         users = build_demo_users(plot_ulpins, truth)
         load_users(conn, users)
-    print("Demo users created (passwords are in the README, demo only):")
+    print("Demo users created (citizen and officer passwords are in the README, demo only; the admin password is never printed):")
     for u in users:
         owns = f"owns {', '.join(u['plots'])}" if u["plots"] else "sees everything its role allows"
         print(f"  {u['username']:<9} {u['role']:<8} {owns}")

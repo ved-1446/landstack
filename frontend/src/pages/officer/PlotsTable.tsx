@@ -8,6 +8,7 @@ import { useAppData } from "../../lib/appData";
 import { sqm } from "../../lib/format";
 import { paginate, selectPlots, type SortKey } from "../../lib/plotFilters";
 import type { Band } from "../../types";
+import { CheckCard } from "../landing/CheckCard";
 
 const PAGE_SIZE = 15;
 const COLUMNS: { key: SortKey; label: string; numeric?: boolean }[] = [
@@ -54,7 +55,14 @@ export default function PlotsTable() {
   return (
     <section>
       <PageHeader eyebrow="OFFICER WORK DESK" title="All" emphasis="plots" subtitle="Search, filter by band or village, sort by any column, and open a plot to see its passport." />
-      <GlassCard className="mt-8">
+      <div className="mt-8">
+        <CheckCard
+          eyebrow="CHECK ANY PLOT"
+          title={<>See what the <em className="text-coral-text">public</em> sees</>}
+          intro="This is the same public check that visitors get: only the id, village and risk band. Open a plot in the table below for its full passport."
+        />
+      </div>
+      <GlassCard className="mt-6">
         <Async state={plots} what="the plots">
           {() => (
             <>

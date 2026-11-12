@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, Building2, Eye, EyeOff, ShieldCheck, UserRound } from "lucide-react";
+import { ArrowLeft, ArrowRight, Building2, Eye, EyeOff, UserRound } from "lucide-react";
 import { lazy, Suspense, useEffect, useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router";
 import { ApiError, login } from "../api";
@@ -26,11 +26,10 @@ function friendlyError(error: unknown): string {
 const inputClass =
   "h-11 w-full rounded-control border border-glass-border bg-navy-950 px-3 text-14 text-cream placeholder:text-faint-on-navy";
 
-// the three demo role cards use these accounts (the passwords are public demo passwords, shown only when VITE_DEMO_ACCOUNTS is true)
+// the two demo role cards (Citizen and Officer only; admin is typed in by hand) use these accounts (the passwords are public demo passwords, shown only when VITE_DEMO_ACCOUNTS is true)
 const DEMO_CARDS = [
   { username: "citizen1", label: "Citizen", note: "Sees only their own 3 plots", icon: UserRound },
   { username: "officer", label: "Officer", note: "Sees every plot", icon: Building2 },
-  { username: "admin", label: "Admin", note: "Sees everything, plus the audit log", icon: ShieldCheck },
 ] as const;
 
 export default function LoginScreen() {
@@ -208,7 +207,7 @@ export default function LoginScreen() {
         {DEMO_ACCOUNTS_ENABLED && (
           <section aria-label="Demo accounts" className="mt-6 border-t border-glass-border pt-4">
             <h2 className="font-mono text-11 tracking-widest text-muted-on-navy">TRY A DEMO ACCOUNT</h2>
-            <ul className="mt-3 grid grid-cols-3 gap-2 max-sm:grid-cols-1">
+            <ul className="mt-3 grid grid-cols-2 gap-2 max-sm:grid-cols-1">
               {DEMO_CARDS.map((card) => {
                 const account = DEMO_ACCOUNTS.find((a) => a.username === card.username);
                 if (!account) return null;

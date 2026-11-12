@@ -5,15 +5,60 @@
 A student portfolio project, built on **fake data** near Pune. It is a demo, not an official or legal tool.
 Origin: the **SIH 2026 land-records problem statement**.
 
-![The public home page, with the live Flow Field and the "Check a plot" card](docs/screenshots/01-landing.jpg)
+![The public home page, with the "Check a plot" card and example plots to try](docs/screenshots/01-landing.jpg)
+
+## Live demo
+| | |
+|---|---|
+| **Website** | <https://landstack-one.vercel.app> |
+| **API** (live docs at `/docs`) | <https://landstack-ksi4.onrender.com> |
+
+**All data is synthetic** (100 generated plots near Pune). These logins are public on purpose, so never reuse these passwords anywhere:
+
+| Username | Password | Role |
+|---|---|---|
+| `citizen1` | `Citizen1Demo#2026` | citizen: sees only its 3 plots |
+| `citizen2` | `Citizen2Demo#2026` | citizen: sees only its 3 plots |
+| `officer` | `OfficerDemo#2026` | officer: sees every plot and passport |
+
+The sign-in page also has one-click **Citizen** and **Officer** buttons. The admin console is available when you run the project locally, or with credentials the owner shares.
+
+> **The demo runs on free hosting.** After about 15 minutes without visitors the server falls asleep, so **the first visit can take about a minute to wake up**. The site says so and retries by itself.
+
+### Try these plots
+Type one into the **Check a plot** card on the home page (or click an example chip there). The public check shows only the id, village and band; sign in to see everything else.
+
+| Plot id | Village | Band | What to look for |
+|---|---|---|---|
+| `MH000100000009` | Hinjewadi | green | A clean plot: no finding at all. Owned by `citizen1`. |
+| `MH000100000004` | Hinjewadi | amber (30) | About 46% of the plot lies in a restricted zone. Owned by `citizen2`. |
+| `MH000100000001` | Hinjewadi | red (75) | An overlap with another plot, plus a duplicate survey number and overdue tax. Owned by `citizen1`. Its overlap partner's id is hidden from the citizen. |
+| `MH000100000006` | Hinjewadi | red (100, capped) | Four findings add up past 100, so the passport says "Capped at 100". Officers can open it; a citizen gets "not found". |
+| `MH000100000014` | Hinjewadi | green (10) | Green but not spotless: one missing record. Owned by `citizen1`. |
+| `MH000200000021` | Wagholi | red (65) | Includes the **simulated** unrecorded-construction finding. Officer map: switch on the construction layer. |
+
+`citizen1` owns `MH000100000001`, `MH000100000014` and `MH000100000009`. `citizen2` owns `MH000100000004`, `MH000100000010` and `MH000100000013`.
+
+### What to click (a 3-minute tour)
+1. **Home page:** click an example chip in **Check a plot**. You get the village and the band, and nothing else.
+2. **Sign in as `citizen1`** (the Citizen button) and open **My plots**, then the red plot `MH000100000001`.
+3. **Download the PDF passport**, then open **Verify** (or scan the QR code on the PDF with your phone): it says **MATCHES**.
+4. **Switch the language** on the passport to हिन्दी or मराठी and press **Explain in plain words**.
+5. **Toggle the theme** with the sun/moon button in the top bar.
+6. **Open the Land Guide:** the button at the bottom right opens a small chat panel.
+7. Open the citizen **Map** tab: only your own three plots are drawn.
+8. **Sign out, then sign in as `officer`:** use the dashboard, the **Plots** table with its band and village filters, and the **Map**.
+
+More detail: [docs/DEMO.md](docs/DEMO.md).
 
 ## Screenshots
 
 | | |
 |---|---|
 | ![A citizen's plots as cream cards](docs/screenshots/02-citizen.jpg) **Citizen, "MY LAND".** Only their own plots, in plain words. | ![The officer's dashboard](docs/screenshots/03-officer.jpg) **Officer, "OFFICER WORK DESK".** Counts, problems by type, the priority queue and a map preview. |
-| ![The admin control room](docs/screenshots/04-admin.jpg) **Admin, "CONTROL ROOM".** System health, people and activity. | ![The map with a land passport open beside it](docs/screenshots/05-map-passport.jpg) **Map and passport.** The score, each finding with its evidence, and the rule that raised it. |
-| ![A land passport explained in Hindi](docs/screenshots/06-hindi-passport.jpg) **हिन्दी.** The fixed sentences are in Hindi. With no AI key set, the explanation itself stays in English and says so in Hindi. | |
+| ![The admin control room](docs/screenshots/04-admin.jpg) **Admin, "CONTROL ROOM"** (local runs). System health, people and activity. | ![The map with a land passport open beside it](docs/screenshots/05-map-passport.jpg) **Map and passport.** The score, each finding with its evidence, and the rule that raised it. |
+| ![A land passport explained in Hindi](docs/screenshots/06-hindi-passport.jpg) **हिन्दी.** The fixed sentences are in Hindi. With no AI key set, the explanation itself stays in English and says so in Hindi. | ![The citizen home in the light theme, with the Check any plot card and example chips](docs/screenshots/07-light-theme.jpg) **Light theme and example plots.** The sun/moon button switches themes; every signed-in app has a "Check any plot" card with example chips. |
+| ![The Land Guide popup over the citizen's map](docs/screenshots/08-guide-popup.jpg) **Land Guide popup and citizen map.** The chat opens from the button at the bottom right; the map shows only the citizen's own plots. | |
 
 More: [sample PDFs](docs/samples/) and the guided tour in [docs/DEMO.md](docs/DEMO.md).
 
@@ -23,9 +68,9 @@ More: [sample PDFs](docs/samples/) and the guided tour in [docs/DEMO.md](docs/DE
 - **Scores each plot** with fixed points (below) and shows a **land passport**: every finding with its evidence and the rule that raised it.
 - **Prints a one-page PDF passport** with a QR code and a short document id. **`/verify`** tells anyone, on a phone or through the API, whether the records still match what was printed.
 - **Has three roles, each with its own pages** (see below): a citizen sees only their own plots (anything else is "not found"), an officer works through every plot, and an admin also runs the control room. Passport views and downloads are audit-logged; there are rate limits.
-- **Has a public side**: a home page with a "Check a plot" card that shows only a plot's village and risk band, a how-it-works page, an about page, and a page that checks a printed passport.
-- **Optional AI helpers** (off unless you add a key): "Explain in plain words" rewrites a plot's findings in words; the **Land Guide** answers general questions from a small set of public pages. Both can work in हिन्दी and मराठी. **The AI never changes a score.**
-- **A statistical "unusual plot" note** from an Isolation Forest model: a hint for a human, never part of the score.
+- **Has a public side**: a home page with a "Check a plot" card (with example plots to click) that shows only a plot's village and risk band, a how-it-works page, an about page, and a page that checks a printed passport. Signed-in users get the same card under "Check any plot".
+- **Optional AI helpers** (off unless you add a key): "Explain in plain words" rewrites a plot's findings in words; the **Land Guide** answers general questions from a small set of public pages. Both can work in English, हिन्दी and मराठी. **The AI never changes a score.**
+- **A statistical "unusual plot" note** from an Isolation Forest model, labelled "explanation only": a hint for a human, never part of the score.
 - **State adapters** turn three made-up state formats into one standard format (square metres, ISO dates, "Given Family" names).
 
 ## The three views
@@ -58,16 +103,20 @@ Invalid shapes are skipped by the overlap and zone checks (they get their own fi
 ## Architecture
 ```mermaid
 flowchart LR
-  user([Officer or citizen]) --> web[Web app<br/>React + MapLibre]
+  user([Officer or citizen]) --> web[Website on Vercel<br/>React + MapLibre]
   phone([Phone scanning a QR code]) -->|GET /verify| api
-  web -->|JSON + login token| api[FastAPI<br/>backend/app]
-  api -->|raw SQL| db[(PostgreSQL + PostGIS<br/>Docker)]
+  web -->|JSON + login token| api[API on Render<br/>FastAPI, Docker]
+  api -->|raw SQL| db[(Neon<br/>PostgreSQL + PostGIS)]
   api --> pdf[PDF + QR<br/>ReportLab, HarfBuzz]
   api -->|search| guide[Land Guide corpus<br/>BM25, local files]
   api -.->|optional, no personal data| llm[OpenRouter LLM]
-  api -.->|optional note only| ml[Isolation Forest<br/>ml/models]
+  api -.->|optional note only| ml[Isolation Forest<br/>trained at build]
   seed[db/seed.py<br/>fixed seed] --> db
 ```
+Locally the same code runs against PostgreSQL + PostGIS in Docker.
+
+### How it is deployed
+The website is static files on **Vercel**, the API is a Docker container on **Render**, and the database is **Neon** (PostgreSQL with PostGIS), all on free tiers. Secrets are typed into each dashboard and are never in the repository. Step-by-step instructions, the three addresses people mix up (`PUBLIC_BASE_URL`, `CORS_ORIGINS`, `VITE_API_URL`) and a troubleshooting table are in [docs/DEPLOY.md](docs/DEPLOY.md).
 
 ## Tech stack
 - **Backend:** Python 3.14, FastAPI, psycopg 3 with hand-written SQL, PostgreSQL 16 + PostGIS 3.4 (Docker), argon2 and JWT for login, slowapi for rate limits, ReportLab, qrcode, pypdf, HarfBuzz (`uharfbuzz`) and fontTools for Devanagari in the PDF.
@@ -132,22 +181,24 @@ Then follow the 8-click tour in [docs/DEMO.md](docs/DEMO.md).
 
 Optional **free basemap keys**: the Light and Dark maps use a keyless CARTO address that works today but may stop; a free CARTO key in `VITE_CARTO_KEY` and an Esri API key in `VITE_ESRI_KEY` (satellite) make them dependable. Without keys the app still runs.
 
-## Demo accounts
-**These passwords are public. Never use them anywhere real.**
+## Demo accounts when you run it locally
+**The citizen and officer passwords are public. Never use them anywhere real.**
 
 | Username | Password | Role | Sees |
 |---|---|---|---|
-| `admin` | `AdminDemo#2026` | admin | the control room (audit log, users, system, insights) and the officer pages |
 | `officer` | `OfficerDemo#2026` | officer | all plots and passports |
 | `citizen1` | `Citizen1Demo#2026` | citizen | only its 3 plots |
 | `citizen2` | `Citizen2Demo#2026` | citizen | only its own plots |
+| `admin` | `AdminDemo#2026` | admin | the control room (audit log, users, system, insights) and the officer pages |
 
-The login screen shows these as one-click buttons **only when `VITE_DEMO_ACCOUNTS` is exactly `true`** in `frontend/.env` (the setup script writes that for local demos). **Warning: the row shows usernames and passwords on the login screen. It is off by default; never set it to `true` in a real deployment**, and build a production copy with it unset (`npm run build`).
+**The `admin` login exists for local use only.** `python db/seed_users.py` creates it with that default; set an `ADMIN_PASSWORD` environment variable for that command to choose another one (a hosted copy should always do this). The login screen's one-click cards cover only Citizen and Officer; type the admin credentials by hand.
+
+The cards appear **only when `VITE_DEMO_ACCOUNTS` is exactly `true`** in `frontend/.env` (the setup script writes that for local demos). **Warning: the cards put usernames and passwords in the web app's code. It is off by default; never set it to `true` for anything with real data**, and build a production copy with it unset (`npm run build`).
 
 ## Tests
 ```
-python -m pytest backend/tests -q        # 709 tests; needs the database running and seeded
-cd frontend && npm test                  # 100 tests: routing, role guards, every page's loading, empty and error states
+python -m pytest backend/tests -q        # 735 tests; needs the database running and seeded
+cd frontend && npm test                  # 136 tests: routing, role guards, the sample-plot chips, every page's loading, empty and error states
 cd frontend && npm run check:design      # design rules: no stray colours, sizes, emoji or old product name
 cd frontend && npm run build             # design check + TypeScript + production build
 ```
@@ -163,6 +214,7 @@ The tests use a throw-away JWT secret, switch the AI **off** and block the netwo
 - **Translations are machine-made.** Hindi and Marathi answers come from translating the checked English answer with a free model and are labelled "machine-translated, may contain errors". The fixed Hindi and Marathi sentences in `chatbot/strings.json` were written by a person (not by an AI each time) but **have not been reviewed by a native speaker**. Only the Land Guide panel and the Explain section are translated, not the whole app.
 - **Login tokens cannot be revoked.** They are standard JWTs that last 60 minutes by default. Logging out only forgets the token in the browser; a stolen token works until it expires. The rate-limit counters live in the server's memory (they reset on restart and are not shared between workers).
 - **Whatever you send to the AI leaves your machine.** The app sends as little as it can (finding types, numbers, the question; no names, no ULPINs). Do not type personal details into the Land Guide.
+- **The live demo sleeps.** It runs on free hosting (Vercel, Render, Neon), so the first visit after a quiet spell can take about a minute, and the free limits could pause it. The demo admin account is private; the public logins are only citizen and officer.
 - **No security audit.** The dependency audits (`pip-audit`, `npm audit`) were clean when run, secrets are not in the repository or its history, and citizens cannot reach other people's plots on any endpoint (a test walks every endpoint). That is not a substitute for a real review before any real use.
 
 ### Plan: how a real deployment would train and ship the ML model

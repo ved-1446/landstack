@@ -50,8 +50,9 @@ describe("the public check card", () => {
     fireEvent.click(screen.getByRole("button", { name: /check/i }));
     expect(await screen.findByText("Hinjewadi")).toBeTruthy();
     expect(getPublicPlot).toHaveBeenCalledWith("MH000100000006", expect.anything());
-    expect(screen.getByText("MH000100000006")).toBeTruthy();
-    expect(screen.getByText(/high risk · red/i)).toBeTruthy();
+    const result = screen.getByText("Hinjewadi").closest("dl") as HTMLElement;
+    expect(within(result).getByText("MH000100000006")).toBeTruthy();
+    expect(within(result).getByText(/high risk · red/i)).toBeTruthy();
     expect(document.body.textContent).not.toContain("SECRET");
     expect(document.body.textContent).not.toMatch(/score/i);
   });
@@ -156,7 +157,7 @@ describe("the login page demo cards", () => {
     );
   }
 
-  it("shows the three role cards only when VITE_DEMO_ACCOUNTS is true", async () => {
+  it("shows exactly two role cards (Citizen, Officer) and never an admin card or password when VITE_DEMO_ACCOUNTS is true", async () => {
     vi.stubEnv("VITE_DEMO_ACCOUNTS", "true");
     vi.resetModules();
     await renderLogin();
@@ -164,8 +165,9 @@ describe("the login page demo cards", () => {
     expect(within(section).getAllByRole("button").map((b) => b.textContent)).toEqual([
       expect.stringContaining("Citizen"),
       expect.stringContaining("Officer"),
-      expect.stringContaining("Admin"),
     ]);
+    expect(document.body.textContent).not.toMatch(/admin/i);
+    expect(document.body.textContent).not.toMatch(new RegExp("Admin" + "Demo"));
   });
 
   it.each(["false", "", "TRUE", "1"])("shows no demo cards when VITE_DEMO_ACCOUNTS is %j", async (value) => {
