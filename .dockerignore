@@ -1,0 +1,27 @@
+# Nothing secret and nothing big goes into the image (the Dockerfile builds from the repository root).
+.env
+.env.*
+!.env.example
+frontend
+docs
+scripts
+.git
+.github
+.venv
+.agents
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+node_modules
+# built inside the image, not copied
+ml/models
+ml/data/dataset.json
+ml/data/features.csv
+ml/data/labels.csv
+chatbot/raw
+chatbot/chunks.jsonl
+backend/tests
+planted_truth.json
+graphify-out
+*.md
+!backend/app/fonts/*.md

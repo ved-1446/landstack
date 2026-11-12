@@ -122,9 +122,11 @@ Then follow the 8-click tour in [docs/DEMO.md](docs/DEMO.md).
 | Variable | What it does |
 |---|---|
 | `POSTGRES_PASSWORD` (and `POSTGRES_USER`, `POSTGRES_DB`, `POSTGRES_HOST`, `POSTGRES_PORT`) | the database |
+| `DATABASE_URL` | optional: **one** address for a hosted database (for example Neon); used instead of the `POSTGRES_*` variables when set (`sslmode=require` is added if missing) |
 | `JWT_SECRET` | login-token key. **The server refuses to start without a long random one** and rejects the placeholder |
 | `CORS_ORIGINS` | web addresses allowed to call the API (comma separated, **no wildcards**; a bad value stops the server) |
-| `PUBLIC_BASE_URL` | where the QR code on a printed passport points |
+| `PUBLIC_BASE_URL` | where the QR code on a printed passport points: the **API's** public address |
+| `TRUSTED_PROXY_HOPS` | behind a proxy (Render): how many proxies append to `X-Forwarded-For`, so each visitor gets their own rate limit. `0` (default) ignores the header |
 | `OPENROUTER_API_KEY`, `OPENROUTER_MODEL` | optional: turn on the AI helpers (a free model is fine) |
 | `VITE_API_URL`, `VITE_DEMO_ACCOUNTS`, `VITE_CARTO_KEY`, `VITE_ESRI_KEY` | web app: put them in `frontend/.env` (Vite reads that folder), see below |
 
@@ -181,7 +183,7 @@ Nothing below is built; it is the plan.
 - All other libraries and their licences are in [THIRD_PARTY.md](THIRD_PARTY.md). LandStack itself is MIT-licensed ([LICENSE](LICENSE)).
 
 ## More documentation
-[docs/DEMO.md](docs/DEMO.md) (tour) · [docs/REFERENCE.md](docs/REFERENCE.md) (every phase in detail: adapters, login, PDF, ML tables, AI features) · [docs/api-contract.md](docs/api-contract.md) · [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) · [docs/PROJECT_BRIEF.md](docs/PROJECT_BRIEF.md) · [docs/HANDOFF.md](docs/HANDOFF.md)
+[docs/DEPLOY.md](docs/DEPLOY.md) (put the demo online: Neon + Render + Vercel, free tiers) · [docs/DEMO.md](docs/DEMO.md) (tour) · [docs/REFERENCE.md](docs/REFERENCE.md) (every phase in detail: adapters, login, PDF, ML tables, AI features) · [docs/api-contract.md](docs/api-contract.md) · [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) · [docs/PROJECT_BRIEF.md](docs/PROJECT_BRIEF.md) · [docs/HANDOFF.md](docs/HANDOFF.md)
 
 ## Future work
 Not built (by design, to keep each phase small):

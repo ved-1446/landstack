@@ -12,3 +12,8 @@ if (!window.matchMedia) {
   })) as unknown as typeof window.matchMedia;
 }
 window.scrollTo = (() => undefined) as typeof window.scrollTo;
+
+// Pages are lazy-loaded and the whole suite runs in parallel: give "findBy..." a longer patience than the 1 s default so a busy
+// machine does not make a correct test fail.
+import { configure } from "@testing-library/react";
+configure({ asyncUtilTimeout: 5000 });

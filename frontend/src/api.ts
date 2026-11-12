@@ -23,7 +23,10 @@ import type {
   ZoneRow,
 } from "./types";
 
-const BASE_URL = (import.meta.env.VITE_API_URL ?? "http://localhost:8000").replace(/\/$/, "");
+import { API_URL_MISSING, BASE_URL } from "./lib/apiBase";
+import { markAwake, markDown, markWaking, serverIsAwake, sleep, wakeTuning, WAKING_STATUSES } from "./lib/serverState";
+
+
 
 export class ApiError extends Error {
   /** the HTTP status (401, 404, 429...) or undefined when the server could not be reached */
@@ -97,9 +100,48 @@ interface Options {
   accept?: string; // an Accept header (the verify page asks for JSON explicitly, because the same URL can also return a web page)
 }
 
+
+/**
+ * fetch(), with patience for a sleeping free-tier server. Until the API has answered once: a call that is slow shows the
+ * "waking up" note; one that cannot connect, or that the host answers with 502/503/504 while it starts, is tried again every few
+ * seconds (about two minutes in all). Once the API has answered, a failure is reported straight away, as before.
+ */
+async function fetchWhileWaking(url: URL, init: RequestInit, signal?: AbortSignal): Promise<Response> {
+  const slow = serverIsAwake() ? null : setTimeout(markWaking, wakeTuning.slowAfterMs);
+  try {
+    for (let attempt = 1; ; attempt++) {
+      try {
+        const response = await fetch(url, init);
+        if (WAKING_STATUSES.has(response.status) && !serverIsAwake()) {
+          if (attempt >= wakeTuning.maxTries) {
+            markDown();
+            return response; // the normal error handling below says what happened
+          }
+          markWaking();
+          await sleep(wakeTuning.retryEveryMs, signal);
+          continue;
+        }
+        markAwake(); // any real answer (even 401 or 404) means the server is up
+        return response;
+      } catch (err) {
+        if (signal?.aborted || (err instanceof DOMException && err.name === "AbortError")) throw err; // the caller cancelled on purpose
+        if (serverIsAwake() || attempt >= wakeTuning.maxTries) {
+          markDown();
+          throw new ApiError(`Cannot reach the API at ${BASE_URL}. Is the backend running?`);
+        }
+        markWaking();
+        await sleep(wakeTuning.retryEveryMs, signal);
+      }
+    }
+  } finally {
+    if (slow) clearTimeout(slow);
+  }
+}
+
 /** Sends the request and returns the response if it worked. Everything that went wrong becomes an ApiError. */
 async function send(path: string, options: Options = {}): Promise<Response> {
   const { params = {}, signal, body, authenticated = true, accept } = options;
+  if (API_URL_MISSING) throw new ApiError("This site was built without an API address. Set VITE_API_URL to the API's web address and build again.");
   const url = new URL(BASE_URL + path);
   for (const [key, value] of Object.entries(params)) {
     if (value) url.searchParams.set(key, value);
@@ -111,18 +153,8 @@ async function send(path: string, options: Options = {}): Promise<Response> {
   const token = authenticated ? getSession()?.token : undefined;
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
-  let response: Response;
-  try {
-    response = await fetch(url, {
-      method: body !== undefined ? "POST" : "GET",
-      headers,
-      body: body !== undefined ? JSON.stringify(body) : undefined,
-      signal,
-    });
-  } catch (err) {
-    if (signal?.aborted) throw err; // the caller cancelled on purpose; not an error to show
-    throw new ApiError(`Cannot reach the API at ${BASE_URL}. Is the backend running?`);
-  }
+  const init = { method: body !== undefined ? "POST" : "GET", headers, body: body !== undefined ? JSON.stringify(body) : undefined, signal };
+  const response = await fetchWhileWaking(url, init, signal);
 
   if (response.status === 401 && authenticated) {
     logout();

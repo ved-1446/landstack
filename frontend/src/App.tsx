@@ -1,6 +1,7 @@
 import { MotionConfig } from "framer-motion";
 import { BrowserRouter } from "react-router";
 import { AuthProvider } from "./auth";
+import { ServerWakingBanner } from "./components/ServerWakingBanner";
 import { ToastProvider } from "./components/ui";
 import { AppRoutes } from "./routes";
 
@@ -13,6 +14,7 @@ export default function App() {
         <AuthProvider>
           <ToastProvider>
             <AppRoutes />
+            <ServerWakingBanner />
           </ToastProvider>
         </AuthProvider>
       </BrowserRouter>

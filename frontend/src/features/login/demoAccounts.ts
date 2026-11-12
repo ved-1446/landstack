@@ -1,7 +1,8 @@
 // DEMO ONLY. These are the public demo logins from the README (never real credentials).
 // The "Try a demo account" row on the login screen is shown ONLY when VITE_DEMO_ACCOUNTS is exactly "true" (off by default,
-// because it shows demo usernames and passwords). Set it to "true" in frontend/.env for local demos; never in a real deployment.
-// It MUST be "false" in any real deployment, because these passwords end up in the JavaScript bundle.
+// because it shows demo usernames and passwords). Set it to "true" in frontend/.env for local demos, and in Vercel for the public DEMO
+// site (the data is fake and the passwords are public on purpose). It MUST be "false" for anything with real data, because these
+// passwords end up in the JavaScript bundle.
 export const DEMO_ACCOUNTS_ENABLED = import.meta.env.VITE_DEMO_ACCOUNTS === "true";
 
 export interface DemoAccount {

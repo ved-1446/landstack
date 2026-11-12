@@ -4,7 +4,7 @@ JSON API over the seeded fake data. Build against this file; it is checked again
 
 - **Run:** `uvicorn backend.app.main:app --reload` (from the repo root, venv active). Base URL `http://localhost:8000`.
 - **Live docs:** `http://localhost:8000/docs` (Swagger UI), `http://localhost:8000/redoc`, raw spec at `/openapi.json`.
-- **CORS:** only `http://localhost:5173` (the Vite dev server) may call it from a browser. GET and POST are allowed, with the `Authorization` and `Content-Type` headers. The `Retry-After` header is readable by the page.
+- **CORS:** only the origins in `CORS_ORIGINS` (a comma-separated list; default `http://localhost:5173`, the Vite dev server) may call it from a browser (no wildcards). GET and POST are allowed, with the `Authorization` and `Content-Type` headers. The `Retry-After` header is readable by the page.
 - **Start-up:** the server refuses to start unless `JWT_SECRET` (a long random value, not the placeholder) is set in `.env` or the environment. `PUBLIC_BASE_URL` (default `http://localhost:8000`) is the web address put into the QR code of printed passports.
 - **Scores** are computed fresh on every request by the Phase 2 engine. Do not compute scores in the frontend.
 - **Coordinates** are GeoJSON `[longitude, latitude]` (SRID 4326), around lon 73.80, lat 18.55 (Pune).
@@ -460,3 +460,9 @@ New optional filters: `action` (for example `view_passport`), `since` and `until
 What the unusual-plot model says over all plots, in plain words: `{available, note, method, plots_checked, flagged, flagged_also_amber_or_red, trained_on_plots, flag_percentile, features: [{name, label, share, top_reason_for}]}`. `share` is each of the 12 signals' average push towards "unusual" as a fraction of the total (they add to 1), worked out on the demo data with SHAP (or distances from the typical value if SHAP is not installed) and cached for 5 minutes. `top_reason_for` counts the flagged plots that signal pushed hardest. With no model, `available` is false and `features` is empty. **Explanation only:** the `note` says so, it adds no points and no score or band is touched.
 
 API title version is now 0.13.3.
+
+## Phase 14a: running behind a host (no new endpoints)
+- **Database:** `DATABASE_URL` (one `postgresql://` address, `sslmode=require` added if missing) is used instead of the `POSTGRES_*` variables when set, by the API, `db/seed.py`, `db/seed_users.py` and the checks. Nothing changes when it is unset.
+- **Visitor address:** rate limits key on `limits.client_ip`. With `TRUSTED_PROXY_HOPS=N` (0 to 5, default 0) it takes the Nth entry from the RIGHT of `X-Forwarded-For` (the one the platform's proxy appended); the left side is never believed. Missing, too short or not an address: the connection address is used.
+- **`PUBLIC_BASE_URL`** is the API's public address (the QR code is `{PUBLIC_BASE_URL}/verify/{doc_id}`). **`CORS_ORIGINS`** is the website's address(es).
+- **Docker:** `backend/Dockerfile` (build from the repository root), listens on `$PORT`, runs as a non-root user, trains the unusual-plot model and fetches the Land Guide pages at build time (glossary only if the fetch fails). See `docs/DEPLOY.md`.

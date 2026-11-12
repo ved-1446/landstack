@@ -427,11 +427,9 @@ def _read_env():
 # The default database name and user are "landstack" (they match docker-compose.yml and .env.example; POSTGRES_USER and POSTGRES_DB in .env override them).
 def connect():
     import psycopg
-    env = _read_env()
-    return psycopg.connect(
-        host=env.get("POSTGRES_HOST", "localhost"), port=env.get("POSTGRES_PORT", "5432"),
-        user=env.get("POSTGRES_USER", "landstack"), password=env["POSTGRES_PASSWORD"],
-        dbname=env.get("POSTGRES_DB", "landstack"))
+    from backend.app import db   # the same rule as the API: DATABASE_URL if set, else the POSTGRES_* variables
+    args, kwargs = db.connect_args(_read_env())
+    return psycopg.connect(*args, **kwargs)
 
 
 def load(data):

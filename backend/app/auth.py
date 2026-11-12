@@ -10,7 +10,6 @@ import jwt
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
-from slowapi.util import get_remote_address
 
 from . import limits, security
 from .db import get_conn
@@ -100,7 +99,7 @@ def login(request: Request, body: LoginRequest, conn: Conn):
     stored_hash = row[0] if row else None
     if not security.verify_password(stored_hash, body.password):
         # No username and no password in the log, only where the attempt came from.
-        log.warning("failed login attempt from %s", get_remote_address(request))
+        log.warning("failed login attempt from %s", limits.client_ip(request))
         raise _unauthorized(BAD_LOGIN)
     return {
         "access_token": security.create_access_token(body.username, row[1], SETTINGS),

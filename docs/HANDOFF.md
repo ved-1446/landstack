@@ -1,6 +1,15 @@
 # Handoff
 
 ## Current phase
+### PHASE 14a STATUS: deployable (code and docs) DONE in the working tree (not committed)
+- **Docker:** `backend/Dockerfile` + `.dockerignore` (python:3.14-slim, non-root `app`, `$PORT`, uvicorn `--proxy-headers`; trains the model and scrapes the Land Guide pages at build, glossary-only fallback). Built and run locally as `landstack-api:14a-test` (869 MB): idle 248 MB, highest 316 MB, Hindi PDF +6 MB, Insights no change. The throwaway container is removed; the image stays.
+- **`DATABASE_URL`:** `backend/app/db.py` (`database_url`, `connect_args`), `db/seed.py` use it; `seed_users.py` and the checks use `db.connect()`. Local `POSTGRES_*` flow unchanged. No PostGIS function needs 3.4.
+- **Client IP:** `limits.client_ip` + `TRUSTED_PROXY_HOPS` (rightmost-N rule), used by every per-IP limit and the failed-login log.
+- **Cold start:** `lib/serverState.ts`, `fetchWhileWaking` in `api.ts`, `components/ServerWakingBanner.tsx`; `VITE_API_URL` is the only API address in production builds.
+- **Files:** `frontend/vercel.json` (SPA rewrites), `render.yaml`, `docs/DEPLOY.md`.
+- **Tests:** backend `test_deploy.py` (18), frontend `coldstart.test.tsx` (7).
+- **User still has to:** create the Neon, Render and Vercel accounts and follow `docs/DEPLOY.md`; paste the new `.env.example` lines; commit.
+
 ### PHASE 13e STATUS: three UI changes DONE in the working tree (not committed)
 - **Softer cards + light/dark theme.** Tokens now exist twice under the same names (`:root`/`.force-dark` dark, `:root[data-theme="light"]` light) in `frontend/src/styles/tokens.css`; new names `paper` (card), `coral-text` (deeper coral for text on light), `on-coral`, `on-sim`, and theme-free `map-dark`/`map-light`/`sim-map`. Dark cards are deep navy with soft cream text (no more bright cream); light uses a pale warm wash. `lib/theme.ts` + `ThemeToggle` (in `GlassNav`), no-flash inline script in `index.html`, choice saved in `localStorage` (try/catch), default = system. The basemap follows the theme until picked in Layers. The landing hero and login stay dark in both themes (`.force-dark`; the nav stays dark over the hero until the page scrolls). Token tables and contrast values are in `docs/DESIGN_SYSTEM.md`.
 - **Land Guide popup.** The nav tab is gone. `features/guide/GuideLauncher.tsx` (mounted in `AppShell` only): bottom-right button, `role="dialog"` panel, Escape/close, focus returns, conversation kept, "Open full page" to `/app/guide` (route still works, button hidden there). The chat code loads on first open. On a phone it lifts above the map dock and hides while a passport sheet is open.

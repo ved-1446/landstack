@@ -16,7 +16,6 @@ from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
-from slowapi.util import get_remote_address
 
 from . import config, limits
 from .auth import ErrorBody
@@ -30,8 +29,8 @@ ULPIN = re.compile(r"^[A-Z0-9]{14}$")
 NOT_FOUND = "No plot found"                  # the ONE answer for a wrong, malformed or unknown id
 STATS_TTL_SECONDS = 60
 
-per_ip_stats = limits.limiter.limit(lambda: config.RATE_PUBLIC_STATS, key_func=get_remote_address)
-per_ip_plot = limits.limiter.limit(lambda: config.RATE_PUBLIC_PLOT, key_func=get_remote_address)
+per_ip_stats = limits.limiter.limit(lambda: config.RATE_PUBLIC_STATS, key_func=limits.client_ip)
+per_ip_plot = limits.limiter.limit(lambda: config.RATE_PUBLIC_PLOT, key_func=limits.client_ip)
 
 
 class PublicStats(BaseModel):
